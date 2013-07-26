@@ -33,7 +33,7 @@ import dk.dma.ais.packet.AisPackets;
 import dk.dma.ais.store.AisStore;
 import dk.dma.ais.store.AisStores;
 import dk.dma.ais.view.AisViewer;
-import dk.dma.ais.view.target.TargetTracker;
+import dk.dma.ais.view.tracker.TargetTracker;
 import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.enav.util.function.Predicate;
 

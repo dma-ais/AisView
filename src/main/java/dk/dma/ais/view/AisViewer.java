@@ -18,7 +18,7 @@ package dk.dma.ais.view;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.store.AisStore;
-import dk.dma.ais.view.target.TargetTracker;
+import dk.dma.ais.view.tracker.TargetTracker;
 
 /**
  * 

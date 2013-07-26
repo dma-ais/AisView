@@ -29,7 +29,7 @@ import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.store.AisStore;
 import dk.dma.ais.store.cassandra.CassandraAisStore;
 import dk.dma.ais.store.cassandra.support.KeySpaceConnection;
-import dk.dma.ais.view.target.TargetTrackerBackupService;
+import dk.dma.ais.view.tracker.TargetTrackerBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
 /**
