@@ -49,7 +49,7 @@ public class TargetInfo implements Serializable {
     final byte[] staticData1;
     final byte[] staticData2;
 
-    transient volatile boolean isBackedUp = false;
+    transient volatile boolean isBackedUp; /* = false */
 
     /**
      * @param timestamp
