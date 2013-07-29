@@ -17,7 +17,7 @@ package dk.dma.ais.view;
 
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.reader.AisReaderGroup;
-import dk.dma.ais.store.AisStore;
+import dk.dma.ais.store.old.AisStoreOld;
 import dk.dma.ais.view.tracker.TargetTracker;
 
 /**
@@ -26,14 +26,14 @@ import dk.dma.ais.view.tracker.TargetTracker;
  */
 public class AisViewer {
 
-    final AisStore store;
+    final AisStoreOld store;
 
     final TargetTracker targetTracker;
 
     /** All readers, null if we do not support live targets. */
     final AisReaderGroup g;
 
-    AisViewer(AisReaderGroup readerGroup, AisStore store) {
+    AisViewer(AisReaderGroup readerGroup, AisStoreOld store) {
         this.g = readerGroup;
         this.store = store;
         if (readerGroup == null) {
@@ -60,7 +60,7 @@ public class AisViewer {
     /**
      * @return
      */
-    public AisStore getAisStore() {
+    public AisStoreOld getAisStore() {
         if (store == null) {
             throw new UnsupportedOperationException();
         }

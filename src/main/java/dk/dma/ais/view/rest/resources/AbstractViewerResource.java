@@ -30,10 +30,10 @@ import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPackets;
-import dk.dma.ais.store.AisStore;
-import dk.dma.ais.store.AisStores;
+import dk.dma.ais.store.old.AisStoreOld;
 import dk.dma.ais.view.AisViewer;
 import dk.dma.ais.view.tracker.TargetTracker;
+import dk.dma.commons.util.DateTimeUtil;
 import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.enav.util.function.Predicate;
 
@@ -89,7 +89,7 @@ public class AbstractViewerResource {
         return p;
     }
 
-    final AisStore getStore() {
+    final AisStoreOld getStore() {
         return getViewer().getAisStore();
     }
 
@@ -108,7 +108,7 @@ public class AbstractViewerResource {
         } else if (intervals.size() > 1) {
             throw new IllegalArgumentException("Multiple interval parameters defined: " + intervals);
         }
-        return AisStores.toInterval(intervals.get(0));
+        return DateTimeUtil.toInterval(intervals.get(0));
     }
 
     static String getOne(UriInfo info, String param, String errorMsg) {

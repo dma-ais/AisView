@@ -39,7 +39,7 @@ import dk.dma.ais.message.AisMessage;
 import dk.dma.ais.message.AisPosition;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.store.Query;
+import dk.dma.ais.store.old.Query;
 import dk.dma.ais.view.rest.resources.util.XStreamOutputStreamSink;
 import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.enav.model.geometry.Position;

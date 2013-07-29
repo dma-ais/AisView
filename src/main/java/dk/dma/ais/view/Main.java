@@ -26,9 +26,9 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
 
 import dk.dma.ais.reader.AisReaderGroup;
-import dk.dma.ais.store.AisStore;
+import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.store.cassandra.CassandraAisStore;
-import dk.dma.ais.store.cassandra.support.KeySpaceConnection;
+import dk.dma.ais.store.old.AisStoreOld;
 import dk.dma.ais.view.tracker.TargetTrackerBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
@@ -64,9 +64,9 @@ public class Main extends AbstractDaemon {
         AisReaderGroup g = AisReaderGroup.create(aissources);
 
         // Setup AisStore
-        AisStore aisStore = null;
+        AisStoreOld aisStore = null;
         if (!disableAisStore) {
-            KeySpaceConnection con = start(KeySpaceConnection.connect("aisdata", cassandraSeeds));
+            AisStoreConnection con = start(AisStoreConnection.create("aisdata", cassandraSeeds));
             aisStore = new CassandraAisStore(con);
         }
 
