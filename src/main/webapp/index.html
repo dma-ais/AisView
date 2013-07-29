@@ -1,3 +1,188 @@
+<!DOCTYPE html>
 <html>
-AisView
+  <head>
+    <title>AIS datastore front-end</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+    
+    <!-- OpenLayers -->
+    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+    <script>
+    
+      var vectors;
+      var box;
+      var transform;
+        
+      
+      function endDrag(bbox) {
+      	var bounds = bbox.getBounds();
+        setBounds(bounds);
+        drawBox(bounds);
+        box.deactivate();
+        
+        document.getElementById("bbox_drag_instruction").style.display = 'none';
+        document.getElementById("bbox_adjust_instruction").style.display = 'block';        
+      }
+      
+      function dragNewBox() {
+        box.activate();
+        transform.deactivate(); //The remove the box with handles
+        vectors.destroyFeatures();
+        
+        document.getElementById("bbox_drag_instruction").style.display = 'block';
+        document.getElementById("bbox_adjust_instruction").style.display = 'none';
+        
+        setBounds(null); 
+      }
+      
+      function boxResize(event) {
+        setBounds(event.feature.geometry.bounds);
+      }
+      
+      function drawBox(bounds) {
+        var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
+ 
+        vectors.addFeatures(feature);
+        transform.setFeature(feature);
+      }
+      
+      function toPrecision(zoom, value) {
+        var decimals = Math.pow(10, Math.floor(zoom/3));
+        return Math.round(value * decimals) / decimals;
+      }
+      
+      function setBounds(bounds) {
+      	if (bounds == null) {
+      	  document.getElementById("bbox_result").innerHTML = "";
+      	  
+      	} else {
+          b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"))
+          minlon = toPrecision(map.getZoom(), b.left);
+          minlat = toPrecision(map.getZoom(), b.bottom);    
+          maxlon = toPrecision(map.getZoom(), b.right);
+          maxlat = toPrecision(map.getZoom(), b.top);  
+                 
+          document.getElementById("bbox_result").innerHTML =
+                          "minlon=" + minlon + ", " +
+                          "minlat=" + minlat + ", " +
+                          "maxlon=" + maxlon + ", " +
+                          "maxlat=" + maxlat;  
+        }
+      }
+    
+      function init() {
+        map = new OpenLayers.Map("mapdiv");
+        var openstreetmap = new OpenLayers.Layer.OSM();
+        map.addLayer(openstreetmap);
+    
+
+        var lonlat = new OpenLayers.LonLat(10.830917,55.906094	).transform(
+            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
+          );
+
+        var zoom = 5;
+
+    
+        vectors = new OpenLayers.Layer.Vector("Vector Layer", {
+          displayInLayerSwitcher: false
+        });
+        map.addLayer(vectors);
+     
+        box = new OpenLayers.Control.DrawFeature(vectors, OpenLayers.Handler.RegularPolygon, {
+          handlerOptions: {
+            sides: 4,
+            snapAngle: 90,
+            irregular: true,
+            persist: true
+          }
+        });
+        box.handler.callbacks.done = endDrag;
+        map.addControl(box);
+     
+        transform = new OpenLayers.Control.TransformFeature(vectors, {
+          rotate: false,
+          irregular: true
+        });
+        transform.events.register("transformcomplete", transform, boxResize);
+        map.addControl(transform);
+        
+        map.addControl(box);
+        
+        box.activate();
+        
+        map.setCenter(lonlat, zoom);
+        
+      }
+      
+    </script>
+
+    <style>
+    #mapdiv { width:800px; height:400px; }
+    div.olControlAttribution { bottom:3px; }
+    
+    #bbox_drag_instruction { height:1.5em; }
+    #bbox_adjust_instruction { height:1.5em; display:none;  }
+    </style>
+    
+  </head>
+  
+  <body onload="init();">
+  <div class="container bs-docs-container">
+  <div class="row">
+	<div class="col-lg-3">
+      <div class="bs-sidebar">
+        <ul class="nav bs-sidenav">      
+          <li><a href="#bounding-box">Bounding Box</a></li>
+		  <li><a href="#source">Source</a></li>
+		  <li><a href="#ship-types">Ship types</a></li>
+		  <li><a href="#some-other-filter">Some other filter</a></li>
+		</ul>
+      </div>
+ 	</div>
+	<div class="col-lg-9">
+	 <div class="bs-docs-section">
+	  <div class="page-header">
+        <h1 id="bounding-box">Bounding Box</h1>
+        </div>
+        <div id="bbox_drag_instruction">Drag a box:</div>
+    	<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="drag new box" onclick="dragNewBox();"></div>
+    	<div id="mapdiv"></div>
+    	<p id="bbox_result"> </p>
+    	<div id="explanation">Draw coordinates to put a marker on the map:</div>
+    	<br>
+		Point 1: <br> Lat: <input type="text" id="lat1"> Lng: <input type="text" id="lng1"> <br>
+		Point 2: <br> Lat: <input type="text" id="lat2"> Lng: <input type="text" id="lng2"> <br>
+		<button onclick="drawMarkers()">Draw box on map</button> 
+    	
+	  <div class="page-header">
+        <h1 id="source">Source</h1>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+	  </div>
+	  <div class="page-header">
+        <h1 id="ship-types">Ship types</h1>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+	  </div>
+	  <div class="page-header">
+        <h1 id="some-other-filter">Some other filter</h1>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+	  </div>	
+	</div>
+	</div>
+	</div>
+    <!-- JavaScript plugins (requires jQuery) -->
+    <script src="http://code.jquery.com/jquery.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+
+    <!-- Optionally enable responsive features in IE8 -->
+    <script src="js/respond.js"></script>
+  </body>
 </html>
