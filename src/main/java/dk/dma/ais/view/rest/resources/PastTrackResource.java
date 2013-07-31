@@ -36,11 +36,10 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
 import dk.dma.ais.message.AisMessage;
-import dk.dma.ais.message.AisPosition;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.store.old.Query;
 import dk.dma.ais.view.rest.resources.util.XStreamOutputStreamSink;
+import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.Predicate;
@@ -52,13 +51,13 @@ import dk.dma.enav.util.function.Predicate;
 @Path("/track")
 public class PastTrackResource extends AbstractViewerResource {
 
-    static <T> StreamingOutput createStreamingOutput(final Query<T> query, final OutputStreamSink<T> sink) {
+    static <T> StreamingOutput createStreamingOutput(final Iterable<AisPacket> i, final OutputStreamSink<AisPacket> sink) {
         return new StreamingOutput() {
             @Override
             public void write(OutputStream paramOutputStream) throws IOException {
                 try {
                     try (BufferedOutputStream bos = new BufferedOutputStream(paramOutputStream);) {
-                        query.streamResults(bos, sink).get();
+                        sink.writeAll(i, bos);
                     }
                     paramOutputStream.close();
                 } catch (RuntimeException | Error e) {
@@ -72,11 +71,11 @@ public class PastTrackResource extends AbstractViewerResource {
 
     private StreamingOutput execute(int mmsi, UriInfo info, OutputStreamSink<AisPacket> oss) {
         Interval interval = findInterval(info);
-        Query<AisPacket> q = getStore().findByMMSI(mmsi, interval);
+        Iterable<AisPacket> q = getStore().findForMmsi(interval.getStartMillis(), interval.getEndMillis(), mmsi);
 
         Predicate<? super AisPacket> f = getFilter(info);
         if (f != Predicate.TRUE) {
-            q = q.filter(f);
+            q = Iterables.filter(q, f);
         }
 
         return createStreamingOutput(q, oss);
@@ -94,7 +93,7 @@ public class PastTrackResource extends AbstractViewerResource {
         static final DecimalFormat DF = new DecimalFormat("###.#####");
 
         Position lastPosition;
-        Long lastTimestamp;
+        long lastTimestamp = Long.MIN_VALUE;
         final Long sampleDuration;
         final Integer samplePositions;
 
@@ -111,7 +110,7 @@ public class PastTrackResource extends AbstractViewerResource {
         public void write(AisPacket p, HierarchicalStreamWriter writer, MarshallingContext context) {
             AisMessage m = p.tryGetAisMessage();
             IVesselPositionMessage im = (IVesselPositionMessage) m; // made sure it is a vesselpos in isPacketWritable
-            Position pos = im.getPos().getGeoLocation();
+            Position pos = m.getValidPosition();
             lastPosition = pos;
             lastTimestamp = p.getBestTimestamp();
             w(writer, "timestamp", p.getBestTimestamp());
@@ -124,24 +123,18 @@ public class PastTrackResource extends AbstractViewerResource {
 
         public boolean isPacketWriteable(AisPacket packet) {
             AisMessage m = packet.tryGetAisMessage();
-            if (m instanceof IVesselPositionMessage) {
-                AisPosition a = ((IVesselPositionMessage) m).getPos();
-                if (a != null) {
-                    Position pos = a.getGeoLocation();
-                    if (pos != null) {
-                        if (sampleDuration == null && samplePositions == null) {
-                            return true;
-                        }
-                        if (samplePositions != null
-                                && (lastPosition == null || lastPosition.rhumbLineDistanceTo(pos) >= samplePositions)) {
-                            return true;
-                        }
-                        return sampleDuration != null
-                                && (lastTimestamp == null || packet.getBestTimestamp() - lastTimestamp >= sampleDuration);
-                    }
-                }
+            Position pos = m.getValidPosition();
+            if (pos == null) {
+                return false;
             }
-            return false;
+            if (sampleDuration == null && samplePositions == null) {
+                return true;
+            }
+            if (samplePositions != null
+                    && (lastPosition == null || lastPosition.rhumbLineDistanceTo(pos) >= samplePositions)) {
+                return true;
+            }
+            return sampleDuration != null && packet.getBestTimestamp() - lastTimestamp >= sampleDuration;
         }
     };
 }

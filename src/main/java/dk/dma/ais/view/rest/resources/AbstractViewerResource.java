@@ -30,7 +30,7 @@ import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPackets;
-import dk.dma.ais.store.old.AisStoreOld;
+import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.view.AisViewer;
 import dk.dma.ais.view.tracker.TargetTracker;
 import dk.dma.commons.util.DateTimeUtil;
@@ -89,7 +89,7 @@ public class AbstractViewerResource {
         return p;
     }
 
-    final AisStoreOld getStore() {
+    final AisStoreConnection getStore() {
         return getViewer().getAisStore();
     }
 

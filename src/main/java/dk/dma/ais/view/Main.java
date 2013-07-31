@@ -27,8 +27,6 @@ import com.google.inject.Injector;
 
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.store.AisStoreConnection;
-import dk.dma.ais.store.cassandra.CassandraAisStore;
-import dk.dma.ais.store.old.AisStoreOld;
 import dk.dma.ais.view.tracker.TargetTrackerBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
@@ -64,13 +62,12 @@ public class Main extends AbstractDaemon {
         AisReaderGroup g = AisReaderGroup.create(aissources);
 
         // Setup AisStore
-        AisStoreOld aisStore = null;
+        AisStoreConnection con = null;
         if (!disableAisStore) {
-            AisStoreConnection con = start(AisStoreConnection.create("aisdata", cassandraSeeds));
-            aisStore = new CassandraAisStore(con);
+            con = start(AisStoreConnection.create("aisdata", cassandraSeeds));
         }
 
-        final AisViewer viewer = new AisViewer(g, aisStore);
+        final AisViewer viewer = new AisViewer(g, con);
 
         // start the tracker if we get data
         if (g != null) {

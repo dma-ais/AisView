@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.dma.ais.view.rest.resources.AbstractViewerResource;
-import dk.dma.ais.view.rest.resources.StreamResource;
 
 /**
  * 
@@ -49,7 +48,7 @@ import dk.dma.ais.view.rest.resources.StreamResource;
  */
 public class WebServer {
     /** The logger */
-    static final Logger LOG = LoggerFactory.getLogger(StreamResource.class);
+    static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
 
     final Server server;
     static final boolean IS_SECURE = false;
