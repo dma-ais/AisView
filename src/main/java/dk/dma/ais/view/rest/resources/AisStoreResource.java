@@ -15,7 +15,7 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.findArea;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.findArea;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +33,7 @@ import com.google.common.primitives.Ints;
 
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketOutputStreamSinks;
-import dk.dma.ais.view.rest.resources.util.ParameterExtractor;
+import dk.dma.ais.view.rest.resources.util.QueryParameterParser;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.UriQueryUtil;
 import dk.dma.enav.model.geometry.Area;
@@ -49,7 +49,7 @@ public class AisStoreResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/store")
     public StreamingOutput foo(@Context final UriInfo info) {
-        Interval interval = ParameterExtractor.findInterval(info);
+        Interval interval = QueryParameterParser.findInterval(info);
 
         Set<Integer> mmsi = new HashSet<>(UriQueryUtil.getParametersAsInt(info, "mmsi"));
 

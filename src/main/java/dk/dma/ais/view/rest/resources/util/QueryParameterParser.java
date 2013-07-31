@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
@@ -41,10 +42,22 @@ import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.Predicate;
 
 /**
+ * This class is responsible for parsing query parameters.
  * 
  * @author Kasper Nielsen
  */
-public class ParameterExtractor {
+public class QueryParameterParser {
+
+    public static Integer findMinimumDistanceMeters(UriInfo info) {
+        String sp = info.getQueryParameters().getFirst("minDistance");
+        return sp == null ? null : Integer.parseInt(sp);
+
+    }
+
+    public static Long findMinimumDurationMS(UriInfo info) {
+        String dur = info.getQueryParameters().getFirst("minDuration");
+        return dur == null ? null : Period.parse(dur).toStandardSeconds().getSeconds() * 1000L;
+    }
 
     public static Area findArea(UriInfo info) {
         String box = UriQueryUtil.getOneOrZeroParametersOrFail(info, "box", null);

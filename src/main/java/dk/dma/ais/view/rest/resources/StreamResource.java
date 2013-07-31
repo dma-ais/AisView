@@ -15,8 +15,8 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getOutputSink;
-import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getSourceFilter;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getOutputSink;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getSourceFilter;
 import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
 
 import java.io.IOException;

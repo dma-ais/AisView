@@ -15,7 +15,7 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getPacketSourceFilter;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getPacketSourceFilter;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
