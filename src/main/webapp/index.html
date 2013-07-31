@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>	
-    <title>AIS datastore front-end</title>
+    <title>AIS Historic Data Downloader</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
@@ -144,7 +144,7 @@
   <!-- AisStore master nav -->
 <div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
   <div class="container">
-    <a class="navbar-brand">AIS Data Store</a>
+    <a class="navbar-brand">AIS Store Downloader</a>
   </div>
 </div>
 
@@ -154,10 +154,12 @@
 	<div class="col-lg-3">
       <div class="bs-sidebar" data-spy="affix" data-offset-top="0">
         <ul class="nav bs-sidenav">      
-          <li><a href="#bounding-box">Bounding Box</a></li>
-		  <li><a href="#source">Source</a></li>
+		  <li><a href="#source">Source Filtering</a></li>
+          <li><a href="#area-selection">Area Selection</a></li>
 		  <li><a href="#ship-types">Ship types</a></li>
 		  <li><a href="#some-other-filter">Some other filter</a></li>
+		  <li><a href="#output-format">Output Format</a></li>
+		  <li><a href="#download">Download</a></li>
 		</ul>
       </div>
  	</div>
@@ -166,11 +168,23 @@
  	
 	<div class="col-lg-9">
 	 <div class="bs-docs-section">
+	     <div class="page-header">
+        <h1 id="source">Source Filter</h1>
+        <p>The following form can be used to filter the sources that AisData is obtained from:</p>
+        <p>Source id: dropdown list multi-select (less than 10 entries)</p>
+        <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
+        <p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
+        <p>Source type: Multiselect -> 3 options Any (default), LIVE, SAT </p>
+        <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
+        <p>Button [Clear All]</p>
+      </div>
+	 
 	  <div class="page-header">
-        <h1 id="bounding-box">Bounding Box</h1>
+        <h1 id="area-selection">Area Selection</h1>
+        <p>This map can be used to restrict the area for which Ais Data should be returned from:</p>
         </div>
         <div id="bbox_drag_instruction">Drag a box:</div>
-    	<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="drag new box" onclick="dragNewBox();"></div>
+    	<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
     	<div id="mapdiv"></div>
     	<p id="bbox_result"> </p>
     	<div id="explanation">Draw coordinates to put a marker on the map:</div>
@@ -179,12 +193,7 @@
 		Point 2: <br> Lat: <input type="text" id="lat2"> Lng: <input type="text" id="lng2"> <br>
 		<button onclick="drawMarkers()">Draw box on map</button> 
     	
-	  <div class="page-header">
-        <h1 id="source">Source</h1>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-	  </div>
+
 	  <div class="page-header">
         <h1 id="ship-types">Ship types</h1>
         <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
@@ -197,6 +206,23 @@
         <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
         <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
 	  </div>	
+      <div class="page-header">
+        <h1 id="output-format">Output Format</h1>
+        <p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
+      </div>    
+	  <div class="page-header">
+        <h1 id="download">Download</h1>
+        <p>"InputForm with final request parameter."</p>
+      <div class="navbar">
+        <form class="navbar-form pull-left">
+          <input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
+          <button type="submit" class="btn btn-default">Show Sample</button>
+          
+          <button type="submit" class="btn btn-default">Download</button>
+        </form>
+      </div>
+        <p>"A button "Download" right aligned below the request box. url for button->/store?......"</p>
+      </div>
 	</div>
 	</div>
 	</div>
