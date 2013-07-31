@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <head>
+  <head>	
     <title>AIS datastore front-end</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
@@ -8,6 +8,11 @@
     
     <!-- OpenLayers -->
     <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+    
+    <!-- inspiration from:
+    - bouding box: harrywood.co.uk/maps/examples/openlayers/bbox-selector.html
+    -
+    -->
     <script>
     
       var vectors;
@@ -124,15 +129,30 @@
     
     #bbox_drag_instruction { height:1.5em; }
     #bbox_adjust_instruction { height:1.5em; display:none;  }
+    
+    @media (min-width: 979px) {
+    	body {
+        	padding-top: 60px;
+    	}
+	}
     </style>
     
   </head>
   
   <body onload="init();">
-  <div class="container bs-docs-container">
+  
+  <!-- AisStore master nav -->
+<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
+  <div class="container">
+    <a class="navbar-brand">AIS Data Store</a>
+  </div>
+</div>
+
+<!-- AisStore sidebar nav -->
+<div class="container bs-docs-container">
   <div class="row">
 	<div class="col-lg-3">
-      <div class="bs-sidebar">
+      <div class="bs-sidebar" data-spy="affix" data-offset-top="0">
         <ul class="nav bs-sidenav">      
           <li><a href="#bounding-box">Bounding Box</a></li>
 		  <li><a href="#source">Source</a></li>
@@ -141,6 +161,9 @@
 		</ul>
       </div>
  	</div>
+ 	
+ <!-- Content main page-->
+ 	
 	<div class="col-lg-9">
 	 <div class="bs-docs-section">
 	  <div class="page-header">
@@ -177,6 +200,8 @@
 	</div>
 	</div>
 	</div>
+	
+    
     <!-- JavaScript plugins (requires jQuery) -->
     <script src="http://code.jquery.com/jquery.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
