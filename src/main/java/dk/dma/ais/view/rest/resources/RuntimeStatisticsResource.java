@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
  * @author Kasper Nielsen
  */
 @Path("/")
-public class StatisticsResource extends AbstractViewerResource {
+public class RuntimeStatisticsResource extends AbstractViewerResource {
 
     @GET
     @Produces("text/plain")

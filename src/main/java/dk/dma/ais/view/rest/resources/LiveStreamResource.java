@@ -40,7 +40,7 @@ import dk.dma.enav.util.function.Predicate;
  * @author Kasper Nielsen
  */
 @Path("/")
-public class StreamResource extends AbstractViewerResource {
+public class LiveStreamResource extends AbstractViewerResource {
 
     /**
      * Creates a stream of all incoming data from all sources.
@@ -70,7 +70,7 @@ public class StreamResource extends AbstractViewerResource {
     @GET
     @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
-    public StreamingOutput stream(@Context final UriInfo info) {
+    public StreamingOutput livestream(@Context final UriInfo info) {
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
                 Subscription ss = createStream(info).subscribeSink(getOutputSink(info).newFlushEveryTimeSink(), os);

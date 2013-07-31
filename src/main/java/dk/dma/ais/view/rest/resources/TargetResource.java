@@ -43,12 +43,12 @@ import dk.dma.enav.util.function.Predicate;
  * @author Kasper Nielsen
  */
 @Path("/")
-public class PastTrackResource extends AbstractViewerResource {
+public class TargetResource extends AbstractViewerResource {
 
     @GET
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
-    public StreamingOutput json2(@PathParam("mmsi") int mmsi, @Context UriInfo info) {
+    public StreamingOutput pasttrack(@PathParam("mmsi") int mmsi, @Context UriInfo info) {
         Predicate<AisPacket> f = getSourceFilter(info);
         f = f.and(AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
 
