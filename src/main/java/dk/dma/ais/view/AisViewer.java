@@ -31,12 +31,12 @@ public class AisViewer {
     final TargetTracker targetTracker;
 
     /** All readers, null if we do not support live targets. */
-    final AisReaderGroup g;
+    final AisReaderGroup readers;
 
-    AisViewer(AisReaderGroup readerGroup, AisStoreConnection connection) {
-        this.g = readerGroup;
+    AisViewer(AisReaderGroup readers, AisStoreConnection connection) {
+        this.readers = readers;
         this.connection = connection;
-        if (readerGroup == null) {
+        if (readers == null) {
             targetTracker = null;
         } else {
             targetTracker = new TargetTracker();
@@ -50,11 +50,11 @@ public class AisViewer {
         return targetTracker;
     }
 
-    public AisPacketStream stream() {
-        if (g == null) {
+    public AisPacketStream newLiveStream() {
+        if (readers == null) {
             throw new UnsupportedOperationException();
         }
-        return g.stream();
+        return readers.stream();
     }
 
     /**

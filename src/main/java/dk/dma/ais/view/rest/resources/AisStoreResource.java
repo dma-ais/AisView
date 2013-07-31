@@ -15,6 +15,8 @@
  */
 package dk.dma.ais.view.rest.resources;
 
+import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.findArea;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,16 +24,19 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import org.joda.time.Interval;
 
 import com.google.common.primitives.Ints;
 
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.view.rest.resources.util.UriQueryUtil;
+import dk.dma.ais.packet.AisPacketOutputStreamSinks;
+import dk.dma.ais.view.rest.resources.util.ParameterExtractor;
+import dk.dma.commons.web.rest.StreamingUtil;
+import dk.dma.commons.web.rest.UriQueryUtil;
 import dk.dma.enav.model.geometry.Area;
-import dk.dma.enav.model.geometry.BoundingBox;
-import dk.dma.enav.model.geometry.CoordinateSystem;
-import dk.dma.enav.model.geometry.Position;
 
 /**
  * 
@@ -40,43 +45,25 @@ import dk.dma.enav.model.geometry.Position;
 @Path("/")
 public class AisStoreResource extends AbstractViewerResource {
 
-    private Area findArea(UriInfo info) {
-        String box = UriQueryUtil.getOneOrZeroParametersOrFail(info, "box", null);
-        if (box != null) {
-            String[] str = box.split(",");
-            if (str.length != 4) {
-                throw new UnsupportedOperationException("A box must contain exactly 4 points, was " + str.length + "("
-                        + box + ")");
-            }
-            double lat1 = Double.parseDouble(str[0]);
-            double lon1 = Double.parseDouble(str[1]);
-            double lat2 = Double.parseDouble(str[2]);
-            double lon2 = Double.parseDouble(str[3]);
-            Position p1 = Position.create(lat1, lon1);
-            Position p2 = Position.create(lat2, lon2);
-            return BoundingBox.create(p1, p2, CoordinateSystem.CARTESIAN);
-        }
-        return null;
-    }
-
     @GET
     @Produces("text/plain")
     @Path("/store")
-    public String foo(@Context final UriInfo info) {
-        long start = 0;
-        long stop = Integer.MAX_VALUE;
+    public StreamingOutput foo(@Context final UriInfo info) {
+        Interval interval = ParameterExtractor.findInterval(info);
+
         Set<Integer> mmsi = new HashSet<>(UriQueryUtil.getParametersAsInt(info, "mmsi"));
+
         Area area = findArea(info);
 
         final Iterable<AisPacket> query;
         if (mmsi.size() > 0) {
-            query = getStore().findForMmsi(start, stop, Ints.toArray(mmsi));
+            query = getStore().findForMmsi(interval.getStartMillis(), interval.getEndMillis(), Ints.toArray(mmsi));
         } else if (area != null) {
-            query = getStore().findForArea(area, start, stop);
+            query = getStore().findForArea(area, interval.getStartMillis(), interval.getEndMillis());
         } else {
-            query = getStore().findForTime(start, stop);
+            query = getStore().findForTime(interval.getStartMillis(), interval.getEndMillis());
         }
 
-        return "hi\n";
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputStreamSinks.OUTPUT_TO_TEXT);
     }
 }

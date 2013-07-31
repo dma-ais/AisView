@@ -13,12 +13,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>AisView</name>
-  <description>AisView parent module</description>
-
-  <properties>
-    <jettyVersion>9.0.4.v20130625</jettyVersion>
-    <metricsVersion>3.0.0</metricsVersion>
-  </properties>
+  <description>AisViewer</description>
 
   <scm>
     <connection>scm:git:git@github.com:dma-dk/AisView.git</connection>
@@ -61,41 +56,16 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>dk.dma.commons</groupId>
+      <artifactId>dma-commons-web</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
 
     <dependency>
       <groupId>dk.dma.ais.store</groupId>
       <artifactId>ais-store-common</artifactId>
       <version>0.1-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${jettyVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jettyVersion}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-servlet</artifactId>
-      <version>2.0</version>
-    </dependency>
-
-    <!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-moxy</artifactId> </dependency> -->
-
-    <dependency>
-      <groupId>com.thoughtworks.xstream</groupId>
-      <artifactId>xstream</artifactId>
-      <version>1.4.4</version>
-    </dependency>
-        <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.6</version>
     </dependency>
   </dependencies>
 

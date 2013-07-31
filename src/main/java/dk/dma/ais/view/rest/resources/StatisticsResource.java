@@ -15,6 +15,8 @@
  */
 package dk.dma.ais.view.rest.resources;
 
+import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getPacketSourceFilter;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,13 +34,13 @@ public class StatisticsResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/targetCount")
     public int targetCount(@Context UriInfo info) {
-        return getTracker().countNumberOfTargets(getSourceFilter(info));
+        return getTracker().countNumberOfTargets(getPacketSourceFilter(info));
     }
 
     @GET
     @Produces("text/plain")
     @Path("/reportCount")
     public int reportCount(@Context UriInfo info) {
-        return getTracker().countNumberOfReports(getSourceFilter(info));
+        return getTracker().countNumberOfReports(getPacketSourceFilter(info));
     }
 }

@@ -15,6 +15,10 @@
  */
 package dk.dma.ais.view.rest.resources;
 
+import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getOutputSink;
+import static dk.dma.ais.view.rest.resources.util.ParameterExtractor.getSourceFilter;
+import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -46,14 +50,14 @@ public class StreamResource extends AbstractViewerResource {
      * @return a packet stream
      */
     AisPacketStream createStream(UriInfo info) {
-        AisPacketStream s = getViewer().stream();
+        AisPacketStream s = newLiveStream();
 
-        Predicate<? super AisPacket> f = getFilter(info);
+        Predicate<? super AisPacket> f = getSourceFilter(info);
         if (f != Predicate.TRUE) {
             s = s.filter(f);
         }
 
-        String limit = getOneOr(info, "limit", null);
+        String limit = getOneOrZeroParametersOrFail(info, "limit", null);
         if (limit != null) {
             s = s.limit(Long.parseLong(limit));
         }
