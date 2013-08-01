@@ -46,7 +46,7 @@ public abstract class AbstractViewerResource {
         return viewer().newLiveStream();
     }
 
-    private final AisViewer viewer() {
+    private AisViewer viewer() {
         return (AisViewer) servletConfig.getServletContext().getAttribute(VIEWER_ATTRIBUTE);
     }
 }
