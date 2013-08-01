@@ -93,6 +93,10 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        new Main().execute(AisReaderGroup.getDefaultSources());
+        if (args.length == 0) {
+            System.err.println("Must specify at least 1 source (sourceName=host:port,host:port sourceName=host:port)");
+            System.exit(1);
+        }
+        new Main().execute(args /* AisReaderGroup.getDefaultSources() */);
     }
 }

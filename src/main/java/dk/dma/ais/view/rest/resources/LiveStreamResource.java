@@ -21,6 +21,7 @@ import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,6 +34,7 @@ import javax.ws.rs.core.UriInfo;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
+import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.enav.util.function.Predicate;
 
 /**
@@ -73,14 +75,28 @@ public class LiveStreamResource extends AbstractViewerResource {
     public StreamingOutput livestream(@Context final UriInfo info) {
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
-                Subscription ss = createStream(info).subscribeSink(getOutputSink(info).newFlushEveryTimeSink(), os);
+                CountingOutputStream cos = new CountingOutputStream(os);
+                Subscription ss = createStream(info).subscribeSink(getOutputSink(info).newFlushEveryTimeSink(), cos);
                 // Since this is an infinite stream. We await for the user to cancel the subscription.
                 // For example, by killing the process (curl, wget, ..) they are using to retrieve the data with
                 // in which the case AisPacketStream.CANCEL will be thrown and awaitCancelled will be released
-                try {
-                    ss.awaitCancelled();
-                } catch (InterruptedException ignore) {} finally {
-                    ss.cancel(); // just in case an InterruptedException is thrown
+
+                // If the user has an expression such as source=id=SDFWER we will never return any data to the
+                // client.Therefore we will never try to write any data to the socket.
+                // Therefore we will never figure out when the socket it closed. Because we will never get the
+                // exception. Instead we close the connection after 24 hours if nothing has been written.
+                long lastCount = 0;
+                for (;;) {
+                    try {
+                        if (ss.awaitCancelled(1, TimeUnit.DAYS)) {
+                            return;
+                        } else if (lastCount == cos.getCount()) {
+                            ss.cancel(); // No data written in one day, closing the stream
+                        }
+                        lastCount = cos.getCount();
+                    } catch (InterruptedException ignore) {} finally {
+                        ss.cancel(); // just in case an InterruptedException is thrown
+                    }
                 }
             }
         };
