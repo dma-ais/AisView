@@ -15,10 +15,6 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getOutputSink;
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getSourceFilter;
-import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -31,11 +27,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
+import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.util.io.CountingOutputStream;
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * 
@@ -44,39 +39,23 @@ import dk.dma.enav.util.function.Predicate;
 @Path("/")
 public class LiveStreamResource extends AbstractViewerResource {
 
-    /**
-     * Creates a stream of all incoming data from all sources.
-     * 
-     * @param info
-     *            the URL request info
-     * @return a packet stream
-     */
-    AisPacketStream createStream(UriInfo info) {
-        AisPacketStream s = newLiveStream();
-
-        Predicate<? super AisPacket> f = getSourceFilter(info);
-        if (f != Predicate.TRUE) {
-            s = s.filter(f);
-        }
-
-        String limit = getOneOrZeroParametersOrFail(info, "limit", null);
-        if (limit != null) {
-            s = s.limit(Long.parseLong(limit));
-        }
-        // TODO apply user filter
-
-        return s;
-    }
-
     /** Returns a live stream of all incoming data. */
     @GET
     @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
     public StreamingOutput livestream(@Context final UriInfo info) {
+        final QueryParser p = new QueryParser(info);
+
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
+                AisPacketStream s = newLiveStream();
+                s = p.applySourceFilter(s);
+                s = p.applyLimitFilter(s);
+
                 CountingOutputStream cos = new CountingOutputStream(os);
-                Subscription ss = createStream(info).subscribeSink(getOutputSink(info).newFlushEveryTimeSink(), cos);
+                // We flush the sink, to be more responsive
+                Subscription ss = s.subscribeSink(p.getOutputSink().newFlushEveryTimeSink(), cos);
+
                 // Since this is an infinite stream. We await for the user to cancel the subscription.
                 // For example, by killing the process (curl, wget, ..) they are using to retrieve the data with
                 // in which the case AisPacketStream.CANCEL will be thrown and awaitCancelled will be released

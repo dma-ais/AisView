@@ -15,14 +15,6 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.findArea;
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getOutputSink;
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getSourceFilter;
-import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -30,18 +22,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.Interval;
-
-import com.google.common.primitives.Ints;
-
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
-import dk.dma.ais.view.rest.resources.util.QueryParameterParser;
-import dk.dma.commons.util.Iterables;
+import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.UriQueryUtil;
-import dk.dma.enav.model.geometry.Area;
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * 
@@ -54,31 +39,25 @@ public class AisStoreResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/store")
     public StreamingOutput foo(@Context final UriInfo info) {
-        // find all parameters, no reason to start a query, if some of the parameters
-        // from the user is invalid.
-        Set<Integer> mmsi = new HashSet<>(UriQueryUtil.getParametersAsInt(info, "mmsi"));
-        Area area = findArea(info);
-        Interval interval = QueryParameterParser.findInterval(info);
-        Predicate<? super AisPacket> f = getSourceFilter(info);
-        String limit = getOneOrZeroParametersOrFail(info, "limit", null);
+        QueryParser p = new QueryParser(info);
 
+        // Create builder
         AisStoreQueryBuilder b;
-        if (mmsi.size() > 0) {
-            b = AisStoreQueryBuilder.forMmsi(Ints.toArray(mmsi));
-        } else if (area != null) {
-            b = AisStoreQueryBuilder.forArea(area);
+        if (p.getMMSIs().length > 0) {
+            b = AisStoreQueryBuilder.forMmsi(p.getMMSIs());
+        } else if (p.getArea() != null) {
+            b = AisStoreQueryBuilder.forArea(p.getArea());
         } else {
             b = AisStoreQueryBuilder.forTime();
         }
+        b.setBatchLimit(UriQueryUtil.getOneOrZeroIntParametersOrFail(info, "fetchSize", 3000));
+        b.setInterval(p.getInterval());
 
-        Iterable<AisPacket> query = getStore().execute(b.setInterval(interval));
-        if (f != Predicate.TRUE) {
-            query = Iterables.filter(query, f);
-        }
+        // create query and apply filters
+        Iterable<AisPacket> query = getStore().execute(b);
+        query = p.applySourceFilter(query);
+        query = p.applyLimitFilter(query); // must be the last if other filters reject packets
 
-        if (limit != null) {
-            query = com.google.common.collect.Iterables.limit(query, Integer.parseInt(limit));
-        }
-        return StreamingUtil.createStreamingOutput(query, getOutputSink(info));
+        return StreamingUtil.createStreamingOutput(query, p.getOutputSink());
     }
 }

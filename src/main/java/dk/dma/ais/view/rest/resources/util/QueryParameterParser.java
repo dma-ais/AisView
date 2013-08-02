@@ -46,16 +46,14 @@ import dk.dma.enav.util.function.Predicate;
  * 
  * @author Kasper Nielsen
  */
-public class QueryParameterParser {
+class QueryParameterParser {
 
     public static Integer findMinimumDistanceMeters(UriInfo info) {
-        String sp = info.getQueryParameters().getFirst("minDistance");
-        return sp == null ? null : Integer.parseInt(sp);
-
+        return UriQueryUtil.getOneOrZeroIntParametersOrFail(info, "minDistance", null);
     }
 
     public static Long findMinimumDurationMS(UriInfo info) {
-        String dur = info.getQueryParameters().getFirst("minDuration");
+        String dur = UriQueryUtil.getOneOrZeroParametersOrFail(info, "minDuration", null);
         return dur == null ? null : Period.parse(dur).toStandardSeconds().getSeconds() * 1000L;
     }
 
@@ -86,7 +84,7 @@ public class QueryParameterParser {
         return DateTimeUtil.toInterval(interval);
     }
 
-    public static OutputStreamSink<AisPacket> getOutputSink(UriInfo info) {
+    static OutputStreamSink<AisPacket> getOutputSink(UriInfo info) {
         String output = getOneOrZeroParametersOrFail(info, "output", "raw").toLowerCase();
         switch (output) {
         case "raw":
@@ -102,11 +100,10 @@ public class QueryParameterParser {
                 .entity("Unknown output format [output=" + output + "]\n").type(MediaType.TEXT_PLAIN).build());
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Predicate<AisPacketSource> getPacketSourceFilter(UriInfo info) {
-        List<String> filters = info.getQueryParameters().get("sourceFilter");
-        if (filters == null || filters.isEmpty()) {
-            return (Predicate) Predicate.TRUE;
+        List<String> filters = UriQueryUtil.getParameters(info, "filter");
+        if (filters.isEmpty()) {
+            return null;
         }
         Predicate<AisPacketSource> p = AisPacketSource.createPredicate(filters.get(0));
         for (int i = 1; i < filters.size(); i++) {
@@ -115,11 +112,10 @@ public class QueryParameterParser {
         return p;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Predicate<AisPacket> getSourceFilter(UriInfo info) {
-        List<String> filters = info.getQueryParameters().get("filter");
-        if (filters == null || filters.isEmpty()) {
-            return (Predicate) Predicate.TRUE;
+        List<String> filters = UriQueryUtil.getParameters(info, "filter");
+        if (filters.isEmpty()) {
+            return null;
         }
         Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters.get(0));
         for (int i = 1; i < filters.size(); i++) {

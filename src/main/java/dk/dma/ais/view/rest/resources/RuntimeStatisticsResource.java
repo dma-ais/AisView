@@ -15,13 +15,13 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getPacketSourceFilter;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
+
+import dk.dma.ais.view.rest.resources.util.QueryParser;
 
 /**
  * 
@@ -34,13 +34,13 @@ public class RuntimeStatisticsResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/targetCount")
     public int targetCount(@Context UriInfo info) {
-        return getTracker().countNumberOfTargets(getPacketSourceFilter(info));
+        return getTracker().countNumberOfTargets(new QueryParser(info).getSourcePredicate());
     }
 
     @GET
     @Produces("text/plain")
     @Path("/reportCount")
     public int reportCount(@Context UriInfo info) {
-        return getTracker().countNumberOfReports(getPacketSourceFilter(info));
+        return getTracker().countNumberOfReports(new QueryParser(info).getSourcePredicate());
     }
 }
