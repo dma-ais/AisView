@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
@@ -92,20 +93,27 @@ public class TargetTrackerBackupService extends AbstractScheduledService {
             LOG.info("Trying to restore backup files " + latestFull);
             String format = latestFull.getFileName().toString();
             format = format.substring(0, format.length() - 3);// strip -00
+
+            ArrayList<Path> files = new ArrayList<>();
             for (Path path : Files.newDirectoryStream(backupFolder)) {
                 if (path.getFileName().toString().startsWith(format)) {
-                    LOG.info("Restoring backup file " + path);
-                    try (InputStream fos = Files.newInputStream(path);
-                            BufferedInputStream bos = new BufferedInputStream(fos);
-                            GZIPInputStream gos = new GZIPInputStream(bos);
-                            ObjectInputStream oos = new ObjectInputStream(gos)) {
-                        AisPacketSource sb = (AisPacketSource) oos.readObject();
-                        TargetInfo ti = (TargetInfo) oos.readObject();
-                        while (sb != null && ti != null) {
-                            tracker.update(sb, ti);
-                            sb = (AisPacketSource) oos.readObject();
-                            ti = (TargetInfo) oos.readObject();
-                        }
+                    files.add(path);
+                }
+            }
+            Collections.sort(files); // make sure they are read in the right order
+
+            for (Path path : files) {
+                LOG.info("Restoring backup file " + path);
+                try (InputStream fos = Files.newInputStream(path);
+                        BufferedInputStream bos = new BufferedInputStream(fos);
+                        GZIPInputStream gos = new GZIPInputStream(bos);
+                        ObjectInputStream oos = new ObjectInputStream(gos)) {
+                    AisPacketSource sb = (AisPacketSource) oos.readObject();
+                    TargetInfo ti = (TargetInfo) oos.readObject();
+                    while (sb != null && ti != null) {
+                        tracker.update(sb, ti);
+                        sb = (AisPacketSource) oos.readObject();
+                        ti = (TargetInfo) oos.readObject();
                     }
                 }
             }

@@ -79,13 +79,11 @@ public class QueryParameterParser {
     }
 
     public static Interval findInterval(UriInfo info) {
-        List<String> intervals = info.getQueryParameters().get("interval");
-        if (intervals == null || intervals.size() == 0) {
-            return new Interval(0, Long.MAX_VALUE);
-        } else if (intervals.size() > 1) {
-            throw new IllegalArgumentException("Multiple interval parameters defined: " + intervals);
+        String interval = UriQueryUtil.getOneOrZeroParametersOrFail(info, "interval", null);
+        if (interval == null) {
+            throw new IllegalArgumentException("Must define at least one interval");
         }
-        return DateTimeUtil.toInterval(intervals.get(0));
+        return DateTimeUtil.toInterval(interval);
     }
 
     public static OutputStreamSink<AisPacket> getOutputSink(UriInfo info) {

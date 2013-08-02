@@ -16,6 +16,9 @@
 package dk.dma.ais.view.rest.resources;
 
 import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.findArea;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getOutputSink;
+import static dk.dma.ais.view.rest.resources.util.QueryParameterParser.getSourceFilter;
+import static dk.dma.commons.web.rest.UriQueryUtil.getOneOrZeroParametersOrFail;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,11 +35,13 @@ import org.joda.time.Interval;
 import com.google.common.primitives.Ints;
 
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.packet.AisPacketOutputStreamSinks;
+import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.view.rest.resources.util.QueryParameterParser;
+import dk.dma.commons.util.Iterables;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.UriQueryUtil;
 import dk.dma.enav.model.geometry.Area;
+import dk.dma.enav.util.function.Predicate;
 
 /**
  * 
@@ -49,21 +54,31 @@ public class AisStoreResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/store")
     public StreamingOutput foo(@Context final UriInfo info) {
-        Interval interval = QueryParameterParser.findInterval(info);
-
+        // find all parameters, no reason to start a query, if some of the parameters
+        // from the user is invalid.
         Set<Integer> mmsi = new HashSet<>(UriQueryUtil.getParametersAsInt(info, "mmsi"));
-
         Area area = findArea(info);
+        Interval interval = QueryParameterParser.findInterval(info);
+        Predicate<? super AisPacket> f = getSourceFilter(info);
+        String limit = getOneOrZeroParametersOrFail(info, "limit", null);
 
-        final Iterable<AisPacket> query;
+        AisStoreQueryBuilder b;
         if (mmsi.size() > 0) {
-            query = getStore().findForMmsi(interval.getStartMillis(), interval.getEndMillis(), Ints.toArray(mmsi));
+            b = AisStoreQueryBuilder.forMmsi(Ints.toArray(mmsi));
         } else if (area != null) {
-            query = getStore().findForArea(area, interval.getStartMillis(), interval.getEndMillis());
+            b = AisStoreQueryBuilder.forArea(area);
         } else {
-            query = getStore().findForTime(interval.getStartMillis(), interval.getEndMillis());
+            b = AisStoreQueryBuilder.forTime();
         }
 
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputStreamSinks.OUTPUT_TO_TEXT);
+        Iterable<AisPacket> query = getStore().execute(b.setInterval(interval));
+        if (f != Predicate.TRUE) {
+            query = Iterables.filter(query, f);
+        }
+
+        if (limit != null) {
+            query = com.google.common.collect.Iterables.limit(query, Integer.parseInt(limit));
+        }
+        return StreamingUtil.createStreamingOutput(query, getOutputSink(info));
     }
 }

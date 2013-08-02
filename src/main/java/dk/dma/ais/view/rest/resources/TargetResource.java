@@ -32,6 +32,7 @@ import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketOutputStreamSinks;
+import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.view.rest.resources.util.QueryParameterParser;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.web.rest.StreamingUtil;
@@ -59,7 +60,8 @@ public class TargetResource extends AbstractViewerResource {
         }
 
         Interval interval = findInterval(info);
-        Iterable<AisPacket> q = getStore().findForMmsi(interval.getStartMillis(), interval.getEndMillis(), mmsi);
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
+        Iterable<AisPacket> q = getStore().execute(b.setInterval(interval));
         q = Iterables.filter(q, f);
 
         return StreamingUtil.createStreamingOutput(q, AisPacketOutputStreamSinks.PAST_TRACK_JSON);

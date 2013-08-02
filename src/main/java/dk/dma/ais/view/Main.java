@@ -46,7 +46,7 @@ public class Main extends AbstractDaemon {
     String cassandraDatabase = "aisdata";
 
     @Parameter(names = "-database", description = "A list of cassandra hosts that can store the data")
-    List<String> cassandraSeeds = Arrays.asList("localhost");
+    List<String> cassandraSeeds = Arrays.asList("10.3.240.203");
 
     @Parameter(names = "-nodatabase", description = "Disables access to ais store")
     boolean disableAisStore;
@@ -59,8 +59,11 @@ public class Main extends AbstractDaemon {
     protected void runDaemon(Injector injector) throws Exception {
 
         // Setup the readers
-        AisReaderGroup g = AisReaderGroup.create(aissources);
+        AisReaderGroup g = null;
+        if (aissources != null && aissources.size() > 0) {
+            g = AisReaderGroup.create(aissources);
 
+        }
         // Setup AisStore
         AisStoreConnection con = null;
         if (!disableAisStore) {
@@ -93,10 +96,6 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.err.println("Must specify at least 1 source (sourceName=host:port,host:port sourceName=host:port)");
-            System.exit(1);
-        }
         new Main().execute(args /* AisReaderGroup.getDefaultSources() */);
     }
 }
