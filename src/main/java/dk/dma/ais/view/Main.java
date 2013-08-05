@@ -61,7 +61,7 @@ public class Main extends AbstractDaemon {
         // Setup the readers
         AisReaderGroup g = null;
         if (aissources != null && aissources.size() > 0) {
-            g = AisReaderGroup.create(aissources);
+            g = AisReaderGroup.create("AisView", aissources);
 
         }
         // Setup AisStore
