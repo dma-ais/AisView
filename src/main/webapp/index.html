@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app>
 <head>	
 	<title>AIS Historic Data Downloader</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +10,11 @@
     
   <!-- OpenLayers -->
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+  
+  <!-- AngularJS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+  
+  <script src="js/urlBuilder.js"></script>
     
   <!-- Bounding Box -->
   <script src="js/bbox.js"></script>
@@ -89,6 +94,8 @@
 
 </head>
 <body onload="init();">
+
+<div ng-controller="SourceIds">
   
   <!-- AisStore master nav -->
 	<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
@@ -120,55 +127,49 @@
 	     				<div class="page-header">
         				<h1 id="source">Source Filter</h1>
         			</div>
+        			
         			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
 							<h3 id="source_id">Source ID</h3>
 							<p> Select source IDs (maximun of 9)</p> 
+							<p> Test: {{url()}} </p>
 							<div id="source_id_border">
 							<div class="row">
+							
 								<div class="col-lg-3">
-									<form id="source_id_form" name="source_id_form" action="">
-										<input type="checkbox" onClick="handleClick(this);" name="source_id" id="cb" value="sc1" > source1<br>
-										<input type="checkbox" name="source_id" value="sc2"> source2<br>
-										<input type="checkbox" name="source_id" value="sc3"> source3<br>
-										<input type="checkbox" name="source_id" value="sc3"> source4<br>
 									
+      							<div ng-repeat="urlBuilder in sourceIds">
+        							<input type="checkbox" ng-model="urlBuilder.include">
+        							<span>{{urlBuilder.text}}</span>
+      							</div>
+   								
 								</div>
 								<div class="col-lg-3">
-										<input type="checkbox" name="source_id" value="sc5"> source5<br>
-										<input type="checkbox" name="source_id" value="sc6"> source6<br>
-										<input type="checkbox" name="source_id" value="sc7"> source7<br>
-										<input type="checkbox" name="source_id" value="sc8"> source8<br>
-									
+										
 								</div>
 								<div class="col-lg-3">
-										<input type="checkbox" name="source_id" value="sc9"> source9<br>
-										<input type="checkbox" name="source_id" value="sc10"> source10<br>
-										<input type="checkbox" name="source_id" value="sc11"> source11<br>
-										<input type="checkbox" name="source_id" value="sc12"> source12<br>
-									
+										
 								</div>
 								<div class="col-lg-3">
-										<input type="checkbox" name="source_id" value="sc13"> source13<br>
-										<input type="checkbox" name="source_id" value="sc14"> source14<br>
-										<input type="checkbox" name="source_id" value="sc15"> source15<br>
-										<input type="checkbox" name="source_id" value="sc16"> source16<br>
-									</form>
+											
 								</div>		
 							</div>	
 							</div>
+							
 							<script type="text/javascript">
  								
   							//This breaks onClick() callback
- 								checkboxLimit( document.getElementById('source_id_form')[ 'source_id' ], 9 );
+ 								//checkboxLimit( document.getElementById('source_id_form')[ 'source_id' ], 9 );
  								
 							</script>
 							
 							<br>
 							<h3 id="source_base">Source base station</h3>						
 							<p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
-							<form method="post" id="achievementf1" action="myFunction()">
-								<span>1.</span> <input type="text" name="achievement1" id="achievement1" maxlength=9 size=100/><br />           						
-          		</form>  
+							
+							<div ng-repeat="urlBuilder in sourceBases">
+        				<span>{{urlBuilder.text}}</span>
+        				<input type="text" ng-model="urlBuilder.input" ng-change="newTextField()">
+      				</div>
 							
 							<br>
 							<h3 id="source_country">Source Country</h3>		
@@ -181,11 +182,12 @@
           		<br>
           		<h3 id="source_type">Source Type</h3>	
           		<p>Source type: Multiselect -> 3 options Any (default), LIVE, SAT </p>
-          		<form id="source_type_form" name="source_type_form" action="">
-										<input type="checkbox" name="source_id" value="any" checked> Any<br>
-										<input type="checkbox" name="source_id" value="live"> Live<br>
-										<input type="checkbox" name="source_id" value="sat"> Sat<br>
-							</form>
+          		<ul class="unstyled" style="list-style: none;">
+      							<li ng-repeat="urlBuilder in sourceTypes">
+        							<input type="checkbox" ng-model="urlBuilder.include">
+        							<span>{{urlBuilder.text}}</span>
+      							</li>
+   								</ul>
 							
 							<br>
 							<h3 id="source_region">Source region</h3>	
@@ -235,9 +237,12 @@
         				<h1 id="download">Download</h1>
         			</div>
         			<p>"InputForm with final request parameter."</p>
-      				<div class="navbar">
+      				
+      				<h3>{{url()}}</h3>
+      				
+      				<div class="navbar">	
         				<form class="navbar-form pull-left">
-          				<input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
+        					<input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
           				<button type="submit" class="btn btn-default">Show Sample</button>
           				<button type="submit" class="btn btn-default">Download</button>
         				</form>
@@ -280,5 +285,9 @@
 				$("input", $("#achievementf2")).bind("keyup", function(){ AdditionEvent('#achievementf2',3,30) });
 				
 			</script>
+			
+			<-- ng-controller div ends-->
+			</div>
+			
   </body>
 </html>
