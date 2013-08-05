@@ -1,130 +1,80 @@
 <!DOCTYPE html>
 <html>
-  <head>	
-    <title>AIS Historic Data Downloader</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap -->
-    <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+<head>	
+	<title>AIS Historic Data Downloader</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- OpenLayers -->
-    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+  <!-- scripts -->
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
     
-    <!-- inspiration from:
-    - bouding box: harrywood.co.uk/maps/examples/openlayers/bbox-selector.html
-    -
-    -->
-    <script>
+  <!-- OpenLayers -->
+  <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
     
-      var vectors;
-      var box;
-      var transform;
-        
-      
-      function endDrag(bbox) {
-      	var bounds = bbox.getBounds();
-        setBounds(bounds);
-        drawBox(bounds);
-        box.deactivate();
-        
-        document.getElementById("bbox_drag_instruction").style.display = 'none';
-        document.getElementById("bbox_adjust_instruction").style.display = 'block';        
-      }
-      
-      function dragNewBox() {
-        box.activate();
-        transform.deactivate(); //The remove the box with handles
-        vectors.destroyFeatures();
-        
-        document.getElementById("bbox_drag_instruction").style.display = 'block';
-        document.getElementById("bbox_adjust_instruction").style.display = 'none';
-        
-        setBounds(null); 
-      }
-      
-      function boxResize(event) {
-        setBounds(event.feature.geometry.bounds);
-      }
-      
-      function drawBox(bounds) {
-        var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
+  <!-- Bounding Box -->
+  <script src="js/bbox.js"></script>
+
+	<!-- Max checks on checkboxes -->
+	<script type="text/javascript">
+	function checkboxLimit(group, max){
+		 var size = group.length;
  
-        vectors.addFeatures(feature);
-        transform.setFeature(feature);
-      }
-      
-      function toPrecision(zoom, value) {
-        var decimals = Math.pow(10, Math.floor(zoom/3));
-        return Math.round(value * decimals) / decimals;
-      }
-      
-      function setBounds(bounds) {
-      	if (bounds == null) {
-      	  document.getElementById("bbox_result").innerHTML = "";
-      	  
-      	} else {
-          b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"))
-          minlon = toPrecision(map.getZoom(), b.left);
-          minlat = toPrecision(map.getZoom(), b.bottom);    
-          maxlon = toPrecision(map.getZoom(), b.right);
-          maxlat = toPrecision(map.getZoom(), b.top);  
-                 
-          document.getElementById("bbox_result").innerHTML =
-                          "minlon=" + minlon + ", " +
-                          "minlat=" + minlat + ", " +
-                          "maxlon=" + maxlon + ", " +
-                          "maxlat=" + maxlat;  
-        }
-      }
-    
-      function init() {
-        map = new OpenLayers.Map("mapdiv");
-        var openstreetmap = new OpenLayers.Layer.OSM();
-        map.addLayer(openstreetmap);
-    
+		 for (var i = 0; i < size; i++){
+				group[ i ].onclick = function()
+				{
+			 		for( var idx = 0, len = group.length, count = 0, onLimit = false; idx < len && !onLimit; idx++)
+						onLimit = (count += group[ idx ].checked - 0) == max;
+	 
+			 		for( var j = 0; j < len; j++)
+						group[ j ].disabled = onLimit ? !group[ j ].checked : false;   
+				}
+			}
+		}
+	</script>
+	
+	<!-- Will be handler script for building url -->
+	<script type="text/javascript">
+		function handleClick(cb) {
+			alert("Click, new value = " + cb.value);
+		}
+	</script>	
 
-        var lonlat = new OpenLayers.LonLat(10.830917,55.906094	).transform(
-            new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-            new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
-          );
+  <style>
+  	<!-- TODO: move to stylesheet -->
+  	
+  	#border #info-box #info #box input[type="text"] {
+  float: left;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  height: 25px; 
+  width: 650px; 
+  outline: none;
+}
 
-        var zoom = 5;
-
-    
-        vectors = new OpenLayers.Layer.Vector("Vector Layer", {
-          displayInLayerSwitcher: false
-        });
-        map.addLayer(vectors);
-     
-        box = new OpenLayers.Control.DrawFeature(vectors, OpenLayers.Handler.RegularPolygon, {
-          handlerOptions: {
-            sides: 4,
-            snapAngle: 90,
-            irregular: true,
-            persist: true
-          }
-        });
-        box.handler.callbacks.done = endDrag;
-        map.addControl(box);
-     
-        transform = new OpenLayers.Control.TransformFeature(vectors, {
-          rotate: false,
-          irregular: true
-        });
-        transform.events.register("transformcomplete", transform, boxResize);
-        map.addControl(transform);
-        
-        map.addControl(box);
-        
-        box.activate();
-        
-        map.setCenter(lonlat, zoom);
-        
-      }
-      
-    </script>
-
-    <style>
-    #mapdiv { width:800px; height:400px; }
+#border #info-box #info #box input[type="submit"] {
+  margin-left: 500px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  height: 35px; 
+  color: #fff;
+  font-size: 20px;
+  border: 2px solid #fff;
+  border-radius: 8px 8px 8px 8px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 3px;
+  cursor: pointer;  
+}
+  	
+  	
+  	#source_id_border { 
+  		padding:5px;
+			border:2px solid gray;
+			
+		}
+  
+  
+  	#mapdiv { width:800px; height:400px; }
     div.olControlAttribution { bottom:3px; }
     
     #bbox_drag_instruction { height:1.5em; }
@@ -132,108 +82,203 @@
     
     @media (min-width: 979px) {
     	body {
-        	padding-top: 60px;
+      	padding-top: 60px;
     	}
-	}
-    </style>
-    
-  </head>
-  
-  <body onload="init();">
+		}
+	</style>
+
+</head>
+<body onload="init();">
   
   <!-- AisStore master nav -->
-<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
-  <div class="container">
-    <a class="navbar-brand">AIS Store Downloader</a>
-  </div>
-</div>
+	<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
+  	<div class="container">
+    	<a class="navbar-brand">AIS Store Downloader</a>
+  	</div>
+	</div>
 
-<!-- AisStore sidebar nav -->
-<div class="container bs-docs-container">
-  <div class="row">
-	<div class="col-lg-3">
-      <div class="bs-sidebar" data-spy="affix" data-offset-top="0">
-        <ul class="nav bs-sidenav">      
-		  <li><a href="#source">Source Filtering</a></li>
-          <li><a href="#area-selection">Area Selection</a></li>
-		  <li><a href="#ship-types">Ship types</a></li>
-		  <li><a href="#some-other-filter">Some other filter</a></li>
-		  <li><a href="#output-format">Output Format</a></li>
-		  <li><a href="#download">Download</a></li>
-		</ul>
-      </div>
- 	</div>
+	<!-- AisStore sidebar nav -->
+		<div class="container bs-docs-container">
+  		<div class="row">
+				<div class="col-lg-3">
+      		<div class="bs-sidebar" data-spy="affix" data-offset-top="0">
+        		<ul class="nav bs-sidenav">      
+							<li><a href="#source">Source Filtering</a></li>
+							<li><a href="#area-selection">Area Selection</a></li>
+							<li><a href="#ship-types">Ship types</a></li>
+							<li><a href="#some-other-filter">Some other filter</a></li>
+							<li><a href="#output-format">Output Format</a></li>
+							<li><a href="#download">Download</a></li>
+						</ul>
+      		</div>
+ 				</div>
  	
- <!-- Content main page-->
+ 					<!-- Content main page-->
  	
-	<div class="col-lg-9">
-	 <div class="bs-docs-section">
-	     <div class="page-header">
-        <h1 id="source">Source Filter</h1>
-        <p>The following form can be used to filter the sources that AisData is obtained from:</p>
-        <p>Source id: dropdown list multi-select (less than 10 entries)</p>
-        <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
-        <p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
-        <p>Source type: Multiselect -> 3 options Any (default), LIVE, SAT </p>
-        <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
-        <p>Button [Clear All]</p>
-      </div>
-	 
-	  <div class="page-header">
-        <h1 id="area-selection">Area Selection</h1>
-        <p>This map can be used to restrict the area for which Ais Data should be returned from:</p>
-        </div>
-        <div id="bbox_drag_instruction">Drag a box:</div>
-    	<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
-    	<div id="mapdiv"></div>
-    	<p id="bbox_result"> </p>
-    	<div id="explanation">Draw coordinates to put a marker on the map:</div>
-    	<br>
-		Point 1: <br> Lat: <input type="text" id="lat1"> Lng: <input type="text" id="lng1"> <br>
-		Point 2: <br> Lat: <input type="text" id="lat2"> Lng: <input type="text" id="lng2"> <br>
-		<button onclick="drawMarkers()">Draw box on map</button> 
+					<div class="col-lg-9">
+	 					<div class="bs-docs-section">
+	     				<div class="page-header">
+        				<h1 id="source">Source Filter</h1>
+        			</div>
+        			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
+							<h3 id="source_id">Source ID</h3>
+							<p> Select source IDs (maximun of 9)</p> 
+							<div id="source_id_border">
+							<div class="row">
+								<div class="col-lg-3">
+									<form id="source_id_form" name="source_id_form" action="">
+										<input type="checkbox" onClick="handleClick(this);" name="source_id" id="cb" value="sc1" > source1<br>
+										<input type="checkbox" name="source_id" value="sc2"> source2<br>
+										<input type="checkbox" name="source_id" value="sc3"> source3<br>
+										<input type="checkbox" name="source_id" value="sc3"> source4<br>
+									
+								</div>
+								<div class="col-lg-3">
+										<input type="checkbox" name="source_id" value="sc5"> source5<br>
+										<input type="checkbox" name="source_id" value="sc6"> source6<br>
+										<input type="checkbox" name="source_id" value="sc7"> source7<br>
+										<input type="checkbox" name="source_id" value="sc8"> source8<br>
+									
+								</div>
+								<div class="col-lg-3">
+										<input type="checkbox" name="source_id" value="sc9"> source9<br>
+										<input type="checkbox" name="source_id" value="sc10"> source10<br>
+										<input type="checkbox" name="source_id" value="sc11"> source11<br>
+										<input type="checkbox" name="source_id" value="sc12"> source12<br>
+									
+								</div>
+								<div class="col-lg-3">
+										<input type="checkbox" name="source_id" value="sc13"> source13<br>
+										<input type="checkbox" name="source_id" value="sc14"> source14<br>
+										<input type="checkbox" name="source_id" value="sc15"> source15<br>
+										<input type="checkbox" name="source_id" value="sc16"> source16<br>
+									</form>
+								</div>		
+							</div>	
+							</div>
+							<script type="text/javascript">
+ 								
+  							//This breaks onClick() callback
+ 								checkboxLimit( document.getElementById('source_id_form')[ 'source_id' ], 9 );
+ 								
+							</script>
+							
+							<br>
+							<h3 id="source_base">Source base station</h3>						
+							<p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
+							<form method="post" id="achievementf1" action="myFunction()">
+								<span>1.</span> <input type="text" name="achievement1" id="achievement1" maxlength=9 size=100/><br />           						
+          		</form>  
+							
+							<br>
+							<h3 id="source_country">Source Country</h3>		
+							<p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
+							
+							<form method="post" id="achievementf2" action="">
+								<span>1.</span> <input type="text" name="achievement2" id="achievement2" maxlength="3" size="30"/><br />           						
+          		</form>  
+          		
+          		<br>
+          		<h3 id="source_type">Source Type</h3>	
+          		<p>Source type: Multiselect -> 3 options Any (default), LIVE, SAT </p>
+          		<form id="source_type_form" name="source_type_form" action="">
+										<input type="checkbox" name="source_id" value="any" checked> Any<br>
+										<input type="checkbox" name="source_id" value="live"> Live<br>
+										<input type="checkbox" name="source_id" value="sat"> Sat<br>
+							</form>
+							
+							<br>
+							<h3 id="source_region">Source region</h3>	
+							
+							
+							<p>Button [Clear All]</p>
+      				
+	 						<br>
+							
+							
+	  					<div class="page-header">
+        				<h1 id="area-selection">Area Selection</h1>
+        			</div>
+        			<p>This map can be used to restrict the area for which Ais Data should be returned from:</p>
+        
+        			<div id="bbox_drag_instruction">Drag a box:</div>
+    					<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
+    					<div id="mapdiv"></div>
+    					<p id="bbox_result"> </p>
+    					<div id="explanation">Draw coordinates to put a marker on the map:</div>
+    					<br>
+							Point 1: <br> Lat: <input type="text" id="lat1"> Lng: <input type="text" id="lng1"> <br>
+							Point 2: <br> Lat: <input type="text" id="lat2"> Lng: <input type="text" id="lng2"> <br>
+							<button onclick="drawMarkers()">Draw box on map</button> 
     	
 
-	  <div class="page-header">
-        <h1 id="ship-types">Ship types</h1>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-	  </div>
-	  <div class="page-header">
-        <h1 id="some-other-filter">Some other filter</h1>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        <p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-	  </div>	
-      <div class="page-header">
-        <h1 id="output-format">Output Format</h1>
-        <p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
-      </div>    
-	  <div class="page-header">
-        <h1 id="download">Download</h1>
-        <p>"InputForm with final request parameter."</p>
-      <div class="navbar">
-        <form class="navbar-form pull-left">
-          <input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
-          <button type="submit" class="btn btn-default">Show Sample</button>
-          
-          <button type="submit" class="btn btn-default">Download</button>
-        </form>
-      </div>
-        <p>"A button "Download" right aligned below the request box. url for button->/store?......"</p>
-      </div>
-	</div>
-	</div>
-	</div>
-	
-    
-    <!-- JavaScript plugins (requires jQuery) -->
-    <script src="http://code.jquery.com/jquery.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
+	  					<div class="page-header">
+        				<h1 id="ship-types">Ship types</h1>
+        			</div>
+        			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+	  
+							<div class="page-header">
+								<h1 id="some-other-filter">Some other filter</h1>
+							</div>
+							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+							
+							<div class="page-header">
+								<h1 id="output-format">Output Format</h1>
+							</div> 
+							<p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
+         
+	  					<div class="page-header">
+        				<h1 id="download">Download</h1>
+        			</div>
+        			<p>"InputForm with final request parameter."</p>
+      				<div class="navbar">
+        				<form class="navbar-form pull-left">
+          				<input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
+          				<button type="submit" class="btn btn-default">Show Sample</button>
+          				<button type="submit" class="btn btn-default">Download</button>
+        				</form>
+      				</div>
+        			<p>"A button "Download" right aligned below the request box. url for button->/store?......"</p>
 
-    <!-- Optionally enable responsive features in IE8 -->
-    <script src="js/respond.js"></script>
+					</div>
+				</div>
+			</div>
+	
+    	<!-- JavaScript plugins (requires jQuery) -->
+    	<script src="http://code.jquery.com/jquery.js"></script>
+    	<!-- Include all compiled plugins (below), or include individual files as needed -->
+    	<script src="js/bootstrap.min.js"></script>
+    	<!-- Optionally enable responsive features in IE8 -->
+    	<script src="js/respond.js"></script>
+    	
+    	<script type="text/javascript">
+				
+				function AllInputsFilled(inputID) {
+    			return $("input[type='text']", $(inputID)).filter(function() {
+        		return $(this).val().trim() === "";
+    				}).size() === 0;
+					}
+
+					function AdditionEvent(inputID,maxChars,length) {
+    			if (AllInputsFilled(inputID)) {
+        	AddInput(inputID,maxChars,length);    
+    			}
+				}
+
+				function AddInput(inputID,maxChars,length) {
+					var cnt = $("input[type='text']", $(inputID)).size() + 1;
+					$("<br><span>" + cnt +'. ' + "</span><input type='text' maxlength="+ maxChars +" size=" + length + " name='achievement"  + cnt+ "' id='achievement" + cnt+ "' />").insertAfter(inputID +" input[type='text']:last");
+					$("input", $(inputID)).unbind("keyup").bind("keyup", function(){ AdditionEvent(inputID,maxChars,length) });
+
+				}
+				
+				$("input", $("#achievementf1")).bind("keyup", function(){ AdditionEvent('#achievementf1',9,100) });
+				$("input", $("#achievementf2")).bind("keyup", function(){ AdditionEvent('#achievementf2',3,30) });
+				
+			</script>
   </body>
 </html>
