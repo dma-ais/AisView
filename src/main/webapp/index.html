@@ -11,6 +11,9 @@
   <!-- OpenLayers -->
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
   
+  <!-- JavaScript plugins (requires jQuery) -->
+    	<script src="http://code.jquery.com/jquery.js"></script>
+  
   <!-- AngularJS -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   
@@ -192,8 +195,8 @@
 							<br>
 							<h3 id="source_region">Source region</h3>	
 							
-							
-							<p>Button [Clear All]</p>
+							<p>Clear all source choices</p>	
+							<button class="btn" ng-click="clearSources()" >Clear all</button>
       				
 	 						<br>
 							
@@ -205,8 +208,18 @@
         
         			<div id="bbox_drag_instruction">Drag a box:</div>
     					<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
+    					<br>
     					<div id="mapdiv"></div>
-    					<p id="bbox_result"> </p>
+    					
+    					Min Lon: <input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="minLon" size=30><br>
+    					Min Lat: <input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="minLat" size=30><br>
+    					Max Lon: <input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="maxLon" size=30><br>
+    					Max Lat: <input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="matLat" size=30>
+    					
+    					<div>
+    						<input type="text" id="bbox_resul" ng-model="bboxResult2" size=100>
+    					</div>
+    					
     					<div id="explanation">Draw coordinates to put a marker on the map:</div>
     					<br>
 							Point 1: <br> Lat: <input type="text" id="lat1"> Lng: <input type="text" id="lng1"> <br>
@@ -232,7 +245,17 @@
 								<h1 id="output-format">Output Format</h1>
 							</div> 
 							<p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
-         
+         			
+         			<div ng-repeat="urlBuilder in sourceFormat">
+        				<input type="radio" ng-model="urlBuilder.include">
+        				<span>{{urlBuilder.text}}</span>
+      				</div>
+         			
+         			<form name="myForm">
+      					<input type="radio" ng-model="format" value="table">  Table <br/>
+      					<input type="radio" ng-model="format" value="raw"> Raw <br/>
+     					</form>
+         			
 	  					<div class="page-header">
         				<h1 id="download">Download</h1>
         			</div>
@@ -242,7 +265,7 @@
       				
       				<div class="navbar">	
         				<form class="navbar-form pull-left">
-        					<input type="text" class="form-control" style="width: 100px;" placeholder="#samples">
+        					<input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
           				<button type="submit" class="btn btn-default">Show Sample</button>
           				<button type="submit" class="btn btn-default">Download</button>
         				</form>
@@ -253,8 +276,7 @@
 				</div>
 			</div>
 	
-    	<!-- JavaScript plugins (requires jQuery) -->
-    	<script src="http://code.jquery.com/jquery.js"></script>
+    	
     	<!-- Include all compiled plugins (below), or include individual files as needed -->
     	<script src="js/bootstrap.min.js"></script>
     	<!-- Optionally enable responsive features in IE8 -->
@@ -286,7 +308,7 @@
 				
 			</script>
 			
-			<-- ng-controller div ends-->
+			<!-- ng-controller div ends-->
 			</div>
 			
   </body>
