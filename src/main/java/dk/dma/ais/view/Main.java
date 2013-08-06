@@ -21,11 +21,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.Parameter;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
 
 import dk.dma.ais.reader.AisReaderGroup;
+import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.view.tracker.TargetTrackerBackupService;
 import dk.dma.commons.app.AbstractDaemon;
@@ -35,6 +39,8 @@ import dk.dma.commons.app.AbstractDaemon;
  * @author Kasper Nielsen
  */
 public class Main extends AbstractDaemon {
+    /** The logger */
+    static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     @Parameter(names = "-port", description = "The port to run AisView at")
     int port = 8090;
@@ -61,7 +67,8 @@ public class Main extends AbstractDaemon {
         // Setup the readers
         AisReaderGroup g = null;
         if (aissources != null && aissources.size() > 0) {
-            g = AisReaderGroup.create("AisView", aissources);
+            g = AisReaders.createGroup("AisView", aissources);
+            AisReaders.manageGroup(g);
 
         }
         // Setup AisStore
@@ -69,7 +76,6 @@ public class Main extends AbstractDaemon {
         if (!disableAisStore) {
             con = start(AisStoreConnection.create("aisdata", cassandraSeeds));
         }
-
         final AisViewer viewer = new AisViewer(g, con);
 
         // start the tracker if we get data
@@ -92,10 +98,11 @@ public class Main extends AbstractDaemon {
 
         WebServer ws = new WebServer(port);
         ws.start(viewer);
+        LOG.info("AisView started");
         ws.join();
     }
 
     public static void main(String[] args) throws Exception {
-        new Main().execute(args /* AisReaderGroup.getDefaultSources() */);
+        new Main().execute(AisReaders.getDefaultSources());
     }
 }

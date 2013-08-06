@@ -50,7 +50,7 @@ public class AisStoreResource extends AbstractViewerResource {
         } else {
             b = AisStoreQueryBuilder.forTime();
         }
-        b.setBatchLimit(UriQueryUtil.getOneOrZeroIntParametersOrFail(info, "fetchSize", 3000));
+        b.setFetchSize(UriQueryUtil.getOneOrZeroIntParametersOrFail(info, "fetchSize", 3000));
         b.setInterval(p.getInterval());
 
         // create query and apply filters

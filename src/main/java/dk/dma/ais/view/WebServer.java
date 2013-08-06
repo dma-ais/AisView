@@ -47,6 +47,7 @@ import dk.dma.ais.view.rest.resources.AbstractViewerResource;
  * @author Kasper Nielsen
  */
 public class WebServer {
+
     /** The logger */
     static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
 

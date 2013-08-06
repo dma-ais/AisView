@@ -26,7 +26,7 @@ import javax.ws.rs.core.UriInfo;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
-import dk.dma.ais.packet.AisPacketOutputStreamSinks;
+import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.util.Iterables;
@@ -53,6 +53,6 @@ public class TargetResource extends AbstractViewerResource {
         query = p.applySourceFilter(query);
         query = p.applyPositionSampler(query);
         query = p.applyLimitFilter(query);
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputStreamSinks.PAST_TRACK_JSON);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
 }

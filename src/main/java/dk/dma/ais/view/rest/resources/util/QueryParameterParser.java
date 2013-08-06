@@ -30,7 +30,7 @@ import org.joda.time.Period;
 
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
-import dk.dma.ais.packet.AisPacketOutputStreamSinks;
+import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.commons.util.DateTimeUtil;
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -88,11 +88,11 @@ class QueryParameterParser {
         String output = getOneOrZeroParametersOrFail(info, "output", "raw").toLowerCase();
         switch (output) {
         case "raw":
-            return AisPacketOutputStreamSinks.OUTPUT_TO_TEXT;
+            return AisPacketOutputSinks.OUTPUT_TO_TEXT;
         case "table":
             String columns = getOne(info, "columns",
                     "A query parameter (columns), must be present when using table output");
-            return AisPacketOutputStreamSinks.newTableSink(columns, !info.getQueryParameters().containsKey("noHeader"),
+            return AisPacketOutputSinks.newTableSink(columns, !info.getQueryParameters().containsKey("noHeader"),
                     getOneOrZeroParametersOrFail(info, "separator", ";"));
         }
 
