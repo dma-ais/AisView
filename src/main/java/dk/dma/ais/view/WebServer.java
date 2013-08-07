@@ -67,7 +67,8 @@ public class WebServer {
 
         ServletHolder sho = new ServletHolder(new ServletContainer());
         sho.setClassName("org.glassfish.jersey.servlet.ServletContainer");
-        sho.setInitParameter("jersey.config.server.provider.packages", "dk.dma.ais.view.rest.resources");
+        sho.setInitParameter("jersey.config.server.provider.packages",
+                "dk.dma.ais.view.rest.resources,dk.dma.commons.web.rest.exceptionmapper");
         // This flag is set to disable internal buffering in jersey.
         // this is mainly done to avoid delays from when people request something. To the first output is delivered
         sho.setInitParameter(CommonProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, "-1");

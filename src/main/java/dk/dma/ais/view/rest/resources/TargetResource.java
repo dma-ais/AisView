@@ -28,7 +28,6 @@ import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.store.AisStoreQueryBuilder;
-import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.web.rest.StreamingUtil;
 
@@ -43,7 +42,7 @@ public class TargetResource extends AbstractViewerResource {
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
     public StreamingOutput pasttrack(@PathParam("mmsi") int mmsi, @Context UriInfo info) {
-        QueryParser p = new QueryParser(info);
+        QueryHelper p = new QueryHelper(info);
 
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
         b.setInterval(p.getInterval());

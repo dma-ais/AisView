@@ -31,7 +31,7 @@ import com.google.inject.Injector;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
-import dk.dma.ais.view.tracker.TargetTrackerBackupService;
+import dk.dma.ais.transform.tracker.TargetTrackerFileBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
 /**
@@ -55,7 +55,7 @@ public class Main extends AbstractDaemon {
     List<String> cassandraSeeds = Arrays.asList("10.3.240.203");
 
     @Parameter(names = "-nodatabase", description = "Disables access to ais store")
-    boolean disableAisStore;
+    boolean disableAisStore = true;
 
     @Parameter(description = "A list of AIS sources (sourceName=host:port,host:port sourceName=host:port ...")
     List<String> aissources;
@@ -82,7 +82,7 @@ public class Main extends AbstractDaemon {
         if (g != null) {
             Files.createDirectories(backup.toPath());
             viewer.targetTracker.updateFrom(g);
-            start(new TargetTrackerBackupService(viewer.targetTracker, backup.toPath()));
+            start(new TargetTrackerFileBackupService(viewer.targetTracker, backup.toPath()));
             start(new AbstractScheduledService() {
                 protected Scheduler scheduler() {
                     return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
@@ -103,6 +103,7 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        new Main().execute(AisReaders.getDefaultSources());
+        // args=AisReaders.getDefaultSources();
+        new Main().execute(args);
     }
 }

@@ -15,23 +15,30 @@
  */
 package dk.dma.ais.view.rest.resources;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 
-@Provider
-public class MyExceptionMapper implements ExceptionMapper<WebApplicationException> {
+/**
+ * 
+ * @author Kasper Nielsen
+ */
+@Path("/")
+public class RuntimeResource extends AbstractViewerResource {
 
-    @Override
-    public Response toResponse(WebApplicationException e) {
+    @GET
+    @Produces("text/plain")
+    @Path("/targetCount")
+    public int targetCount(@Context UriInfo info) {
+        return getTracker().countNumberOfTargets(new QueryHelper(info).getSourcePredicate());
+    }
 
-        // get initial response
-        Response response = e.getResponse();
-
-        // create custom error
-
-        // return the custom error
-        return Response.status(response.getStatus()).entity("HELLO " + e.getMessage()).build();
+    @GET
+    @Produces("text/plain")
+    @Path("/reportCount")
+    public int reportCount(@Context UriInfo info) {
+        return getTracker().countNumberOfReports(new QueryHelper(info).getSourcePredicate());
     }
 }

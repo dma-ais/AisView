@@ -29,7 +29,6 @@ import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
-import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.util.io.CountingOutputStream;
 
 /**
@@ -44,7 +43,7 @@ public class LiveStreamResource extends AbstractViewerResource {
     @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
     public StreamingOutput livestream(@Context final UriInfo info) {
-        final QueryParser p = new QueryParser(info);
+        final QueryHelper p = new QueryHelper(info);
 
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {

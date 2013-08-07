@@ -24,9 +24,8 @@ import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
-import dk.dma.ais.view.rest.resources.util.QueryParser;
 import dk.dma.commons.web.rest.StreamingUtil;
-import dk.dma.commons.web.rest.UriQueryUtil;
+import dk.dma.commons.web.rest.query.QueryParameterValidators;
 
 /**
  * 
@@ -39,7 +38,7 @@ public class AisStoreResource extends AbstractViewerResource {
     @Produces("text/plain")
     @Path("/store")
     public StreamingOutput foo(@Context final UriInfo info) {
-        QueryParser p = new QueryParser(info);
+        QueryHelper p = new QueryHelper(info);
 
         // Create builder
         AisStoreQueryBuilder b;
@@ -50,7 +49,7 @@ public class AisStoreResource extends AbstractViewerResource {
         } else {
             b = AisStoreQueryBuilder.forTime();
         }
-        b.setFetchSize(UriQueryUtil.getOneOrZeroIntParametersOrFail(info, "fetchSize", 3000));
+        b.setFetchSize(QueryParameterValidators.getParameterAsInt(info, "fetchSize", 3000));
         b.setInterval(p.getInterval());
 
         // create query and apply filters
