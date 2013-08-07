@@ -16,7 +16,6 @@
 package dk.dma.ais.view;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +32,6 @@ import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.tracker.TargetTracker;
-import dk.dma.ais.tracker.TargetTrackerFileBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
 /**
@@ -72,8 +70,9 @@ public class Main extends AbstractDaemon {
                 : sources);
         AisReaders.manageGroup(g);
 
-        Files.createDirectories(backup.toPath());
-        start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
+        // Files.createDirectories(backup.toPath());
+        // start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
+
         start(new AbstractScheduledService() {
             protected Scheduler scheduler() {
                 return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
@@ -100,7 +99,7 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        args = AisReaders.getDefaultSources();
+        // args = AisReaders.getDefaultSources();
         new Main().execute(args);
     }
 }

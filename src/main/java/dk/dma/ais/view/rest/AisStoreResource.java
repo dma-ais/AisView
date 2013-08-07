@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dma.ais.view.rest.resources;
+package dk.dma.ais.view.rest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -65,6 +65,7 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> query = get(AisStoreConnection.class).execute(b);
 
         // Apply filters from the user
+        // Apply area filter again, problem with position tagging of static data
         query = p.applySourceFilter(query);
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
         return StreamingUtil.createStreamingOutput(query, p.getOutputSink());
