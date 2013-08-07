@@ -20,7 +20,7 @@ import javax.ws.rs.core.Context;
 
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.store.AisStoreConnection;
-import dk.dma.ais.transform.tracker.TargetTracker;
+import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.AisViewer;
 
 /**

@@ -31,7 +31,7 @@ import com.google.inject.Injector;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
-import dk.dma.ais.transform.tracker.TargetTrackerFileBackupService;
+import dk.dma.ais.tracker.TargetTrackerFileBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
 /**
