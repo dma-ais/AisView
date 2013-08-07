@@ -7,7 +7,6 @@
 var vectors;
 var box;
 var transform;
-	
 
 function endDrag(bbox) {
 	var bounds = bbox.getBounds();
@@ -42,7 +41,7 @@ function drawBox(bounds) {
 }
 
 function toPrecision(zoom, value) {
-	var decimals = Math.pow(10, Math.floor(zoom/3));
+	var decimals = 1000;
 	return Math.round(value * decimals) / decimals;
 }
 
@@ -57,11 +56,21 @@ function setBounds(bounds) {
 		maxlon = toPrecision(map.getZoom(), b.right);
 		maxlat = toPrecision(map.getZoom(), b.top);  
 					 
-		document.getElementById("bbox_result").innerHTML =
-										"minlon=" + minlon + ", " +
-										"minlat=" + minlat + ", " +
-										"maxlon=" + maxlon + ", " +
-										"maxlat=" + maxlat;  
+		document.getElementById("bbox_result_minLon").value = minlon;
+		document.getElementById("bbox_result_minLat").value = minlat;
+		document.getElementById("bbox_result_maxLon").value = maxlon;
+		document.getElementById("bbox_result_maxLat").value = maxlat; 
+										
+		var bboxstring = 		"minlon=" + minlon + ", " +
+												"minlat=" + minlat + ", " +
+												"maxlon=" + maxlon + ", " +
+												"maxlat=" + maxlat;
+										
+		//Sending values to right scope in angular
+		var scope = angular.element('#bbox_resul').scope();
+			scope.$apply(function(){
+  			scope.bboxResult2 = bboxstring;
+		});
 	}
 }
 
