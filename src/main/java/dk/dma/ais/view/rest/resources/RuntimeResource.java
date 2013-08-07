@@ -15,30 +15,34 @@
  */
 package dk.dma.ais.view.rest.resources;
 
+import javax.servlet.ServletConfig;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 
+import dk.dma.ais.tracker.TargetTracker;
+import dk.dma.commons.web.rest.AbstractResource;
+
 /**
  * 
  * @author Kasper Nielsen
  */
 @Path("/")
-public class RuntimeResource extends AbstractViewerResource {
+public class RuntimeResource extends AbstractResource {
 
     @GET
     @Produces("text/plain")
     @Path("/targetCount")
-    public int targetCount(@Context UriInfo info) {
-        return getTracker().countNumberOfTargets(new QueryHelper(info).getSourcePredicate());
+    public int targetCount(@Context ServletConfig config, @Context UriInfo info) {
+        return get(TargetTracker.class).countNumberOfTargets(new QueryHelper(info).getSourcePredicate());
     }
 
     @GET
     @Produces("text/plain")
     @Path("/reportCount")
     public int reportCount(@Context UriInfo info) {
-        return getTracker().countNumberOfReports(new QueryHelper(info).getSourcePredicate());
+        return get(TargetTracker.class).countNumberOfReports(new QueryHelper(info).getSourcePredicate());
     }
 }

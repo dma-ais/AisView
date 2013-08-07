@@ -83,7 +83,7 @@ class QueryHelper {
         this.mmsis = Ints.toArray(mmsi);
         sourceFilter = getSourceFilter(uriInfo);
 
-        minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", Range.atLeast(0));
+        minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null, Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
         outputSink = getOutputSink(uriInfo);
     }
@@ -168,7 +168,8 @@ class QueryHelper {
     private static Interval findInterval(UriInfo info) {
         String interval = QueryParameterValidators.getParameter(info, "interval", null);
         if (interval == null) {
-            throw new IllegalArgumentException("Must define at least one interval");
+            return null;
+            // throw new IllegalArgumentException("Must define at least one interval");
         }
         return DateTimeUtil.toInterval(interval);
     }

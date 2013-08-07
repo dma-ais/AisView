@@ -29,25 +29,26 @@ import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
+import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.commons.util.io.CountingOutputStream;
+import dk.dma.commons.web.rest.AbstractResource;
 
 /**
  * 
  * @author Kasper Nielsen
  */
 @Path("/")
-public class LiveStreamResource extends AbstractViewerResource {
+public class LiveDataResource extends AbstractResource {
 
     /** Returns a live stream of all incoming data. */
     @GET
     @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
-    public StreamingOutput livestream(@Context final UriInfo info) {
+    public StreamingOutput livestream(@Context UriInfo info) {
         final QueryHelper p = new QueryHelper(info);
-
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
-                AisPacketStream s = newLiveStream();
+                AisPacketStream s = LiveDataResource.this.get(AisReaderGroup.class).stream();
                 s = p.applySourceFilter(s);
                 s = p.applyLimitFilter(s);
 

@@ -18,6 +18,7 @@ package dk.dma.ais.view;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +32,7 @@ import com.google.inject.Injector;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
+import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.tracker.TargetTrackerFileBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 
@@ -58,52 +60,47 @@ public class Main extends AbstractDaemon {
     boolean disableAisStore = true;
 
     @Parameter(description = "A list of AIS sources (sourceName=host:port,host:port sourceName=host:port ...")
-    List<String> aissources;
+    List<String> sources;
 
     /** {@inheritDoc} */
     @Override
     protected void runDaemon(Injector injector) throws Exception {
 
+        final TargetTracker targetTracker = new TargetTracker();
         // Setup the readers
-        AisReaderGroup g = null;
-        if (aissources != null && aissources.size() > 0) {
-            g = AisReaders.createGroup("AisView", aissources);
-            AisReaders.manageGroup(g);
+        AisReaderGroup g = AisReaders.createGroup("AisView", sources == null ? Collections.<String> emptyList()
+                : sources);
+        AisReaders.manageGroup(g);
 
-        }
-        // Setup AisStore
-        AisStoreConnection con = null;
-        if (!disableAisStore) {
-            con = start(AisStoreConnection.create("aisdata", cassandraSeeds));
-        }
-        final AisViewer viewer = new AisViewer(g, con);
+        Files.createDirectories(backup.toPath());
+        start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
+        start(new AbstractScheduledService() {
+            protected Scheduler scheduler() {
+                return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
+            }
 
-        // start the tracker if we get data
-        if (g != null) {
-            Files.createDirectories(backup.toPath());
-            viewer.targetTracker.updateFrom(g);
-            start(new TargetTrackerFileBackupService(viewer.targetTracker, backup.toPath()));
-            start(new AbstractScheduledService() {
-                protected Scheduler scheduler() {
-                    return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
-                }
+            protected void runOneIteration() throws Exception {
+                targetTracker.clean();
+            }
+        });
+        targetTracker.updateFrom(g);
+        start(g.asService());
 
-                protected void runOneIteration() throws Exception {
-                    viewer.targetTracker.clean();
-                }
-            });
-
-            start(g.asService());
-        }
+        // Start Ais Store Connection
+        AisStoreConnection con = disableAisStore ? null : start(AisStoreConnection.create("aisdata", cassandraSeeds));
 
         WebServer ws = new WebServer(port);
-        ws.start(viewer);
+        ws.getContext().setAttribute("ais-readers", g);
+        ws.getContext().setAttribute("ais-store", con);
+        ws.getContext().setAttribute("ais-tracker", targetTracker);
+
+        ws.start();
         LOG.info("AisView started");
         ws.join();
     }
 
     public static void main(String[] args) throws Exception {
-        // args=AisReaders.getDefaultSources();
+        args = AisReaders.getDefaultSources();
         new Main().execute(args);
     }
 }

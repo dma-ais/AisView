@@ -57,8 +57,18 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>dk.dma.commons</groupId>
-      <artifactId>dma-commons-web</artifactId>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${dependencies.jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${dependencies.jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dma.web</groupId>
+      <artifactId>dma-web-rest</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
 

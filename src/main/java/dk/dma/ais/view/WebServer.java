@@ -40,30 +40,75 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.dma.ais.view.rest.resources.AbstractViewerResource;
-
 /**
  * 
  * @author Kasper Nielsen
  */
 public class WebServer {
 
+    static final boolean IS_SECURE = false;
+
     /** The logger */
     static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
+    final ServletContextHandler context;
 
     final Server server;
-    static final boolean IS_SECURE = false;
 
     public WebServer(int port) {
         server = new Server(port);
+        this.context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     }
 
-    public void start(AisViewer viewer) throws Exception {
+    /**
+     * @return the context
+     */
+    public ServletContextHandler getContext() {
+        return context;
+    }
+
+    private HashLoginService getHashLoginService() {
+
+        // create the login service, assign the realm and read the user credentials
+        // from the file /tmp/realm.properties.
+        HashLoginService hls = new HashLoginService();
+        hls.putUser("kasper", Credential.getCredential("dav"), new String[] { "user" });
+        hls.setName("AisViewer");
+        return hls;
+    }
+
+    private SecurityHandler getSecurityHandler() {
+
+        // add authentication
+        Constraint constraint = new Constraint(Constraint.__BASIC_AUTH, "user");
+        constraint.setAuthenticate(true);
+        constraint.setRoles(new String[] { "user", "admin" });
+
+        // map the security constraint to the root path.
+        ConstraintMapping cm = new ConstraintMapping();
+        cm.setConstraint(constraint);
+        cm.setPathSpec("/*");
+
+        // create the security handler, set the authentication to Basic
+        // and assign the realm.
+        ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
+        csh.setAuthenticator(new BasicAuthenticator());
+        csh.setRealmName("AisViewer");
+        csh.addConstraintMapping(cm);
+
+        // set the login service
+        csh.setLoginService(getHashLoginService());
+
+        return csh;
+    }
+
+    public void join() throws InterruptedException {
+        server.join();
+    }
+
+    public void start() throws Exception {
         ((ServerConnector) server.getConnectors()[0]).setReuseAddress(true);
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-        context.setAttribute(AbstractViewerResource.VIEWER_ATTRIBUTE, viewer);
 
         ServletHolder sho = new ServletHolder(new ServletContainer());
         sho.setClassName("org.glassfish.jersey.servlet.ServletContainer");
@@ -100,44 +145,5 @@ public class WebServer {
         hw.setHandler(hd);
         server.setHandler(hw);
         server.start();
-    }
-
-    private SecurityHandler getSecurityHandler() {
-
-        // add authentication
-        Constraint constraint = new Constraint(Constraint.__BASIC_AUTH, "user");
-        constraint.setAuthenticate(true);
-        constraint.setRoles(new String[] { "user", "admin" });
-
-        // map the security constraint to the root path.
-        ConstraintMapping cm = new ConstraintMapping();
-        cm.setConstraint(constraint);
-        cm.setPathSpec("/*");
-
-        // create the security handler, set the authentication to Basic
-        // and assign the realm.
-        ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
-        csh.setAuthenticator(new BasicAuthenticator());
-        csh.setRealmName("AisViewer");
-        csh.addConstraintMapping(cm);
-
-        // set the login service
-        csh.setLoginService(getHashLoginService());
-
-        return csh;
-    }
-
-    private HashLoginService getHashLoginService() {
-
-        // create the login service, assign the realm and read the user credentials
-        // from the file /tmp/realm.properties.
-        HashLoginService hls = new HashLoginService();
-        hls.putUser("kasper", Credential.getCredential("dav"), new String[] { "user" });
-        hls.setName("AisViewer");
-        return hls;
-    }
-
-    public void join() throws InterruptedException {
-        server.join();
     }
 }
