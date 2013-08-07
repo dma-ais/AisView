@@ -196,7 +196,7 @@
 							<h3 id="source_region">Source region</h3>	
 							
 							<p>Clear all source choices</p>	
-							<button class="btn" ng-click="clearSources()" >Clear all</button>
+							<button class="btn" ng-click="clearSources()" >Clear All Source Filters</button>
       				
 	 						<br>
 							
@@ -210,12 +210,12 @@
     					<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
     					<br>
     					<div id="mapdiv"></div>
-    					
-    					Min Lon: <input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="minLon" size=30><br>
-    					Min Lat: <input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="minLat" size=30><br>
-    					Max Lon: <input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="maxLon" size=30><br>
-    					Max Lat: <input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="matLat" size=30>
-    					
+    					Top Left (Lat, Lon)
+    					(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="minLat" size=5>,
+    					<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="minLon" size=5>)
+    					Buttom Right (Lat, Lon)
+    					(<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="matLat" size=5>,
+    					<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="maxLon" size=5>)
     					<div>
     						<input type="text" id="bbox_resul" ng-model="bboxResult2" size=100>
     					</div>
