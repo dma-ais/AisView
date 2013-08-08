@@ -17,10 +17,14 @@
   <!-- AngularJS -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
   
-  <script src="js/urlBuilder.js"></script>
-    
+  <!-- Underscore -->
+  <script src="js/underscore-min.js"></script>
+  
   <!-- Bounding Box -->
   <script src="js/bbox.js"></script>
+  
+  <!-- Angularjs controller -->
+  <script src="js/urlBuilder.js"></script>
 
 	<!-- Max checks on checkboxes -->
 	<script type="text/javascript">
@@ -140,9 +144,9 @@
 							
 								<div class="col-lg-3">
 									
-      							<div ng-repeat="urlBuilder in sourceIds">
-        							<input type="checkbox" ng-model="urlBuilder.include">
-        							<span>{{urlBuilder.text}}</span>
+      							<div ng-repeat="sourceId in sourceIds">
+        							<input type="checkbox" ng-model="sourceId.include" ng-click="sourceIdsSelect(sourceId)">
+        							<span>{{sourceId.text}}</span>
       							</div>
    								
 								</div>
@@ -169,28 +173,28 @@
 							<h3 id="source_base">Source base station</h3>						
 							<p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
 							
-							<div ng-repeat="urlBuilder in sourceBases">
-        				<span>{{urlBuilder.text}}</span>
-        				<input type="text" ng-model="urlBuilder.input" ng-change="newTextField()">
+							<div ng-repeat="sourceBase in sourceBases">
+        				<span>{{sourceBase.text}}</span>
+        				<input type="text" ng-model="sourceBase.input" ng-change="newTextFieldBase(sourceBase)">
       				</div>
 							
 							<br>
 							<h3 id="source_country">Source Country</h3>		
 							<p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
 							
-							<form method="post" id="achievementf2" action="">
-								<span>1.</span> <input type="text" name="achievement2" id="achievement2" maxlength="3" size="30"/><br />           						
-          		</form>  
+							<div ng-repeat="sourceCountry in sourceCountries">
+        				<span>{{sourceCountry.text}}</span>
+        				<input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
+      				</div>  
           		
           		<br>
           		<h3 id="source_type">Source Type</h3>	
-          		<p>Source type: Multiselect -> 3 options Any (default), LIVE, SAT </p>
-          		<ul class="unstyled" style="list-style: none;">
-      							<li ng-repeat="urlBuilder in sourceTypes">
-        							<input type="checkbox" ng-model="urlBuilder.include">
-        							<span>{{urlBuilder.text}}</span>
-      							</li>
-   								</ul>
+          		<p>Source type: Radio -> 3 options Any (default), LIVE, SAT </p>
+          		<form name="myForm">
+      					<input type="radio" ng-model="sourceTypes" value="any">  Any <br/>
+      					<input type="radio" ng-model="sourceTypes" value="live">  LIVE <br/>
+      					<input type="radio" ng-model="sourceTypes" value="sat">  SAT <br/>
+     					</form>
 							
 							<br>
 							<h3 id="source_region">Source region</h3>	
@@ -210,35 +214,22 @@
     					<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
     					<br>
     					<div id="mapdiv"></div>
-    					Top Left (Lat, Lon)
-    					(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="minLat" size=5>,
-    					<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="minLon" size=5>)
-    					Buttom Right (Lat, Lon)
-    					(<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="matLat" size=5>,
-    					<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="maxLon" size=5>)
-    					<div>
-    						<input type="text" id="bbox_resul" ng-model="bboxResult2" size=100>
-    					</div>
-    					
-    					<div id="explanation">Draw coordinates to put a marker on the map:</div>
-    					<br>
-							Point 1: <br> Lat: <input type="text" id="lat1"> Lng: <input type="text" id="lng1"> <br>
-							Point 2: <br> Lat: <input type="text" id="lat2"> Lng: <input type="text" id="lng2"> <br>
-							<button onclick="drawMarkers()">Draw box on map</button> 
-    	
-
+    					<div id="bbox_result">
+								Top Left (Lat, Lon)
+								(<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="topLeftLat" size=5>,
+								<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="topLeftLon" size=5>)
+								Buttom Right (Lat, Lon)
+								(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="buttomRightLat" size=5>,
+								<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="buttomRightLon" size=5>)
+							<div/>
 	  					<div class="page-header">
         				<h1 id="ship-types">Ship types</h1>
         			</div>
         			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-        			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-	  
+        			
 							<div class="page-header">
 								<h1 id="some-other-filter">Some other filter</h1>
 							</div>
-							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
 							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
 							
 							<div class="page-header">

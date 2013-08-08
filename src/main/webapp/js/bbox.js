@@ -10,9 +10,26 @@ var transform;
 
 function endDrag(bbox) {
 	var bounds = bbox.getBounds();
+	console.log('Bounds:'+bounds);
 	setBounds(bounds);
 	drawBox(bounds);
 	box.deactivate();
+	
+	document.getElementById("bbox_drag_instruction").style.display = 'none';
+	document.getElementById("bbox_adjust_instruction").style.display = 'block';        
+}
+
+function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
+	
+	var bounds = new OpenLayers.Bounds();
+	bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+	bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+	
+	b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());	
+	
+	console.log('Bounds:'+b);
+	setBounds(b);
+	drawBox(b);
 	
 	document.getElementById("bbox_drag_instruction").style.display = 'none';
 	document.getElementById("bbox_adjust_instruction").style.display = 'block';        
@@ -31,6 +48,7 @@ function dragNewBox() {
 
 function boxResize(event) {
 	setBounds(event.feature.geometry.bounds);
+	console.log('Bounds:'+event.feature.geometry.bounds);
 }
 
 function drawBox(bounds) {
@@ -47,30 +65,52 @@ function toPrecision(zoom, value) {
 
 function setBounds(bounds) {
 	if (bounds == null) {
-		document.getElementById("bbox_result").innerHTML = "";
+		var scope = angular.element('#bbox_result').scope();
+			scope.$apply(function(){
+  			scope.topLeftLat = null;
+				scope.topLeftLon = null;
+				scope.buttomRightLat = null;
+				scope.buttomRightLon = null;
+		});
+		
 		
 	} else {
 		b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"))
-		minlon = toPrecision(map.getZoom(), b.left);
-		minlat = toPrecision(map.getZoom(), b.bottom);    
-		maxlon = toPrecision(map.getZoom(), b.right);
-		maxlat = toPrecision(map.getZoom(), b.top);  
-					 
-		document.getElementById("bbox_result_minLon").value = minlon;
-		document.getElementById("bbox_result_minLat").value = minlat;
-		document.getElementById("bbox_result_maxLon").value = maxlon;
-		document.getElementById("bbox_result_maxLat").value = maxlat; 
-										
-		var bboxstring = 		"minlon=" + minlon + ", " +
-												"minlat=" + minlat + ", " +
-												"maxlon=" + maxlon + ", " +
-												"maxlat=" + maxlat;
-										
+		//minlon = toPrecision(map.getZoom(), b.left);
+		//minlat = toPrecision(map.getZoom(), b.bottom);    
+		//maxlon = toPrecision(map.getZoom(), b.right);
+		//maxlat = toPrecision(map.getZoom(), b.top);  
+		
+		
 		//Sending values to right scope in angular
-		var scope = angular.element('#bbox_resul').scope();
+		var scope = angular.element('#bbox_result_maxLat').scope();
 			scope.$apply(function(){
-  			scope.bboxResult2 = bboxstring;
+  			scope.topLeftLat = toPrecision(map.getZoom(), b.top);
 		});
+			
+		var scope = angular.element('#bbox_result_minLon').scope();
+			scope.$apply(function(){
+  			scope.topLeftLon = toPrecision(map.getZoom(), b.left);
+		});
+		
+		var scope = angular.element('#bbox_result_minLat').scope();
+			scope.$apply(function(){
+  			scope.buttomRightLat = toPrecision(map.getZoom(), b.bottom);
+		});
+		
+		var scope = angular.element('#bbox_result_maxLon').scope();
+			scope.$apply(function(){
+  			scope.buttomRightLon = toPrecision(map.getZoom(), b.right);
+		});
+		
+		
+		//var scope = angular.element('#bbox_result').scope();
+		//	scope.$apply(function(){
+  	//		scope.topLeftLat = toPrecision(map.getZoom(), b.top);
+		//		scope.topLeftLon = toPrecision(map.getZoom(), b.left);
+		//		scope.buttomRightLat = toPrecision(map.getZoom(), b.bottom);
+		//		scope.buttomRightLon = toPrecision(map.getZoom(), b.right);
+		//});
 	}
 }
 

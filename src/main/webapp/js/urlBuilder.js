@@ -1,11 +1,15 @@
 function SourceIds($scope) {
 
-	$scope.bboxResult2 = '';
+	$scope.topLeftLat;
+	$scope.topLeftLon;
+	$scope.buttomRightLat;
+	$scope.buttomRightLon;
 
 
   
   //Source variables
   $scope.sourceIds = [
+  	{text:'All', value: 'all&', include:true},
     {text:'Source1', value: 'source1&', include:false},
     {text:'Source2', value: 'source2&', include:false},
     {text:'Source3', value: 'source3&', include:false},
@@ -13,16 +17,29 @@ function SourceIds($scope) {
     {text:'Source5', value: 'source5&', include:false},
     {text:'Source6', value: 'source6&', include:false}];
     
+  $scope.sourceIdsSelect = function(sourceId) {
+		
+		//if all is selected, deselect all other
+		if(sourceId.value==$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
+			angular.forEach($scope.sourceIds, function(sourceId) {
+      	sourceId.include=false;
+    	});
+    	$scope.sourceIds[0].include=true;  
+		}
+		
+		//deselect all if any other is selected	
+		if(sourceId.value!=$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
+			$scope.sourceIds[0].include=false;
+		}
+  }  
+    
   $scope.sourceBases = [
-    {text:1, input:''}];
+    {text:1+'.', input:'', counter: 1}];
     
-  $scope.sourceCountry = [
-    {text:1, input:''}];
+  $scope.sourceCountries = [
+    {text:1+'.', input:'', counter: 1}];
     
-  $scope.sourceTypes = [
-    {text:'Any', value: 'any&', include:true},
-    {text:'Live', value: 'live&', include:false},
-    {text:'Sat', value: 'sat&', include:false}];
+  $scope.sourceTypes = 'any';
   
   //Area variables
   $scope.bboxResult = '';
@@ -48,39 +65,33 @@ function SourceIds($scope) {
       bases+=urlBuilder.input+'&';
     });
     
-    
-    
-    //append all source types
-    angular.forEach($scope.sourceTypes, function(urlBuilder) {
-      if (urlBuilder.include) types+=urlBuilder.value;
-    });
-  
-  return base + 'id='+ids+'&base='+bases+'&type='+types+'&format='+$scope.format+'&samples='+$scope.samples+'&area='+$scope.bboxResult2;
+  	return 	base +
+  	 				'id='+ids+
+  	 				'&base='+bases+
+  	 				'&type='+$scope.sourceTypes+
+  	 				'&format='+$scope.format+
+  	 				'&samples='+$scope.samples+
+  	 				'&area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon;
   };
   
   
-  var inputNotCreated = true;
-  var count = 1;
+  var countBase = 2;
+  var countCountry = 2;
   
-  $scope.newTextField = function() {
+  $scope.newTextFieldBase = function(sourceBase) {
   	
-  	//angular.forEach($scope.sourceBases, function(urlBuilder) {
-    //  console.log(urlBuilder.input.length);
-    //  if(urlBuilder.input.length===1) {
-  	//		$scope.sourceBases.push({text:'2', input:''});
-  	//	}
-    //});
+  	if(sourceBase.counter === $scope.sourceBases.length) {
+  		$scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
+  		countBase++;
+  		}
+  };
+  
+  $scope.newTextFieldCountry = function(sourceCountry) {
   	
-  	console.log('text:'+ $scope.sourceBases.text);
-  	console.log('count:'+ count);
-  	if($scope.sourceBases.text===count) inputNotCreated = true;
-  	
-  	if(inputNotCreated) {
-  		count++;
-  		$scope.sourceBases.push({text:count, input:''});
-  	  inputNotCreated = false;
-  	  
-  	}
+  	if(sourceCountry.counter === $scope.sourceCountries.length) {
+  		$scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
+  		countCountry++;
+  		}
   };
   
   $scope.clearSources = function() {
@@ -90,17 +101,20 @@ function SourceIds($scope) {
       urlBuilder.include=false;
     });
     
-    var count = 0;
-    //set all source IDs to false
-    angular.forEach($scope.sourceTypes, function(urlBuilder) {
-      if(count===0) urlBuilder.include=true;
-      else urlBuilder.include=false;
-      count++;
-    });				    	  
-		  	
+    $scope.sourceBases = [
+    	{text:1+'.', input:'', counter: 1}];
+    countBase = 2;
+  	
+  	$scope.sourceCountries = [
+    	{text:1+'.', input:'', counter: 1}];
+    countCountry = 2;
+    
+   	$scope.sourceTypes='any';  	  
   }
   
   $scope.test = function() {
+		
+		//newInput($scope.topLeftLat, $scope.topLeftLon, $scope.buttomRightLat, $scope.buttomRightLon);
 		
 		console.log('inside test');
 		  	
