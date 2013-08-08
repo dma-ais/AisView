@@ -1,5 +1,5 @@
 function SourceIds($scope) {
-
+	
 	$scope.topLeftLat;
 	$scope.topLeftLon;
 	$scope.buttomRightLat;
@@ -114,6 +114,8 @@ function SourceIds($scope) {
   
   $scope.test = function() {
 		
+		
+		//newInput(10, 0, 0, 10);
 		//newInput($scope.topLeftLat, $scope.topLeftLon, $scope.buttomRightLat, $scope.buttomRightLon);
 		
 		console.log('inside test');
