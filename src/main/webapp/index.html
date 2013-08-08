@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="aisHDD">
 <head>	
 	<title>AIS Historic Data Downloader</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
   <!-- scripts -->
+  <!-- styles -->
+  <link href="css/columnSelector.css" rel="stylesheet">
   <!-- Bootstrap -->
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
     
@@ -23,8 +25,11 @@
   <!-- Bounding Box -->
   <script src="js/bbox.js"></script>
   
-  <!-- Angularjs controller -->
+  <!-- Angularjs modules & controller -->
+  <script src="js/angularFilters.js"></script>
   <script src="js/urlBuilder.js"></script>
+  <script src="js/columnSelector.js"></script>
+  
 
 	<!-- Max checks on checkboxes -->
 	<script type="text/javascript">
@@ -138,7 +143,7 @@
         			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
 							<h3 id="source_id">Source ID</h3>
 							<p> Select source IDs (maximun of 9)</p> 
-							<p> Test: {{url()}} </p>
+							<p> Test: {{url()|capitalize}} </p>
 							<div id="source_id_border">
 							<div class="row">
 							
@@ -161,13 +166,6 @@
 								</div>		
 							</div>	
 							</div>
-							
-							<script type="text/javascript">
- 								
-  							//This breaks onClick() callback
- 								//checkboxLimit( document.getElementById('source_id_form')[ 'source_id' ], 9 );
- 								
-							</script>
 							
 							<br>
 							<h3 id="source_base">Source base station</h3>						
@@ -243,9 +241,30 @@
       				</div>
          			
          			<form name="myForm">
-      					<input type="radio" ng-model="format" value="table">  Table <br/>
-      					<input type="radio" ng-model="format" value="raw"> Raw <br/>
+      					<input type="radio" ng-model="format" value=""> Raw <br/>
+      					<input type="radio" ng-model="format" value="format=table&">  Table <br/>
      					</form>
+         			
+         			<div ng-controller="columnSelector">
+         			
+         			<div id="columnWrapperFirst">
+        				<ul id="columnList">
+            			<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'false' }" ng-click="addColumn(column)">
+                		<span class="done-{{column.text}}">{{column.text}}</span>
+            			</li>
+        				</ul>
+    					</div>
+         			<div id="columnWrapper">
+        				<ul id="columnList">
+            			<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'true' }" ng-click="removeColumn(column)">
+                		<span class="done-{{column.text}}">{{column.text}}</span>
+            			</li>
+        				</ul>
+    					</div>
+    					</div>
+         			
+         			
+         			
          			
 	  					<div class="page-header">
         				<h1 id="download">Download</h1>

@@ -1,5 +1,6 @@
 function SourceIds($scope) {
 	
+	//Map variables
 	$scope.topLeftLat;
 	$scope.topLeftLon;
 	$scope.buttomRightLat;
@@ -10,12 +11,12 @@ function SourceIds($scope) {
   //Source variables
   $scope.sourceIds = [
   	{text:'All', value: 'all&', include:true},
-    {text:'Source1', value: 'source1&', include:false},
-    {text:'Source2', value: 'source2&', include:false},
-    {text:'Source3', value: 'source3&', include:false},
-    {text:'Source4', value: 'source4&', include:false},
-    {text:'Source5', value: 'source5&', include:false},
-    {text:'Source6', value: 'source6&', include:false}];
+    {text:'Source1', value: 'src1', include:false},
+    {text:'Source2', value: 'src2', include:false},
+    {text:'Source3', value: 'src3', include:false},
+    {text:'Source4', value: 'src4', include:false},
+    {text:'Source5', value: 'src5', include:false},
+    {text:'Source6', value: 'src6', include:false}];
     
   $scope.sourceIdsSelect = function(sourceId) {
 		
@@ -44,7 +45,7 @@ function SourceIds($scope) {
   //Area variables
   $scope.bboxResult = '';
   
-  $scope.format = 'table';
+  $scope.format = '';
   
   $scope.samples = '';
     
@@ -53,27 +54,70 @@ function SourceIds($scope) {
     var base = 'http://www.example.com/';
     var ids = '';
     var bases = '';
+    var countries = '';
     var types = '';
+    var samples = '';
+    var area = '';
     
-    //append all source IDs
-    angular.forEach($scope.sourceIds, function(urlBuilder) {
-      if (urlBuilder.include) ids+=urlBuilder.value;
-    });
+    //append all source IDs if All is not selected else no ids in query
+    if(_.first($scope.sourceIds).include==true) ids = '';
+    else {
+    	ids='source=';
+    	angular.forEach($scope.sourceIds, function(sourceId) {
+      	if (sourceId.include) ids+=sourceId.value+',';
+    	});
+    }
+    //delete , with & at end of string
+    ids=ids.replace(/^,|,$/g,'&');
     
-    //append all source bases
-    angular.forEach($scope.sourceBases, function(urlBuilder) {
-      bases+=urlBuilder.input+'&';
-    });
+    //build string from text fields (base and country)
+    bases = includeFromTextField($scope.sourceBases,'bs=');
+    countries = includeFromTextField($scope.sourceCountries,'ctry=');
     
-  	return 	base +
-  	 				'id='+ids+
-  	 				'&base='+bases+
-  	 				'&type='+$scope.sourceTypes+
-  	 				'&format='+$scope.format+
-  	 				'&samples='+$scope.samples+
-  	 				'&area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon;
+    //build string of source types
+    if($scope.sourceTypes=='any') types='';
+    else types='type='+$scope.sourceTypes+'&'
+    
+    //build string of samples
+    if($scope.samples=='') samples='';
+    else samples='samples='+$scope.samples+'&';
+    
+    if ($scope.topLeftLat != null &&
+    		$scope.topLeftLon != null &&
+    		$scope.buttomRightLat != null &&
+    		$scope.buttomRightLon != null) area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
+    else area='';
+    		
+    
+  	return 	base+
+  	 				ids+
+  	 				bases+
+  	 				countries+
+  	 				types+
+  	 				area+
+  	 				$scope.format+
+						samples;
   };
   
+  function includeFromTextField(array,baseString) {
+  	var returnString;
+  	var someInput = false;
+    //append all source bases
+    angular.forEach(array, function(sourceBase) {
+      if(sourceBase.input.length>0) someInput=true;
+    });
+    if(someInput) {
+    	returnString=baseString;
+    	angular.forEach(array, function(sourceBase) {
+      	if(sourceBase.input.length>0) returnString+=sourceBase.input+',';
+    });
+    }else returnString='';
+    
+    //replace , with & at end of string
+    returnString=returnString.replace(/^,|,$/g,'&');
+    
+    return returnString;
+  }
   
   var countBase = 2;
   var countCountry = 2;
