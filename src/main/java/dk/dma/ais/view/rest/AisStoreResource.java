@@ -29,7 +29,10 @@ import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.store.AisStoreQueryBuilder;
+import dk.dma.ais.store.AisStoreQueryResult;
+import dk.dma.ais.view.JobManager;
 import dk.dma.commons.util.Iterables;
+import dk.dma.commons.util.JSONObject;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
@@ -39,13 +42,33 @@ import dk.dma.commons.web.rest.query.QueryParameterValidators;
  * 
  * @author Kasper Nielsen
  */
-@Path("/")
+@Path("/store")
 public class AisStoreResource extends AbstractResource {
+
+    /**
+     * Returns a list of source ids in the source. This one is hardcoded for now
+     * 
+     * @return a list of source ids in the source
+     */
+    @GET
+    @Path("/sourceIDs")
+    public JSONObject getSourceIDs() {
+        return JSONObject.singleList("sourceIDs", "AISD", "IALA", "AISSAT", "MSSIS", "AISHUB");
+    }
 
     @GET
     @Produces("text/plain")
-    @Path("/store")
-    public StreamingOutput queryStore(@Context UriInfo info) {
+    @Path("/status")
+    public StreamingOutput queryStatus(@Context UriInfo info, @PathParam("jobId") String jobId) {
+        AisStoreQueryResult r = get(JobManager.class).getResult(jobId);
+
+        return null;
+    }
+
+    @GET
+    @Produces("text/plain")
+    @Path("/query")
+    public StreamingOutput query(@Context UriInfo info) {
         QueryHelper p = new QueryHelper(info);
 
         // Create builder, we first need to determine which of the 3 AisStore tables we need to use

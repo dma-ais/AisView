@@ -36,13 +36,14 @@ public class RuntimeResource extends AbstractResource {
     @Produces("text/plain")
     @Path("/targetCount")
     public int targetCount(@Context ServletConfig config, @Context UriInfo info) {
-        return get(TargetTracker.class).countNumberOfTargets(new QueryHelper(info).getSourcePredicate());
+        QueryHelper qh = new QueryHelper(info);
+        return get(TargetTracker.class).countNumberOfTargets(qh.getSourcePredicate(), qh.getTargetPredicate());
     }
 
     @GET
     @Produces("text/plain")
     @Path("/reportCount")
     public int reportCount(@Context UriInfo info) {
-        return get(TargetTracker.class).countNumberOfReports(new QueryHelper(info).getSourcePredicate());
+        return get(TargetTracker.class).countNumberOfReports(new QueryHelper(info).getSourceAndTargetPredicate());
     }
 }

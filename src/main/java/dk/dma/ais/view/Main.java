@@ -19,13 +19,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
 
 import dk.dma.ais.reader.AisReaderGroup;
@@ -33,6 +31,7 @@ import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.commons.app.AbstractDaemon;
+import dk.dma.commons.web.rest.AbstractResource;
 
 /**
  * 
@@ -73,25 +72,23 @@ public class Main extends AbstractDaemon {
         // Files.createDirectories(backup.toPath());
         // start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
 
-        start(new AbstractScheduledService() {
-            protected Scheduler scheduler() {
-                return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
-            }
-
-            protected void runOneIteration() throws Exception {
-                targetTracker.clean();
-            }
-        });
-        targetTracker.updateFrom(g);
+        // start(new AbstractScheduledService() {
+        // protected Scheduler scheduler() {
+        // return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
+        // }
+        //
+        // protected void runOneIteration() throws Exception {
+        // targetTracker.clean();
+        // }
+        // });
+        targetTracker.readFrom(g.stream());
         start(g.asService());
 
         // Start Ais Store Connection
         AisStoreConnection con = disableAisStore ? null : start(AisStoreConnection.create("aisdata", cassandraSeeds));
 
         WebServer ws = new WebServer(port);
-        ws.getContext().setAttribute("ais-readers", g);
-        ws.getContext().setAttribute("ais-store", con);
-        ws.getContext().setAttribute("ais-tracker", targetTracker);
+        ws.getContext().setAttribute(AbstractResource.CONFIG, AbstractResource.create(g, con, targetTracker));
 
         ws.start();
         LOG.info("AisView started");
@@ -99,7 +96,7 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        // args = AisReaders.getDefaultSources();
+        args = AisReaders.getDefaultSources();
         new Main().execute(args);
     }
 }

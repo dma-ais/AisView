@@ -41,6 +41,7 @@ import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
+import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.commons.util.DateTimeUtil;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -49,6 +50,7 @@ import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
+import dk.dma.enav.util.function.BiPredicate;
 import dk.dma.enav.util.function.Predicate;
 
 /**
@@ -67,6 +69,7 @@ class QueryHelper {
 
     final Long minDuration;
 
+    final long timeToRun = -1;
     final int[] mmsis;
     final OutputStreamSink<AisPacket> outputSink;
 
@@ -113,6 +116,22 @@ class QueryHelper {
 
     public Iterable<AisPacket> applySourceFilter(Iterable<AisPacket> i) {
         return sourceFilter == null ? i : Iterables.filter(i, sourceFilter);
+    }
+
+    public BiPredicate<AisPacketSource, TargetInfo> getSourceAndTargetPredicate() {
+        final Predicate<AisPacketSource> ps = getSourcePredicate();
+        final Predicate<TargetInfo> pt = getTargetPredicate();
+        return new BiPredicate<AisPacketSource, TargetInfo>() {
+            @Override
+            public boolean test(AisPacketSource t, TargetInfo u) {
+                return ps.test(t) && pt.test(u);
+            }
+        };
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public Predicate<TargetInfo> getTargetPredicate() {
+        return (Predicate) Predicate.TRUE;
     }
 
     public Predicate<AisPacketSource> getSourcePredicate() {

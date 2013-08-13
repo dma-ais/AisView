@@ -21,20 +21,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
-import org.eclipse.jetty.security.SecurityHandler;
-import org.eclipse.jetty.security.authentication.BasicAuthenticator;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.security.Constraint;
-import org.eclipse.jetty.util.security.Credential;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
@@ -66,41 +58,6 @@ public class WebServer {
         return context;
     }
 
-    private HashLoginService getHashLoginService() {
-
-        // create the login service, assign the realm and read the user credentials
-        // from the file /tmp/realm.properties.
-        HashLoginService hls = new HashLoginService();
-        hls.putUser("kasper", Credential.getCredential("dav"), new String[] { "user" });
-        hls.setName("AisViewer");
-        return hls;
-    }
-
-    private SecurityHandler getSecurityHandler() {
-
-        // add authentication
-        Constraint constraint = new Constraint(Constraint.__BASIC_AUTH, "user");
-        constraint.setAuthenticate(true);
-        constraint.setRoles(new String[] { "user", "admin" });
-
-        // map the security constraint to the root path.
-        ConstraintMapping cm = new ConstraintMapping();
-        cm.setConstraint(constraint);
-        cm.setPathSpec("/*");
-
-        // create the security handler, set the authentication to Basic
-        // and assign the realm.
-        ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
-        csh.setAuthenticator(new BasicAuthenticator());
-        csh.setRealmName("AisViewer");
-        csh.addConstraintMapping(cm);
-
-        // set the login service
-        csh.setLoginService(getHashLoginService());
-
-        return csh;
-    }
-
     public void join() throws InterruptedException {
         server.join();
     }
@@ -113,18 +70,12 @@ public class WebServer {
         ServletHolder sho = new ServletHolder(new ServletContainer());
         sho.setClassName("org.glassfish.jersey.servlet.ServletContainer");
         sho.setInitParameter("jersey.config.server.provider.packages",
-                "dk.dma.ais.view.rest,dk.dma.commons.web.rest.exceptionmapper");
+                "dk.dma.ais.view.rest,dk.dma.commons.web.rest.defaults");
         // This flag is set to disable internal buffering in jersey.
         // this is mainly done to avoid delays from when people request something. To the first output is delivered
         sho.setInitParameter(CommonProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, "-1");
-        context.addServlet(sho, "/*");
 
-        Handler hd = context;
-        if (IS_SECURE) {
-            SecurityHandler sh = getSecurityHandler();
-            sh.setHandler(context);
-            hd = sh;
-        }
+        context.addServlet(sho, "/*");
 
         HandlerWrapper hw = new HandlerWrapper() {
 
@@ -142,7 +93,7 @@ public class WebServer {
                         + request.getQueryString() + ", Duration = " + (System.nanoTime() - start) / 1000000 + " ms");
             }
         };
-        hw.setHandler(hd);
+        hw.setHandler(context);
         server.setHandler(hw);
         server.start();
     }
