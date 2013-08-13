@@ -1,24 +1,22 @@
-#columnWrapperFirst {
-    width: 200px;
-    height: 100px;
-    border:1px solid gray;
-    overflow: auto;
-    float: left;
-}
-
 #columnWrapper {
-    width: 200px;
-    height: 100px;
+    
     border:1px solid gray;
-    overflow: auto;
 }
 
-#columnList {
+#sourceList {
     white-space: nowrap;
     margin: 0px;
     padding: 0px;
     list-style-type: none;
 }
+
+#targetList {
+    white-space: nowrap;
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
 
 #columnListElement {
     margin: 1px;

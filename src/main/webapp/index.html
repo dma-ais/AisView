@@ -14,7 +14,10 @@
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
   
   <!-- JavaScript plugins (requires jQuery) -->
-    	<script src="http://code.jquery.com/jquery.js"></script>
+    	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  
+  <!-- jQuery UI -->
+  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
   
   <!-- AngularJS -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
@@ -29,36 +32,10 @@
   <script src="js/angularFilters.js"></script>
   <script src="js/urlBuilder.js"></script>
   <script src="js/columnSelector.js"></script>
-  
-
-	<!-- Max checks on checkboxes -->
-	<script type="text/javascript">
-	function checkboxLimit(group, max){
-		 var size = group.length;
- 
-		 for (var i = 0; i < size; i++){
-				group[ i ].onclick = function()
-				{
-			 		for( var idx = 0, len = group.length, count = 0, onLimit = false; idx < len && !onLimit; idx++)
-						onLimit = (count += group[ idx ].checked - 0) == max;
-	 
-			 		for( var j = 0; j < len; j++)
-						group[ j ].disabled = onLimit ? !group[ j ].checked : false;   
-				}
-			}
-		}
-	</script>
-	
-	<!-- Will be handler script for building url -->
-	<script type="text/javascript">
-		function handleClick(cb) {
-			alert("Click, new value = " + cb.value);
-		}
-	</script>	
 
   <style>
   	<!-- TODO: move to stylesheet -->
-  	
+
   	#border #info-box #info #box input[type="text"] {
   float: left;
   margin-top: 10px;
@@ -143,7 +120,7 @@
         			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
 							<h3 id="source_id">Source ID</h3>
 							<p> Select source IDs (maximun of 9)</p> 
-							<p> Test: {{url()|capitalize}} </p>
+							<p> Test: {{url()}} </p>
 							<div id="source_id_border">
 							<div class="row">
 							
@@ -167,7 +144,6 @@
 							</div>	
 							</div>
 							
-							<br>
 							<h3 id="source_base">Source base station</h3>						
 							<p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
 							
@@ -176,7 +152,6 @@
         				<input type="text" ng-model="sourceBase.input" ng-change="newTextFieldBase(sourceBase)">
       				</div>
 							
-							<br>
 							<h3 id="source_country">Source Country</h3>		
 							<p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
 							
@@ -185,7 +160,6 @@
         				<input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
       				</div>  
           		
-          		<br>
           		<h3 id="source_type">Source Type</h3>	
           		<p>Source type: Radio -> 3 options Any (default), LIVE, SAT </p>
           		<form name="myForm">
@@ -194,15 +168,11 @@
       					<input type="radio" ng-model="sourceTypes" value="sat">  SAT <br/>
      					</form>
 							
-							<br>
 							<h3 id="source_region">Source region</h3>	
 							
 							<p>Clear all source choices</p>	
 							<button class="btn" ng-click="clearSources()" >Clear All Source Filters</button>
       				
-	 						<br>
-							
-							
 	  					<div class="page-header">
         				<h1 id="area-selection">Area Selection</h1>
         			</div>
@@ -245,30 +215,63 @@
       					<input type="radio" ng-model="format" value="format=table&">  Table <br/>
      					</form>
          			
-         			<div ng-controller="columnSelector">
-         			
-         			<div id="columnWrapperFirst">
-        				<ul id="columnList">
-            			<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'false' }" ng-click="addColumn(column)">
-                		<span class="done-{{column.text}}">{{column.text}}</span>
-            			</li>
-        				</ul>
+         			<div ng-controller="columnSelector" ng-hide="format==''">			
+								<div id="columnWrapperFirst">
+									<ul id="columnList">
+										<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'false' }" ng-click="addColumn(column)">
+											<span class="done-{{column.text}}">{{column.text}}</span>
+										</li>
+									</ul>
+								</div>
+								<div class="btn-group-vertical">
+									<button type="button" class="icon-white icon-heart" ng-click="reset()">Include</button>
+									<button type="button" class="icon-white icon-heart" ng-click="update()">Include all</button>
+        				</div>
+        				
+								<div id="columnWrapper">
+									<ul id="columnList">
+										<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'true' }" ng-click="removeColumn(column)">
+											<span class="done-{{column.text}}">{{column.text}}</span>
+										</li>
+									</ul>
+								</div>
     					</div>
-         			<div id="columnWrapper">
-        				<ul id="columnList">
-            			<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'true' }" ng-click="removeColumn(column)">
-                		<span class="done-{{column.text}}">{{column.text}}</span>
-            			</li>
-        				</ul>
-    					</div>
-    					</div>
          			
-         			
-         			
-         			
+         			<div class="container" id="main"  ng-controller="dndCtrl">
+    						<div class="row">
+    							<div id="columnWrapper" class="col-lg-6">
+										<ul id="sourceList"
+										dnd-between-list="source,targetList"
+										ng-class="{'minimalList':sourceEmpty()}">
+											<li class="alert alert-error nomargin"
+												style="list-style: none; margin:5;"
+												ng-repeat="item in source">{{item.value}}</li>
+										</ul>
+									</div>
+									<div id="columnWrapper" class="col-lg-6">
+										<ul id="targetList"
+										dnd-between-list="model,sourceList"
+										ng-class="{'minimalList':modelEmpty()}">
+											<li class="alert alert-info nomargin"
+											style="list-style: none; margin:5;"
+											ng-repeat="item in model">{{item.value}}</li>
+										</ul>
+									</div>
+        				</div>
+							</div>
+         			<style>
+							 .minimalList { min-height: 60px; }
+							</style>
 	  					<div class="page-header">
         				<h1 id="download">Download</h1>
         			</div>
+        			<button class="btn btn-mini"><i class="icon-chevron-right"></i></button>
+        			<button class="btn"><i class="icon-heart"></i></button>
+        			<button class="btn btn-large"><i class="icon-star"></i></button>
+        			<button class="btn btn-inverse btn-large"><i class="icon-white icon-star"></i></button>
+        			<button type="submit" class="btn btn-primary">
+  <i class="icon-user icon-white"></i> Sign in
+</button>
         			<p>"InputForm with final request parameter."</p>
       				
       				<h3>{{url()}}</h3>
@@ -292,34 +295,12 @@
     	<!-- Optionally enable responsive features in IE8 -->
     	<script src="js/respond.js"></script>
     	
-    	<script type="text/javascript">
-				
-				function AllInputsFilled(inputID) {
-    			return $("input[type='text']", $(inputID)).filter(function() {
-        		return $(this).val().trim() === "";
-    				}).size() === 0;
-					}
-
-					function AdditionEvent(inputID,maxChars,length) {
-    			if (AllInputsFilled(inputID)) {
-        	AddInput(inputID,maxChars,length);    
-    			}
-				}
-
-				function AddInput(inputID,maxChars,length) {
-					var cnt = $("input[type='text']", $(inputID)).size() + 1;
-					$("<br><span>" + cnt +'. ' + "</span><input type='text' maxlength="+ maxChars +" size=" + length + " name='achievement"  + cnt+ "' id='achievement" + cnt+ "' />").insertAfter(inputID +" input[type='text']:last");
-					$("input", $(inputID)).unbind("keyup").bind("keyup", function(){ AdditionEvent(inputID,maxChars,length) });
-
-				}
-				
-				$("input", $("#achievementf1")).bind("keyup", function(){ AdditionEvent('#achievementf1',9,100) });
-				$("input", $("#achievementf2")).bind("keyup", function(){ AdditionEvent('#achievementf2',3,30) });
-				
-			</script>
-			
+    	<!-- load the app scripts -->
+    	<script src="app/app.js" type="text/javascript"></script>
+			<script src="app/dir-dnd.js" type="text/javascript"></script>
+			<script src="app/ctrl-dnd.js" type="text/javascript"></script>
+    	
 			<!-- ng-controller div ends-->
 			</div>
-			
   </body>
 </html>

@@ -1,3 +1,4 @@
+/*
 //declare main module
 var mainModule = angular.module('aisHDD', ['aisHDD.filter']);
 
@@ -29,3 +30,4 @@ filterModule.filter('restrict',  function () {
                      
      }
     });
+*/
