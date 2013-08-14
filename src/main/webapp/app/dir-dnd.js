@@ -30,8 +30,20 @@ app.directive('dndBetweenList', function($parse) {
         $(element[0]).sortable({
             items:'li',
             start:function (event, ui) {
+                //addon to control filters
+                var xyzCount = 0;
+                var timeCount = 0;
+                var signalCount = 0;
+                angular.forEach(scope.notIncluded, function(item) {
+      						if(item.category=="xyz") xyzCount++;
+      						if(item.category=="time") timeCount++;
+      						if(item.category=="signal") signalCount++;
+    						});
+                
                 // on start we define where the item is dragged from
-                startIndex = ($(ui.item).index());
+                if(scope.filterCategory=='time') startIndex = ($(ui.item).index())+xyzCount;
+                else if(scope.filterCategory=='signal') startIndex = ($(ui.item).index())+(xyzCount+timeCount);
+                else startIndex = ($(ui.item).index());
                 toTarget = false;
             },
             stop:function (event, ui) {

@@ -27,11 +27,6 @@
   
   <!-- Bounding Box -->
   <script src="js/bbox.js"></script>
-  
-  <!-- Angularjs modules & controller -->
-  <script src="js/angularFilters.js"></script>
-  <script src="js/urlBuilder.js"></script>
-  <script src="js/columnSelector.js"></script>
 
   <style>
   	<!-- TODO: move to stylesheet -->
@@ -218,12 +213,15 @@
          			<div class="container" id="main"  ng-controller="dndCtrl" ng-hide="format==''">
     						<div class="row">
     							<div id="columnWrapper" class="col-lg-3">
+    								<button type="button" ng-click="filterCategory='xyz'">xyz</button>
+										<button type="button" ng-click="filterCategory='time'">Time</button>
+										<button type="button" ng-click="filterCategory='signal'">Signal</button>
 										<p id="listTitles">Not included in query</body>
 										<ul id="notIncludedList"
 										dnd-between-list="notIncluded,includedList"
 										ng-class="{'minimalList':notIncludedEmpty()}">
 											<li id="columnListElementNotIncluded"
-												ng-repeat="item in notIncluded"><body>{{item.value}}</body></li>
+												ng-repeat="item in notIncluded | filter:{category: filterCategory}"><body>{{item.value}}</body></li>
 										</ul>
 									</div>
 									<div id="dragImg" class="col-lg-1">
@@ -273,6 +271,11 @@
     	<script src="app/app.js" type="text/javascript"></script>
 			<script src="app/dir-dnd.js" type="text/javascript"></script>
 			<script src="app/ctrl-dnd.js" type="text/javascript"></script>
+			
+			<!-- Angularjs modules & controller -->
+  		<script src="js/angularFilters.js"></script>
+  		<script src="js/urlBuilder.js"></script>
+  		<script src="js/columnSelector.js"></script>
     	
 			<!-- ng-controller div ends-->
 			</div>

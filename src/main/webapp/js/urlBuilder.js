@@ -89,19 +89,22 @@ function SourceIds($scope) {
     		$scope.buttomRightLon != null) area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
     else area='';
     
-    //append all columns if format is 'table' else no tables
+    
+    //TODO include tables selected
+    /*
+  	//append all tables if format is 'table' else no tables
     if($scope.format=='') tables = '';
     else {
-    	console.log('inside else condi');
+    	console.log('length of tablesIncluded:'+$scope.tablesIncluded.length);
     	tables='tables=';
-    	angular.forEach($scope.included, function(includedItem) {
-      	console.log(includedItem.value);
+    	angular.forEach($scope.tablesIncluded, function(includedItem) {
+      	console.log('test: '+includedItem.value);
       	tables+=includedItem.value+',';
     	});
     }
     //delete , with & at end of string
     tables=tables.replace(/^,|,$/g,'&');
-    		
+    */
     
   	return 	base+
   	 				ids+

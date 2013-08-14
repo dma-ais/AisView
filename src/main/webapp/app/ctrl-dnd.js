@@ -1,16 +1,28 @@
 function dndCtrl($scope) {
  
+    $scope.filterCategory = 'xyz';
+    
+    function check(categoryString) {
+  		$scope.filterCategory=categoryString;
+  		console.log('catString: '+categoryString);
+  }
+    
+    check
+    
     $scope.notIncluded = [
-        {	"id": 1, "value": "Longitude" },
-        { "id": 2, "value": "Latitude"  },
-        { "id": 3, "value": "Height"    },
-        { "id": 4,  "value": "Time"     },
-        { "id": 5, "value": "Signal" },
-        { "id": 6, "value": "Timestamp"},
-        { "id": 7, "value": "Altitude"},
-        { "id": 8, "value": "Noname"}];
+        {	'id': 1,	value: "Longitude",		category: "xyz"},
+        { 'id': 2, 	value: "Latitude",		category: "xyz"},
+        { 'id': 3, 	value: "Height",			category: "xyz"},
+        { 'id': 4, 	value: "Timeformat1",	category: "time"},
+        { 'id': 5, 	value: "Timeformat2",	category: "time"},
+        { 'id': 6, 	value: "Timeformat3",	category: "time"},
+        { 'id': 7, 	value: "Signal1",			category: "signal"},
+        { 'id': 8, 	value: "Signal2",			category: "signal"},
+        { 'id': 9, 	value: "Signal3",			category: "signal"},
+        { 'id': 10, 	value: "Signal4",		category: "signal"}];
  
     $scope.included = [];
+    
  
     // watch, use 'true' to also receive updates when values
     // change, instead of just the reference
