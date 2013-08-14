@@ -215,46 +215,28 @@
       					<input type="radio" ng-model="format" value="format=table&">  Table <br/>
      					</form>
          			
-         			<div ng-controller="columnSelector" ng-hide="format==''">			
-								<div id="columnWrapperFirst">
-									<ul id="columnList">
-										<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'false' }" ng-click="addColumn(column)">
-											<span class="done-{{column.text}}">{{column.text}}</span>
-										</li>
-									</ul>
-								</div>
-								<div class="btn-group-vertical">
-									<button type="button" class="icon-white icon-heart" ng-click="reset()">Include</button>
-									<button type="button" class="icon-white icon-heart" ng-click="update()">Include all</button>
-        				</div>
-        				
-								<div id="columnWrapper">
-									<ul id="columnList">
-										<li id="columnListElement" ng-repeat="column in columns | filter: { include: 'true' }" ng-click="removeColumn(column)">
-											<span class="done-{{column.text}}">{{column.text}}</span>
-										</li>
-									</ul>
-								</div>
-    					</div>
-         			
-         			<div class="container" id="main"  ng-controller="dndCtrl">
+         			<div class="container" id="main"  ng-controller="dndCtrl" ng-hide="format==''">
     						<div class="row">
-    							<div id="columnWrapper" class="col-lg-6">
-										<ul id="sourceList"
-										dnd-between-list="source,targetList"
-										ng-class="{'minimalList':sourceEmpty()}">
-											<li class="alert alert-error nomargin"
-												style="list-style: none; margin:5;"
-												ng-repeat="item in source">{{item.value}}</li>
+    							<div id="columnWrapper" class="col-lg-3">
+										<p id="listTitles">Not included in query</body>
+										<ul id="notIncludedList"
+										dnd-between-list="notIncluded,includedList"
+										ng-class="{'minimalList':notIncludedEmpty()}">
+											<li id="columnListElementNotIncluded"
+												ng-repeat="item in notIncluded"><body>{{item.value}}</body></li>
 										</ul>
 									</div>
-									<div id="columnWrapper" class="col-lg-6">
-										<ul id="targetList"
-										dnd-between-list="model,sourceList"
+									<div id="dragImg" class="col-lg-1">
+										<br><br><br><br>
+										<img id="arrowImg" src="img/arrow.jpeg" alt="Drag and drop elements around">
+									</div>
+									<div id="columnWrapper" class="col-lg-3">
+										<p id="listTitles">Included in query</p>
+										<ul id="includedList"
+										dnd-between-list="included,notIncludedList"
 										ng-class="{'minimalList':modelEmpty()}">
-											<li class="alert alert-info nomargin"
-											style="list-style: none; margin:5;"
-											ng-repeat="item in model">{{item.value}}</li>
+											<li id="columnListElementIncluded"
+											ng-repeat="item in included"><body>{{item.value}}</body></li>
 										</ul>
 									</div>
         				</div>
@@ -265,16 +247,8 @@
 	  					<div class="page-header">
         				<h1 id="download">Download</h1>
         			</div>
-        			<button class="btn btn-mini"><i class="icon-chevron-right"></i></button>
-        			<button class="btn"><i class="icon-heart"></i></button>
-        			<button class="btn btn-large"><i class="icon-star"></i></button>
-        			<button class="btn btn-inverse btn-large"><i class="icon-white icon-star"></i></button>
-        			<button type="submit" class="btn btn-primary">
-  <i class="icon-user icon-white"></i> Sign in
-</button>
-        			<p>"InputForm with final request parameter."</p>
       				
-      				<h3>{{url()}}</h3>
+      				<textarea rows="4" cols="100" readonly>{{url()}}</textarea>
       				
       				<div class="navbar">	
         				<form class="navbar-form pull-left">

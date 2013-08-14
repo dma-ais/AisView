@@ -58,6 +58,7 @@ function SourceIds($scope) {
     var types = '';
     var samples = '';
     var area = '';
+    var tables = '';
     
     //append all source IDs if All is not selected else no ids in query
     if(_.first($scope.sourceIds).include==true) ids = '';
@@ -87,6 +88,19 @@ function SourceIds($scope) {
     		$scope.buttomRightLat != null &&
     		$scope.buttomRightLon != null) area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
     else area='';
+    
+    //append all columns if format is 'table' else no tables
+    if($scope.format=='') tables = '';
+    else {
+    	console.log('inside else condi');
+    	tables='tables=';
+    	angular.forEach($scope.included, function(includedItem) {
+      	console.log(includedItem.value);
+      	tables+=includedItem.value+',';
+    	});
+    }
+    //delete , with & at end of string
+    tables=tables.replace(/^,|,$/g,'&');
     		
     
   	return 	base+
@@ -96,6 +110,7 @@ function SourceIds($scope) {
   	 				types+
   	 				area+
   	 				$scope.format+
+  	 				tables+
 						samples;
   };
   
