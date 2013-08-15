@@ -25,6 +25,9 @@
     border-radius:3px;
     list-style-type: none;
     border:1px solid gray;
+    overflow:auto
+    overflow-y: scroll;
+		overflow-x: hidden;
 }
 
 #includedList {
@@ -36,6 +39,9 @@
     border-radius:3px;
     list-style-type: none;
     border:1px solid gray;
+    overflow:auto
+    overflow-y: scroll;
+		overflow-x: hidden;
 }
 
 

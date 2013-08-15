@@ -7,7 +7,7 @@ app.directive('dndBetweenList', function($parse) {
         var args = attrs.dndBetweenList.split(',');
         // contains the args for the target
         var targetArgs = $('#'+args[1]).attr('dnd-between-list').split(',');
- 
+ 				
         // variables used for dnd
         var toUpdate;
         var target;
@@ -30,38 +30,93 @@ app.directive('dndBetweenList', function($parse) {
         $(element[0]).sortable({
             items:'li',
             start:function (event, ui) {
-                //addon to control filters
-                var xyzCount = 0;
-                var timeCount = 0;
-                var signalCount = 0;
-                angular.forEach(scope.notIncluded, function(item) {
-      						if(item.category=="xyz") xyzCount++;
-      						if(item.category=="time") timeCount++;
-      						if(item.category=="signal") signalCount++;
-    						});
                 
-                // on start we define where the item is dragged from
-                if(scope.filterCategory=='time') startIndex = ($(ui.item).index())+xyzCount;
-                else if(scope.filterCategory=='signal') startIndex = ($(ui.item).index())+(xyzCount+timeCount);
-                else startIndex = ($(ui.item).index());
+                //determining startIndex depends on which list he is coming from
+                //from includedList
+                if(args[0]=="included") startIndex = ($(ui.item).index());
+                //from notIncludedList
+                else {
+                	//to find index we need to find number of items before the moved item
+                	var xyzCount = 0;
+                	var timeCount = 0;
+                	//var signalCount = 0;
+                	angular.forEach(scope.notIncluded, function(item) {
+      							if(item.category.indexOf("xyz") != -1) xyzCount++;
+      							if(item.category.indexOf("time") != -1) timeCount++;
+      							//if(item.category=="signal") signalCount++;
+    							});
+                	// and calculate where the item is dragged from
+                	if(scope.filterCategory.indexOf("time") != -1) startIndex = ($(ui.item).index())+xyzCount;
+                	else if(scope.filterCategory.indexOf("signal") != -1) startIndex = ($(ui.item).index())+(xyzCount+timeCount);
+                	else startIndex = ($(ui.item).index());		
+                } 
                 toTarget = false;
+                console.log('startIndex: '+startIndex);
+                var teststring='';
+                angular.forEach(scope.notIncluded, function(item) {
+      							teststring +=item.id+'-';
+    							});
+    						console.log(teststring);
+                
             },
             stop:function (event, ui) {
                 var newParent = ui.item[0].parentNode.id;
- 
-                // on stop we determine the new index of the
+								//console.log('newParent: '+newParent	);
+								
+								// on stop we determine the new index of the
                 // item and store it there
-                var newIndex = ($(ui.item).index());
-                var toMove = toUpdate[startIndex];
+                var newIndex = -1;
+                
+ 								//we know which item to move
+ 								var toMove = toUpdate[startIndex];
+ 				
+                //if taken from includedList
+                if(args[0]=="included") {
+                	
+                	//if dropped in included make disorder
+                	if(newParent=="includedList") newIndex = ($(ui.item).index());
+                	//if dropped in notIncluded restore same order
+                	else {
+										var indexCounter = 0;
+										//determine index, some items might be gone
+										angular.forEach(target, function(item) {
+											if(toMove.id>item.id) indexCounter++;
+										});
+										newIndex = indexCounter;
+									}								
+                } 
+                //if taken from notIncludedList
+               	else {
+               		//if dropped in included make disorder
+                	if(newParent=="includedList") newIndex = ($(ui.item).index());
+                	//if dropped in notIncluded keep same order
+                	else {
+										newIndex=startIndex;
+									}					
+               	}
+               	
+                console.log('newIndex: '+newIndex);
  
                 // we need to remove him from the configured model
                 toUpdate.splice(startIndex,1);
- 
+ 								
+ 								//finally make changes to the arrays
+ 								//if we move between lists:
                 if (newParent == args[1]) {
-                    // and add it to the linked list
+                    //add it to the linked list
                     target.splice(newIndex,0,toMove);
-                }  else {
-                    toUpdate.splice(newIndex,0,toMove);
+                } //if we move on same list	
+                else {
+                		 toUpdate.splice(newIndex,0,toMove);
+                		 //This is a hack to force updating the ui if
+                		 //we move on same notIncludedlist.
+                		 //We move an element forth and back and after 1ms delete them again. 
+                		 toUpdate.splice(newIndex,0,toMove);
+                		 setTimeout(function(){
+                		 	 toUpdate.splice(newIndex,1);
+                		   scope.$apply(targetArgs[0]);
+                			 scope.$apply(args[0]);
+                		 },1);
                 }
  
                 // we move items in the array, if we want
