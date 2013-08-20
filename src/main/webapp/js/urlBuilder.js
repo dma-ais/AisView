@@ -166,9 +166,13 @@ function SourceIds($scope) {
     $scope.clearSources = function() {
 
         //set all source IDs to false
-        angular.forEach($scope.sourceIds, function(urlBuilder) {
-            urlBuilder.include=false;
+        angular.forEach($scope.sourceIds, function(item) {
+            item.include=false;
         });
+        //and 'all' to true
+        _.first($scope.sourceIds).include=true;
+
+
 
         $scope.sourceBases = [
             {text:1+'.', input:'', counter: 1}];

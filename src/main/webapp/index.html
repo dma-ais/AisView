@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="aisHDD">
-<head>	
+
+<head>
     <title>AIS Historic Data Downloader</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -50,7 +51,7 @@
 
 <div ng-controller="SourceIds">
   
-  <!-- AisStore master nav -->
+    <!-- AisStore master nav -->
 	<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
   	<div class="container">
     	<a class="navbar-brand">AIS Store Downloader</a>
@@ -58,84 +59,84 @@
 	</div>
 
 	<!-- AisStore sidebar nav -->
-		<div class="container bs-docs-container">
+    <div class="container bs-docs-container">
   		<div class="row">
-				<div class="col-lg-3">
-      		<div class="bs-sidebar" data-spy="affix" data-offset-top="0">
-        		<ul class="nav bs-sidenav">      
-							<li><a href="#source">Source Filtering</a></li>
-							<li><a href="#area-selection">Area Selection</a></li>
-							<li><a href="#ship-types">Ship types</a></li>
-							<li><a href="#some-other-filter">Some other filter</a></li>
-							<li><a href="#output-format">Output Format</a></li>
-							<li><a href="#download">Download</a></li>
-						</ul>
-      		</div>
- 				</div>
+            <div class="col-lg-3">\
+                <div class="bs-sidebar" data-spy="affix" data-offset-top="0">\
+                    <ul class="nav bs-sidenav">
+                        <li><a href="#source">Source Filtering</a></li>
+                        <li><a href="#area-selection">Area Selection</a></li>
+                        <li><a href="#ship-types">Ship types</a></li>
+                        <li><a href="#some-other-filter">Some other filter</a></li>
+                        <li><a href="#output-format">Output Format</a></li>
+                        <li><a href="#download">Download</a></li>
+                    </ul>
+                </div>
+            </div>
  	
- 					<!-- Content main page-->
- 	
-					<div class="col-lg-9">
-	 					<div class="bs-docs-section">
-	     				<div class="page-header">
-        				<h1 id="source">Source Filter</h1>
+ 			<!-- Content main page-->
+            <div class="col-lg-9">
+                <div class="bs-docs-section">
+                    <div class="page-header">
+                        <h1 id="source">Source Filter</h1>
         			</div>
+                    <div class="tabbable">
+                        <ul class="nav nav-tabs nav-justified">
+                            <li class="active"><a href="#pane1" data-toggle="tab">Source ID</a></li>
+                            <li><a href="#pane2" data-toggle="tab">Source base station</a></li>
+                            <li><a href="#pane3" data-toggle="tab">Source Country</a></li>
+                            <li><a href="#pane4" data-toggle="tab">Source Type</a></li>
+                            <li><a href="#pane5" data-toggle="tab">Source region</a></li>
 
-        			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
-							<h3 id="source_id">Source ID</h3>
-							<p> Select source IDs (maximun of 9)</p> 
-							<p> Test: {{url()}} </p>
-							<div id="source_id_border">
-							<div class="row">
-							
-								<div class="col-lg-3">
-									
-      							<div ng-repeat="sourceId in sourceIds">
-        							<input type="checkbox" ng-model="sourceId.include" ng-click="sourceIdsSelect(sourceId)">
-        							<span>{{sourceId.text}}</span>
-      							</div>
-   								
-								</div>
-								<div class="col-lg-3">
-										
-								</div>
-								<div class="col-lg-3">
-										
-								</div>
-								<div class="col-lg-3">
-											
-								</div>		
-							</div>	
-							</div>
-							
-							<h3 id="source_base">Source base station</h3>						
-							<p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
-							
-							<div ng-repeat="sourceBase in sourceBases">
-        				<span>{{sourceBase.text}}</span>
-        				<input type="text" ng-model="sourceBase.input" ng-change="newTextFieldBase(sourceBase)">
-      				</div>
-							
-							<h3 id="source_country">Source Country</h3>		
-							<p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
-							
-							<div ng-repeat="sourceCountry in sourceCountries">
-        				<span>{{sourceCountry.text}}</span>
-        				<input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
-      				</div>  
-          		
-          		<h3 id="source_type">Source Type</h3>	
-          		<p>Source type: Radio -> 3 options Any (default), LIVE, SAT </p>
-          		<form name="myForm">
-      					<input type="radio" ng-model="sourceTypes" value="any">  Any <br/>
-      					<input type="radio" ng-model="sourceTypes" value="live">  LIVE <br/>
-      					<input type="radio" ng-model="sourceTypes" value="sat">  SAT <br/>
-     					</form>
-							
-							<h3 id="source_region">Source region</h3>	
-							
-							<p>Clear all source choices</p>	
-							<button class="btn" ng-click="clearSources()" >Clear All Source Filters</button>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="pane1" class="tab-pane active">
+                                <h3 id="source_id">Source ID</h3>
+                                <div id="source_id_border">
+                                    <div class="row">
+                                        <div class="col-lg-3">
+                                            <div ng-repeat="sourceId in sourceIds">
+                                                <input type="checkbox" ng-model="sourceId.include" ng-click="sourceIdsSelect(sourceId)">
+                                                <span>{{sourceId.text}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="pane2" class="tab-pane">
+                                <h3 id="source_base">Source base station</h3>
+                                <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
+                                <div ng-repeat="sourceBase in sourceBases">
+                                    <span>{{sourceBase.text}}</span>
+                                    <input type="text" ng-model="sourceBase.input" ng-change="newTextFieldBase(sourceBase)">
+                                </div>
+                            </div>
+                            <div id="pane3" class="tab-pane">
+                                <h3 id="source_country">Source Country</h3>
+                                <p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
+
+                                <div ng-repeat="sourceCountry in sourceCountries">
+                                    <span>{{sourceCountry.text}}</span>
+                                    <input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
+                                </div>
+                            </div>
+                            <div id="pane4" class="tab-pane">
+                                <h3 id="source_type">Source Type</h3>
+                                <p>Source type: Radio -> 3 options Any (default), LIVE, SAT </p>
+                                <form name="myForm">
+                                    <input type="radio" ng-model="sourceTypes" value="any">  Any <br/>
+                                    <input type="radio" ng-model="sourceTypes" value="live">  LIVE <br/>
+                                    <input type="radio" ng-model="sourceTypes" value="sat">  SAT <br/>
+                                </form>
+                            </div>
+                            <div id="pane5" class="tab-pane">
+                                <h3 id="source_region">Source region</h3>
+                            </div>
+                        </div><!-- /.tab-content -->
+                    </div><!-- /.tabbable -->
+                    <h3 id="source_clear">Clear all source choices</h3>
+                    <button class="btn" ng-click="clearSources()" >Clear All Source Filters</button>
       				
 	  					<div class="page-header">
         				<h1 id="area-selection">Area Selection</h1>
