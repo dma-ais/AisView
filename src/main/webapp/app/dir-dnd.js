@@ -52,23 +52,17 @@ app.directive('dndBetweenList', function($parse) {
                 } 
                 toTarget = false;
                 console.log('startIndex: '+startIndex);
-                var teststring='';
-                angular.forEach(scope.notIncluded, function(item) {
-      							teststring +=item.id+'-';
-    							});
-    						console.log(teststring);
-                
             },
             stop:function (event, ui) {
                 var newParent = ui.item[0].parentNode.id;
-								//console.log('newParent: '+newParent	);
+				//console.log('newParent: '+newParent	);
 								
-								// on stop we determine the new index of the
+				// on stop we determine the new index of the
                 // item and store it there
                 var newIndex = -1;
                 
- 								//we know which item to move
- 								var toMove = toUpdate[startIndex];
+ 				//we know which item to move
+ 				var toMove = toUpdate[startIndex];
  				
                 //if taken from includedList
                 if(args[0]=="included") {
@@ -77,22 +71,20 @@ app.directive('dndBetweenList', function($parse) {
                 	if(newParent=="includedList") newIndex = ($(ui.item).index());
                 	//if dropped in notIncluded restore same order
                 	else {
-										var indexCounter = 0;
-										//determine index, some items might be gone
-										angular.forEach(target, function(item) {
-											if(toMove.id>item.id) indexCounter++;
-										});
-										newIndex = indexCounter;
-									}								
-                } 
+                        var indexCounter = 0;
+                        //determine index, some items might be gone
+                        angular.forEach(target, function(item) {
+                            if(toMove.id>item.id) indexCounter++;
+                        });
+                        newIndex = indexCounter;
+                    }
+                }
                 //if taken from notIncludedList
                	else {
                		//if dropped in included make disorder
                 	if(newParent=="includedList") newIndex = ($(ui.item).index());
                 	//if dropped in notIncluded keep same order
-                	else {
-										newIndex=startIndex;
-									}					
+                	else newIndex=startIndex;
                	}
                	
                 console.log('newIndex: '+newIndex);
@@ -100,23 +92,27 @@ app.directive('dndBetweenList', function($parse) {
                 // we need to remove him from the configured model
                 toUpdate.splice(startIndex,1);
  								
- 								//finally make changes to the arrays
- 								//if we move between lists:
+ 				//finally make changes to the arrays
+
+ 				//if we move between lists:
                 if (newParent == args[1]) {
                     //add it to the linked list
                     target.splice(newIndex,0,toMove);
                 } //if we move on same list	
                 else {
-                		 toUpdate.splice(newIndex,0,toMove);
-                		 //This is a hack to force updating the ui if
-                		 //we move on same notIncludedlist.
-                		 //We move an element forth and back and after 1ms delete them again. 
-                		 toUpdate.splice(newIndex,0,toMove);
-                		 setTimeout(function(){
-                		 	 toUpdate.splice(newIndex,1);
-                		   scope.$apply(targetArgs[0]);
-                			 scope.$apply(args[0]);
-                		 },1);
+                    toUpdate.splice(newIndex,0,toMove);
+                    //This is a hack to force updating the ui if
+
+                    //first store filterCategory
+                    var tempFilterCategory = scope.filterCategory;
+                    //then set filterCategory to random value
+                    scope.filterCategory = 'fakeCategory';
+                    //and back after 1ms to what is was and force ui update with apply
+                    setTimeout(function(){
+                        scope.filterCategory = tempFilterCategory;
+                        scope.$apply(targetArgs[0]);
+                        scope.$apply(args[0]);
+                    },1);
                 }
  
                 // we move items in the array, if we want
