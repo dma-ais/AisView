@@ -3,7 +3,7 @@
     margin: 0px;
 }
 
-#listTitles {
+#listTitles,#separatorTitle {
 		font-weight:bold;
 		text-align: center;
 		margin-bottom:0px; 
@@ -12,7 +12,7 @@
 #arrowImg {
 		margin-top;80px;
 		vertical-align:middle; 
-		border="0";
+		border:0px;
 		
 }
 
@@ -74,4 +74,27 @@
 #columnList #columnListElement:hover {
     background-color: gray;
     opacity: .8;
+}
+
+#headerBreadcrumb {
+
+}
+
+#headerBreadcrumb textarea {
+        resize: none;
+        text-align:center;
+        border:0px;
+}
+#headerBreadcrumb ul{
+    list-style: none;
+    padding:0;
+    margin:0;
+}
+
+#headerBreadcrumb li{
+    display: inline;
+}
+
+#stringBreadcrumb {
+    resize: none;
 }

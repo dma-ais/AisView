@@ -1,5 +1,5 @@
 function SourceIds($scope) {
-	
+
     //Map variables
 	$scope.topLeftLat;
 	$scope.topLeftLon;
@@ -51,70 +51,77 @@ function SourceIds($scope) {
     
 	//making final request url
     $scope.url = function() {
-    var base = 'http://www.example.com/';
-    var ids = '';
-    var bases = '';
-    var countries = '';
-    var types = '';
-    var samples = '';
-    var area = '';
-    var tables = '';
-    
-    //append all source IDs if All is not selected else no ids in query
-    if(_.first($scope.sourceIds).include==true) ids = '';
-    else {
-    	ids='source=';
-    	angular.forEach($scope.sourceIds, function(sourceId) {
-      	if (sourceId.include) ids+=sourceId.value+',';
-    	});
-    }
-    //delete , with & at end of string
-    ids=ids.replace(/^,|,$/g,'&');
-    
-    //build string from text fields (base and country)
-    bases = includeFromTextField($scope.sourceBases,'bs=');
-    countries = includeFromTextField($scope.sourceCountries,'ctry=');
-    
-    //build string of source types
-    if($scope.sourceTypes=='any') types='';
-    else types='type='+$scope.sourceTypes+'&'
-    
-    //build string of samples
-    if($scope.samples=='') samples='';
-    else samples='samples='+$scope.samples+'&';
-    
-    if ($scope.topLeftLat != null &&
-    		$scope.topLeftLon != null &&
-    		$scope.buttomRightLat != null &&
-    		$scope.buttomRightLon != null) {
-        area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
-    }else area='';
+        var base = 'http://www.example.com/';
+        var ids = '';
+        var bases = '';
+        var countries = '';
+        var types = '';
+        var samples = '';
+        var area = '';
+        var tables = '';
+        var separator = '';
 
-    //TODO include tables selected
-    /*
-  	//append all tables if format is 'table' else no tables
-    if($scope.format=='') tables = '';
-    else {
-    	console.log('length of tablesIncluded:'+$scope.tablesIncluded.length);
-    	tables='tables=';
-    	angular.forEach($scope.tablesIncluded, function(includedItem) {
-      	console.log('test: '+includedItem.value);
-      	tables+=includedItem.value+',';
-    	});
-    }
-    //delete , with & at end of string
-    tables=tables.replace(/^,|,$/g,'&');
-    */
-    
-  	return 	base+
-  	 		ids+
-  	 		bases+
-  	 		countries+
-  	 		types+
-  	 		area+
-  	 		$scope.format+
-  	 		tables+
-			samples;
+        //append all source IDs if All is not selected else no ids in query
+        if(_.first($scope.sourceIds).include==true) ids = '';
+        else {
+            ids='source=';
+            angular.forEach($scope.sourceIds, function(sourceId) {
+            if (sourceId.include) ids+=sourceId.value+',';
+            });
+        }
+        //delete , with & at end of string
+        ids=ids.replace(/^,|,$/g,'&');
+
+        //build string from text fields (base and country)
+        bases = includeFromTextField($scope.sourceBases,'bs=');
+        countries = includeFromTextField($scope.sourceCountries,'ctry=');
+
+        //build string of source types
+        if($scope.sourceTypes=='any') types='';
+        else types='type='+$scope.sourceTypes+'&'
+
+        //build string of samples
+        if($scope.samples=='') samples='';
+        else samples='samples='+$scope.samples+'&';
+
+        if ($scope.topLeftLat != null &&
+                $scope.topLeftLon != null &&
+                $scope.buttomRightLat != null &&
+                $scope.buttomRightLon != null) {
+            area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
+        }else area='';
+
+        //append all tables if format is 'table' else no tables
+        if($scope.format=='') tables = '';
+        else {
+            //only append if included tables list is not empty
+            if($scope.$root.includedInRoot.length!=0){
+                tables='tables=';
+                angular.forEach($scope.$root.includedInRoot, function(includedItem) {
+                    tables+=includedItem.queryName+',';
+                });
+
+                //delete , with & at end of string
+                tables=tables.replace(/^,|,$/g,'&');
+            }
+        }
+
+        //appending the separator
+        if($scope.format=='') separator = '';
+        else {
+            //only append if included tables list is not empty
+            if($scope.$root.includedInRoot.length!=0) separator='separator='+$scope.$root.tableSeparatorInRoot+'&';
+        }
+
+        return 	base+
+                ids+
+                bases+
+                countries+
+                types+
+                area+
+                tables+
+                separator+
+                samples;
     };
   
     function includeFromTextField(array,baseString) {
@@ -175,7 +182,8 @@ function SourceIds($scope) {
     }
   
     $scope.test = function() {
-	    console.log('inside test');
+
+        console.log('inside test');
     }
 };
 

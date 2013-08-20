@@ -1,80 +1,49 @@
 <!DOCTYPE html>
 <html ng-app="aisHDD">
 <head>	
-	<title>AIS Historic Data Downloader</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-  <!-- scripts -->
-  <!-- styles -->
-  <link href="css/columnSelector.css" rel="stylesheet">
-  <!-- Bootstrap -->
-  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-    
-  <!-- OpenLayers -->
-  <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
-  
-  <!-- JavaScript plugins (requires jQuery) -->
-    	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  
-  <!-- jQuery UI -->
-  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-  
-  <!-- AngularJS -->
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
-  
-  <!-- Underscore -->
-  <script src="js/underscore-min.js"></script>
-  
-  <!-- Bounding Box -->
-  <script src="js/bbox.js"></script>
+    <title>AIS Historic Data Downloader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-  	<!-- TODO: move to stylesheet -->
+    <!-- scripts -->
 
-  	#border #info-box #info #box input[type="text"] {
-  float: left;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  height: 25px; 
-  width: 650px; 
-  outline: none;
-}
+    <!-- OpenLayers -->
+    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 
-#border #info-box #info #box input[type="submit"] {
-  margin-left: 500px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  height: 35px; 
-  color: #fff;
-  font-size: 20px;
-  border: 2px solid #fff;
-  border-radius: 8px 8px 8px 8px;
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-top: 3px;
-  cursor: pointer;  
-}
-  	
-  	
-  	#source_id_border { 
-  		padding:5px;
-			border:2px solid gray;
-			
-		}
-  
-  
-  	#mapdiv { width:800px; height:400px; }
-    div.olControlAttribution { bottom:3px; }
-    
-    #bbox_drag_instruction { height:1.5em; }
-    #bbox_adjust_instruction { height:1.5em; display:none;  }
-    
-    @media (min-width: 979px) {
-    	body {
-      	padding-top: 60px;
-    	}
-		}
-	</style>
+    <!-- JavaScript plugins (requires jQuery) -->
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+
+    <!-- jQuery UI -->
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+
+    <!-- Underscore -->
+    <script src="https://cdn.jsdelivr.net/underscorejs/1.5.1/underscore-min.js"></script>
+
+    <!-- Bounding Box -->
+    <script src="js/bbox.js"></script>
+
+    <style>
+        <!-- TODO: move to stylesheet -->
+
+        #source_id_border {
+            padding:5px;
+            border:2px solid gray;
+        }
+
+        #mapdiv { width:800px; height:400px; }
+        div.olControlAttribution { bottom:3px; }
+
+        #bbox_drag_instruction { height:1.5em; }
+        #bbox_adjust_instruction { height:1.5em; display:none;  }
+
+        @media (min-width: 979px) {
+            body {
+                padding-top: 60px;
+            }
+        }
+    </style>
 
 </head>
 <body onload="init();">
@@ -111,7 +80,7 @@
 	     				<div class="page-header">
         				<h1 id="source">Source Filter</h1>
         			</div>
-        			
+
         			<p>The following form can be used to filter the sources that AisData is obtained from:</p>
 							<h3 id="source_id">Source ID</h3>
 							<p> Select source IDs (maximun of 9)</p> 
@@ -199,54 +168,91 @@
 								<h1 id="output-format">Output Format</h1>
 							</div> 
 							<p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
-         			
-         			<div ng-repeat="urlBuilder in sourceFormat">
-        				<input type="radio" ng-model="urlBuilder.include">
-        				<span>{{urlBuilder.text}}</span>
-      				</div>
-         			
-         			<form name="myForm">
-      					<input type="radio" ng-model="format" value=""> Raw <br/>
-      					<input type="radio" ng-model="format" value="format=table&">  Table <br/>
-     					</form>
-         			
-         			<div class="container" id="main"  ng-controller="dndCtrl" ng-hide="format==''">
-    						<div class="row">
-    							<div id="columnWrapper" class="col-lg-3">
-    								<button type="button" ng-click="filterCategory='all'">All</button>
-    								<button type="button" ng-click="filterCategory='xyz'">xyz</button>
-										<button type="button" ng-click="filterCategory='time'">Time</button>
-										<button type="button" ng-click="filterCategory='signal'">Signal</button>
-										<p id="listTitles">Not included in query</body>
-										<ul id="notIncludedList"
-										dnd-between-list="notIncluded,includedList"
-										ng-class="{'minimalList':notIncludedEmpty()}">
-											<li id="columnListElementNotIncluded"
-												ng-repeat="item in notIncluded | filter:{category: filterCategory}"><body>{{item.value}}</body></li>
-										</ul>
-									</div>
-									<div id="dragImg" class="col-lg-1">
-										<br><br><br><br>
-										<img id="arrowImg" src="img/arrow.jpeg" alt="Drag and drop elements around">
-									</div>
-									<div id="columnWrapper" class="col-lg-3">
-										<p id="listTitles">Included in query</p>
-										<ul id="includedList"
-										dnd-between-list="included,notIncludedList"
-										ng-class="{'minimalList':modelEmpty()}">
-											<li id="columnListElementIncluded"
-											ng-repeat="item in included"><body>{{item.value}}</body></li>
-										</ul>
-									</div>
-        				</div>
-							</div>
-         			<style>
-							 .minimalList { min-height: 60px; }
-							</style>
+
+                            <div class="tabbable">
+                                <ul class="nav nav-tabs">
+                                    <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
+                                    <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div id="rawPane" class="tab-pane active">
+                                        <h4>some raw setup</h4>
+                                    </div>
+                                    <div id="tablePane" class="tab-pane">
+                                        <div class="container" id="main"  ng-controller="dndCtrl">
+                                            <div class="row">
+                                                <div id="columnWrapper" class="col-lg-4">
+                                                    <p id="listTitles">Not included in query</body><br>
+
+                                                    <ul id="notIncludedList"
+                                                        dnd-between-list="notIncluded,includedList"
+                                                        ng-class="{'minimalList':notIncludedEmpty()}">
+                                                    <li id="columnListElementNotIncluded"
+                                                            ng-repeat="item in notIncluded | filter:{category: filterCategory}"><body>{{item.value}}</body></li>
+                                                    </ul>
+                                                    <button type="button" ng-click="filterCategory='all'">All</button>
+                                                    <button type="button" ng-click="filterCategory='xyz'">xyz</button>
+                                                    <button type="button" ng-click="filterCategory='time'">Time</button>
+                                                    <button type="button" ng-click="filterCategory='signal'">Signal</button>
+                                                </div>
+                                                <div id="dragImg" class="col-lg-1">
+                                                    <br><br><br><br>
+                                                    <img id="arrowImg" src="img/arrow.jpeg" alt="Drag and drop elements around">
+                                                </div>
+                                                <div id="columnWrapper" class="col-lg-4">
+                                                    <p id="listTitles">Included in query</p>
+                                                    <ul id="includedList"
+                                                        dnd-between-list="included,notIncludedList"
+                                                        ng-class="{'minimalList':modelEmpty()}">
+                                                        <li id="columnListElementIncluded"
+                                                        ng-repeat="item in included"><body>{{item.value}}</body></li>
+                                                    </ul>
+                                                </div>
+                                                <div id="seperatorSelect" class="col-lg-3">
+                                                    <p id="separatorTitle">Separator</body><br>
+                                                    <select ng-model="tableSeparator">
+                                                        <option value=":">Colon</option>
+                                                        <option value=";">Semicolon</option>
+                                                        <option value=",">Comma</option>
+                                                        <option value=" ">Tab</option>
+                                                    </select><br>
+                                                        <br>
+                                                    <input type="checkbox" ng-model="checked">
+                                                    <span>Include header</span>
+
+                                                </div>
+                                            </div>
+                                            <div id="headerBreadcrumb" ng-show="checked">
+                                                <ul>
+                                                    <textarea  readonly rows="1" cols="8" style="font-weight: bold">Header:</textarea>
+                                                    <li ng-repeat="item in included">
+                                                        <textarea  readonly rows="1" cols="14">{{item.queryName}}</textarea> {{tableSeparator}}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div id="headerBreadcrumb">
+                                                <ul>
+                                                    <textarea  readonly rows="1" cols="8" style="font-weight: bold">Example:</textarea>
+                                                    <li ng-repeat="item in included">
+                                                        <textarea  readonly rows="1" cols="14">{{item.ex}}</textarea> {{tableSeparator}}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div ng-show="checked">
+                                                <span>Header :</span> <textarea id="stringBreadcrumb" readonly rows="1" cols="100">{{headerPreview()}}</textarea>
+                                            </div>
+                                            <div>
+                                                <span>Example:</span><textarea id="stringBreadcrumb" readonly rows="1" cols="100">{{exPreview()}}</textarea><br>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!-- /.tab-content -->
+                            </div><!-- /.tabbable -->
+
 	  					<div class="page-header">
-        				<h1 id="download">Download</h1>
-        			</div>
-      				
+        				    <h1 id="download">Download</h1>
+
+        			    </div>
       				<textarea rows="4" cols="100" readonly>{{url()}}</textarea>
       				
       				<div class="navbar">	
@@ -264,11 +270,24 @@
 	
     	
     	<!-- Include all compiled plugins (below), or include individual files as needed -->
-    	<script src="js/bootstrap.min.js"></script>
-    	<!-- Optionally enable responsive features in IE8 -->
-    	<script src="js/respond.js"></script>
-    	
-    	<!-- load the app scripts -->
+
+        <!-- Latest compiled and minified Botstrap JavaScript -->
+        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+        <!-- Optionally enable responsive features in IE8 -->
+        <script src="js/respond.js"></script>
+
+        <!-- styles -->
+        <link href="css/columnSelector.css" rel="stylesheet">
+
+        <!-- Bootstrap CSS-->
+        <!-- Latest compiled and minified CSS -->
+        <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+
+        <!-- load the app scripts -->
     	<script src="app/app.js" type="text/javascript"></script>
 			<script src="app/dir-dnd.js" type="text/javascript"></script>
 			<script src="app/ctrl-dnd.js" type="text/javascript"></script>
