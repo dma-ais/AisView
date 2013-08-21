@@ -1,5 +1,10 @@
 function SourceIds($scope) {
 
+
+    $scope.headerChecked = '';
+
+
+
     //Map variables
 	$scope.topLeftLat;
 	$scope.topLeftLon;
@@ -121,6 +126,7 @@ function SourceIds($scope) {
                 area+
                 tables+
                 separator+
+                $scope.headerChecked+
                 samples;
     };
   

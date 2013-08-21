@@ -5,7 +5,12 @@
     <title>AIS Historic Data Downloader</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- scripts -->
+    <!-- CSS-->
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
+    <link href="https://mgcrea.github.com/angular-strap/vendor/bootstrap-datepicker.css" rel="stylesheet">
+    <link href="https://mgcrea.github.com/angular-strap/vendor/bootstrap-timepicker.css" rel="stylesheet">
 
     <!-- OpenLayers -->
     <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
@@ -25,17 +30,47 @@
     <!-- Bounding Box -->
     <script src="js/bbox.js"></script>
 
+    <!-- Latest compiled and minified Botstrap JavaScript -->
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+    <!-- AngularStrap -->
+    <script src="https://mgcrea.github.com/angular-strap/js/angular-strap.js"></script>
+    <script src="https://mgcrea.github.com/angular-strap/vendor/bootstrap-datepicker.js"></script>
+    <script src="http://mgcrea.github.com/angular-strap/vendor/bootstrap-timepicker.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.0.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/0.6.0/fastclick.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.js"></script>
+
+    <!-- Optionally enable responsive features in IE8 -->
+    <script src="js/respond.js"></script>
+
+    <!-- load the app scripts -->
+    <script src="app/app.js" type="text/javascript"></script>
+    <script src="app/dir-dnd.js" type="text/javascript"></script>
+    <script src="app/ctrl-dnd.js" type="text/javascript"></script>
+
+    <!-- Angularjs modules & controller -->
+    <script src="js/angularFilters.js"></script>
+    <script src="js/urlBuilder.js"></script>
+    <script src="js/columnSelector.js"></script>
+
+    <!-- custom styles -->
+    <link href="css/columnSelector.css" rel="stylesheet">
+
     <style>
         <!-- TODO: move to stylesheet -->
+
+        #mapdiv33 { width:800px; height:400px; }
+
+        #mapdiv { width:800px; height:400px; }
+
+
 
         #source_id_border {
             padding:5px;
             border:2px solid gray;
         }
-
-        #mapdiv { width:800px; height:400px; }
-        div.olControlAttribution { bottom:3px; }
-
         #bbox_drag_instruction { height:1.5em; }
         #bbox_adjust_instruction { height:1.5em; display:none;  }
 
@@ -44,6 +79,7 @@
                 padding-top: 60px;
             }
         }
+
     </style>
 
 </head>
@@ -53,21 +89,21 @@
   
     <!-- AisStore master nav -->
 	<div class="navbar navbar-inverse navbar-fixed-top bs-docs-nav">
-  	<div class="container">
-    	<a class="navbar-brand">AIS Store Downloader</a>
-  	</div>
+  	    <div class="container">
+    	    <a class="navbar-brand">AIS Store Downloader</a>
+  	    </div>
 	</div>
 
 	<!-- AisStore sidebar nav -->
     <div class="container bs-docs-container">
   		<div class="row">
-            <div class="col-lg-3">\
-                <div class="bs-sidebar" data-spy="affix" data-offset-top="0">\
+            <div class="col-lg-2">
+                <div class="bs-sidebar" data-spy="affix" data-offset-top="0">
                     <ul class="nav bs-sidenav">
                         <li><a href="#source">Source Filtering</a></li>
                         <li><a href="#area-selection">Area Selection</a></li>
                         <li><a href="#ship-types">Ship types</a></li>
-                        <li><a href="#some-other-filter">Some other filter</a></li>
+                        <li><a href="#time-selection">Time selection</a></li>
                         <li><a href="#output-format">Output Format</a></li>
                         <li><a href="#download">Download</a></li>
                     </ul>
@@ -75,7 +111,7 @@
             </div>
  	
  			<!-- Content main page-->
-            <div class="col-lg-9">
+            <div class="col-lg-10">
                 <div class="bs-docs-section">
                     <div class="page-header">
                         <h1 id="source">Source Filter</h1>
@@ -136,169 +172,175 @@
                         </div><!-- /.tab-content -->
                     </div><!-- /.tabbable -->
                     <h3 id="source_clear">Clear all source choices</h3>
-                    <button class="btn" ng-click="clearSources()" >Clear All Source Filters</button>
+                    <button class="btn btn-danger" ng-click="clearSources()" >Clear All Source Filters</button>
       				
-	  					<div class="page-header">
+
+                    <div class="page-header">
         				<h1 id="area-selection">Area Selection</h1>
         			</div>
         			<p>This map can be used to restrict the area for which Ais Data should be returned from:</p>
         
-        			<div id="bbox_drag_instruction">Drag a box:</div>
-    					<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
-    					<br>
-    					<div id="mapdiv"></div>
-    					<div id="bbox_result">
-								Top Left (Lat, Lon)
-								(<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="topLeftLat" size=5>,
-								<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="topLeftLon" size=5>)
-								Buttom Right (Lat, Lon)
-								(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="buttomRightLat" size=5>,
-								<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="buttomRightLon" size=5>)
-							<div/>
-	  					<div class="page-header">
+
+                    <div id="bbox_drag_instruction">Drag a box:</div>
+    				<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
+    				<br>
+    				<div id="mapdiv"></div>
+    				<div id="bbox_result">
+
+                        Top Left (Lat, Lon)
+                        (<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="topLeftLat" size=5>,
+						<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="topLeftLon" size=5>)
+
+                        Buttom Right (Lat, Lon)
+						(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="buttomRightLat" size=5>,
+						<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="buttomRightLon" size=5>)
+		            </div>
+	  				<div class="page-header">
         				<h1 id="ship-types">Ship types</h1>
+                        15 typer med overkategorier: markeres med checkboxes
         			</div>
         			<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
         			
-							<div class="page-header">
-								<h1 id="some-other-filter">Some other filter</h1>
-							</div>
-							<p>"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
-							
-							<div class="page-header">
-								<h1 id="output-format">Output Format</h1>
-							</div> 
-							<p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
 
-                            <div class="tabbable">
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
-                                    <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
-                                </ul>
-                                <div class="tab-content">
-                                    <div id="rawPane" class="tab-pane active">
-                                        <h4>some raw setup</h4>
-                                    </div>
-                                    <div id="tablePane" class="tab-pane">
-                                        <div class="container" id="main"  ng-controller="dndCtrl">
-                                            <div class="row">
-                                                <div id="columnWrapper" class="col-lg-4">
-                                                    <p id="listTitles">Not included in query</body><br>
+                    <div class="page-header">
+					    <h1 id="time-selection">Time selection</h1>
+					</div>
 
-                                                    <ul id="notIncludedList"
-                                                        dnd-between-list="notIncluded,includedList"
-                                                        ng-class="{'minimalList':notIncludedEmpty()}">
-                                                    <li id="columnListElementNotIncluded"
-                                                            ng-repeat="item in notIncluded | filter:{category: filterCategory}"><body>{{item.value}}</body></li>
-                                                    </ul>
-                                                    <button type="button" ng-click="filterCategory='all'">All</button>
-                                                    <button type="button" ng-click="filterCategory='xyz'">xyz</button>
-                                                    <button type="button" ng-click="filterCategory='time'">Time</button>
-                                                    <button type="button" ng-click="filterCategory='signal'">Signal</button>
-                                                </div>
-                                                <div id="dragImg" class="col-lg-1">
-                                                    <br><br><br><br>
-                                                    <img id="arrowImg" src="img/arrow.jpeg" alt="Drag and drop elements around">
-                                                </div>
-                                                <div id="columnWrapper" class="col-lg-4">
-                                                    <p id="listTitles">Included in query</p>
-                                                    <ul id="includedList"
-                                                        dnd-between-list="included,notIncludedList"
-                                                        ng-class="{'minimalList':modelEmpty()}">
-                                                        <li id="columnListElementIncluded"
-                                                        ng-repeat="item in included"><body>{{item.value}}</body></li>
-                                                    </ul>
-                                                </div>
-                                                <div id="seperatorSelect" class="col-lg-3">
-                                                    <p id="separatorTitle">Separator</body><br>
-                                                    <select ng-model="tableSeparator">
-                                                        <option value=":">Colon</option>
-                                                        <option value=";">Semicolon</option>
-                                                        <option value=",">Comma</option>
-                                                        <option value=" ">Tab</option>
-                                                    </select><br>
-                                                        <br>
-                                                    <input type="checkbox" ng-model="checked">
-                                                    <span>Include header</span>
+                    <div class="bs-docs-example">
+                        <pre style="min-height: 60px;">startDate: {{startDatepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
+                        <pre style="min-height: 60px;">startTime: {{startTimepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
+                        <pre style="min-height: 60px;">endDate: {{endDatepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
+                        <pre style="min-height: 60px;">endTime: {{endTimepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
+                        <form class="form-horizontal well">
+                            <div class="control-group input-append">
+                                <span>Start date:</span>
+                                <input id="inputDatepicker" class="input-small" type="text" ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker>
+                                <button type="button" class="btn" data-toggle="datepicker"><i class="icon-calendar"></i></button>
+                            </div>
 
-                                                </div>
-                                            </div>
-                                            <div id="headerBreadcrumb" ng-show="checked">
-                                                <ul>
-                                                    <textarea  readonly rows="1" cols="8" style="font-weight: bold">Header:</textarea>
-                                                    <li ng-repeat="item in included">
-                                                        <textarea  readonly rows="1" cols="14">{{item.queryName}}</textarea> {{tableSeparator}}
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div id="headerBreadcrumb">
-                                                <ul>
-                                                    <textarea  readonly rows="1" cols="8" style="font-weight: bold">Example:</textarea>
-                                                    <li ng-repeat="item in included">
-                                                        <textarea  readonly rows="1" cols="14">{{item.ex}}</textarea> {{tableSeparator}}
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <div ng-show="checked">
-                                                <span>Header :</span> <textarea id="stringBreadcrumb" readonly rows="1" cols="100">{{headerPreview()}}</textarea>
-                                            </div>
-                                            <div>
-                                                <span>Example:</span><textarea id="stringBreadcrumb" readonly rows="1" cols="100">{{exPreview()}}</textarea><br>
+                            <div class="control-group input-append">
+                                <span>Start time:</span>
+                                <input type="text" ng-model="startTimepicker.time" bs-timepicker>
+                                <button type="button" class="btn" data-toggle="timepicker"><i class="icon-time"></i></button>
+                            </div>
+
+                            <div class="control-group input-append">
+                                <span>End date:</span>
+                                <input id="inputDatepicker" class="input-small" type="text" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker>
+                                <button type="button" class="btn" data-toggle="datepicker"><i class="icon-calendar"></i></button>
+                            </div>
+
+                            <div class="control-group input-append">
+                                <span>End time:</span>
+                                <input type="text" ng-model="endTimepicker.time" bs-timepicker>
+                                <button type="button" class="btn" data-toggle="timepicker"><i class="icon-time"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+
+                    <div class="page-header">
+					    <h1 id="output-format">Output Format</h1>
+					</div>
+
+                    <p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
+
+
+                    <div class="tabbable">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
+                            <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <div id="rawPane" class="tab-pane active">
+                                <h4>some raw setup</h4>
+                            </div>
+                            <div id="tablePane" class="tab-pane">
+                                <div class="container" id="main"  ng-controller="dndCtrl">
+                                    <div class="row">
+                                        <div id="columnWrapper" class="col-lg-4">
+                                            <p id="listTitles">Not included in query</p>
+
+                                            <ul id="notIncludedList"
+                                                dnd-between-list="notIncluded,includedList"
+                                                ng-class="{'minimalList':notIncludedEmpty()}">
+
+                                                <li id="columnListElementNotIncluded"
+                                                    ng-repeat="item in notIncluded | filter:{category: filterCategory}"><body>{{item.value}}</body></li>
+                                            </ul>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-info" ng-click="filterCategory='all'">All</button>
+                                                <button type="button" class="btn btn-info" ng-click="filterCategory='xyz'">xyz</button>
+                                                <button type="button" class="btn btn-info" ng-click="filterCategory='time'">Time</button>
+                                                <button type="button" class="btn btn-info" ng-click="filterCategory='signal'">Signal</button>
                                             </div>
                                         </div>
+
+                                        <div id="dragImg" class="col-lg-1">
+
+                                            <img id="arrowImg" src="img/arrow.jpeg" alt="Drag and drop elements around">
+                                        </div>
+                                        <div id="columnWrapper" class="col-lg-4">
+                                            <p id="listTitles">Included in query</p>
+                                            <ul id="includedList"
+                                                dnd-between-list="included,notIncludedList"
+                                                ng-class="{'minimalList':modelEmpty()}">
+                                                <li id="columnListElementIncluded"
+                                                    ng-repeat="item in included"><body>{{item.value}}</body></li>
+                                            </ul>
+                                        </div>
+                                        <div id="seperatorSelect" class="col-lg-3">
+                                            <p id="separatorTitle">Separator</p><br>
+                                            <select ng-model="tableSeparator">
+                                                <option value=":">Colon</option>
+                                                <option value=";">Semicolon</option>
+                                                <option value=",">Comma</option>
+                                                <option value=" ">Tab</option>
+                                            </select><br>
+                                                <br>
+                                            <input type="checkbox" ng-model="headerChecked" value="true">
+                                            <span>Include header</span>
+                                        </div>
                                     </div>
-                                </div><!-- /.tab-content -->
-                            </div><!-- /.tabbable -->
+                                    <p>Example</p>
+                                    <div ng-hide="headerChecked">
+                                        <textarea id="stringBreadcrumb" readonly rows="2" cols="100">{{exPreview()}}</textarea>
+                                    </div>
+                                    <div ng-show="headerChecked">
+                                        <textarea id="stringBreadcrumb" readonly rows="2" cols="100">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
+                                    </div>
 
-	  					<div class="page-header">
-        				    <h1 id="download">Download</h1>
+                                </div>
+                            </div>
+                        </div><!-- /.tab-content -->
+                    </div><!-- /.tabbable -->
 
-        			    </div>
+	  				<div class="page-header">
+        				<h1 id="download">Download</h1>
+                    </div>
       				<textarea rows="4" cols="100" readonly>{{url()}}</textarea>
       				
       				<div class="navbar">	
         				<form class="navbar-form pull-left">
         					<input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
-          				<button type="submit" class="btn btn-default">Show Sample</button>
-          				<button type="submit" class="btn btn-default">Download</button>
+          				    <button type="submit" class="btn btn-default">Show Sample</button>
+          				    <button type="submit" class="btn btn-default">Download</button>
         				</form>
       				</div>
         			<p>"A button "Download" right aligned below the request box. url for button->/store?......"</p>
-
-					</div>
-				</div>
+                </div>
 			</div>
+		</div>
 	
-    	
     	<!-- Include all compiled plugins (below), or include individual files as needed -->
 
-        <!-- Latest compiled and minified Botstrap JavaScript -->
-        <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 
-        <!-- Optionally enable responsive features in IE8 -->
-        <script src="js/respond.js"></script>
 
-        <!-- styles -->
-        <link href="css/columnSelector.css" rel="stylesheet">
 
-        <!-- Bootstrap CSS-->
-        <!-- Latest compiled and minified CSS -->
-        <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
 
-        <!-- Optional theme -->
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
 
-        <!-- load the app scripts -->
-    	<script src="app/app.js" type="text/javascript"></script>
-			<script src="app/dir-dnd.js" type="text/javascript"></script>
-			<script src="app/ctrl-dnd.js" type="text/javascript"></script>
-			
-			<!-- Angularjs modules & controller -->
-  		<script src="js/angularFilters.js"></script>
-  		<script src="js/urlBuilder.js"></script>
-  		<script src="js/columnSelector.js"></script>
-    	
-			<!-- ng-controller div ends-->
-			</div>
-  </body>
+    </div><!-- bs-docs div ends-->
+</div><!-- ng-controller div ends-->
+</body>
 </html>

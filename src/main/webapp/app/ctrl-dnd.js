@@ -5,7 +5,6 @@ function dndCtrl($scope) {
     //TODO: change to service instead of pushing to root scope
     $scope.$root.tableSeparatorInRoot = $scope.tableSeparator;
 
-
     $scope.filterCategory = 'all';
     
     //Array of objects not included in query
@@ -50,16 +49,32 @@ function dndCtrl($scope) {
     $scope.headerPreview = function() {
         var breadcrumb = '';
         angular.forEach($scope.included, function(item) {
-            breadcrumb+=item.queryName+' '+$scope.tableSeparator+' ';
+            breadcrumb+=item.queryName+$scope.tableSeparator;
         });
+        //always remove last separator from string
+        breadcrumb=breadcrumb.slice(0, -1);
         return breadcrumb;
     };
     $scope.exPreview = function() {
         var breadcrumb = '';
         angular.forEach($scope.included, function(item) {
-            breadcrumb+=item.ex+' '+$scope.tableSeparator+' ';
+            breadcrumb+=item.ex+$scope.tableSeparator;
         });
+        //always remove last separator from string
+        breadcrumb=breadcrumb.slice(0, -1);
         return breadcrumb;
+
+    };
+
+    $scope.queryPreview = function() {
+        var nameCrumb = '';
+        var exCrumb = '';
+        angular.forEach($scope.included, function(item) {
+            nameCrumb+=item.queryName+$scope.tableSeparator;
+            exCrumb+=item.ex+$scope.tableSeparator;
+        });
+
+        return nameCrumb+"&#10;"+exCrumb;
 
     };
 }
