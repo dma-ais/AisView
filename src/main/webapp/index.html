@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- CSS-->
+
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
     <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
-    <link href="https://mgcrea.github.com/angular-strap/vendor/bootstrap-datepicker.css" rel="stylesheet">
-    <link href="https://mgcrea.github.com/angular-strap/vendor/bootstrap-timepicker.css" rel="stylesheet">
+    <link href="css/bootstrap-datepicker.css" rel="stylesheet">
+    <link href="css/bootstrap-timepicker.css" rel="stylesheet">
 
     <!-- OpenLayers -->
     <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
@@ -35,8 +37,8 @@
 
     <!-- AngularStrap -->
     <script src="https://mgcrea.github.com/angular-strap/js/angular-strap.js"></script>
-    <script src="https://mgcrea.github.com/angular-strap/vendor/bootstrap-datepicker.js"></script>
-    <script src="http://mgcrea.github.com/angular-strap/vendor/bootstrap-timepicker.js"></script>
+    <script src="js/bootstrap-datepicker.js"></script>
+    <script src="js/bootstrap-timepicker.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.0.0/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/0.6.0/fastclick.min.js"></script>
@@ -65,6 +67,9 @@
 
         #mapdiv { width:800px; height:400px; }
 
+        #inputStartDatepicker {max-width: 120px;}
+
+        #inputStartTimepicker {max-width: 120px;}
 
 
         #source_id_border {
@@ -206,37 +211,55 @@
 					    <h1 id="time-selection">Time selection</h1>
 					</div>
 
-                    <div class="bs-docs-example">
-                        <pre style="min-height: 60px;">startDate: {{startDatepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
-                        <pre style="min-height: 60px;">startTime: {{startTimepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
-                        <pre style="min-height: 60px;">endDate: {{endDatepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
-                        <pre style="min-height: 60px;">endTime: {{endTimepicker | json}}<!--<br />myForm: {{myForm | json}}--></pre>
-                        <form class="form-horizontal well">
-                            <div class="control-group input-append">
-                                <span>Start date:</span>
-                                <input id="inputDatepicker" class="input-small" type="text" ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker>
-                                <button type="button" class="btn" data-toggle="datepicker"><i class="icon-calendar"></i></button>
-                            </div>
+                    <div class="row">
+                        <div id="startTimeWrapper" class="col-lg-5">
+                            <form class="form-inline well" role="form">
+                                <div class="row">
+                                    <div class="col-lg-5">
+                                        <div class="control-group form-group">
+                                            <label id="startDateLabel" for="inputStartDatepicker">Start date</label><br>
+                                            <input id="inputStartDatepicker" class="form-control" type="text" ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker="">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                    </div>
+                                    <div class="col-lg-5">
+                                        <div class="control-group form-group">
+                                            <label id="startTimeLabel" for="inputStartTimepicker">Start time</label><br>
+                                            <input id="inputStartTimepicker" type="text" class="form-control" ng-model="startTimepicker.time" bs-timepicker="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
 
-                            <div class="control-group input-append">
-                                <span>Start time:</span>
-                                <input type="text" ng-model="startTimepicker.time" bs-timepicker>
-                                <button type="button" class="btn" data-toggle="timepicker"><i class="icon-time"></i></button>
-                            </div>
+                        </div>
 
-                            <div class="control-group input-append">
-                                <span>End date:</span>
-                                <input id="inputDatepicker" class="input-small" type="text" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker>
-                                <button type="button" class="btn" data-toggle="datepicker"><i class="icon-calendar"></i></button>
-                            </div>
+                        <div id="middleTimeWrapper" class="col-lg-2">
+                        </div>
 
-                            <div class="control-group input-append">
-                                <span>End time:</span>
-                                <input type="text" ng-model="endTimepicker.time" bs-timepicker>
-                                <button type="button" class="btn" data-toggle="timepicker"><i class="icon-time"></i></button>
-                            </div>
-                        </form>
+                        <div id="endTimeWrapper" class="col-lg-5">
+                            <form class="form-inline well" role="form">
+                                <div class="row">
+                                    <div class="col-lg-5">
+                                        <div class="control-group form-group">
+                                            <label id="endDateLabel" for="inputendDatepicker">End date</label><br>
+                                            <input id="inputendDatepicker" class="form-control" type="text" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker="">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                    </div>
+                                    <div class="col-lg-5">
+                                        <div class="control-group form-group">
+                                            <label id="endTimeLabel" for="inputendTimepicker">End time</label><br>
+                                            <input id="inputendTimepicker" type="text" class="form-control" ng-model="endTimepicker.time" bs-timepicker="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
                     </div>
+
 
 
                     <div class="page-header">
