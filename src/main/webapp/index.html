@@ -8,11 +8,14 @@
     <!-- CSS-->
 
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" rel="stylesheet">
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+
+    <link href="css/docs.css" rel="stylesheet">
+
     <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
     <link href="css/bootstrap-datepicker.css" rel="stylesheet">
     <link href="css/bootstrap-timepicker.css" rel="stylesheet">
+
 
     <!-- OpenLayers -->
     <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
@@ -57,6 +60,8 @@
     <script src="js/urlBuilder.js"></script>
     <script src="js/columnSelector.js"></script>
 
+    <script src="js/application.js"></script>
+
     <!-- custom styles -->
     <link href="css/columnSelector.css" rel="stylesheet">
 
@@ -65,13 +70,8 @@
 
         #mapdiv33 { width:800px; height:400px; }
 
-        #mapdiv { width:800px; height:400px; }
+        #mapdiv { width:100%; height:400px; }
 
-
-        #source_id_border {
-            padding:5px;
-            border:2px solid gray;
-        }
         #bbox_drag_instruction { height:1.5em; }
         #bbox_adjust_instruction { height:1.5em; display:none;  }
 
@@ -84,7 +84,7 @@
     </style>
 
 </head>
-<body onload="init();">
+<body onload="init();" data-spy="scroll" data-target="#navbar-example">
 
 <div ng-controller="SourceIds">
   
@@ -98,8 +98,8 @@
 	<!-- AisStore sidebar nav -->
     <div class="container bs-docs-container">
   		<div class="row">
-            <div class="col-lg-2">
-                <div class="bs-sidebar" data-spy="affix" data-offset-top="0">
+            <div class="col-lg-3">
+                <div class="bs-sidebar hidden-print" role="complementary" data-spy="affix" data-offset-top="0">
                     <ul class="nav bs-sidenav">
                         <li><a href="#source">Source Filtering</a></li>
                         <li><a href="#area-selection">Area Selection</a></li>
@@ -112,12 +112,12 @@
             </div>
  	
  			<!-- Content main page-->
-            <div class="col-lg-10">
+            <div class="col-lg-9">
                 <div class="bs-docs-section">
                     <div class="page-header">
                         <h1 id="source">Source Filter</h1>
         			</div>
-                    <div class="tabbable">
+                    <div class="tabbable" style="min-height: 300px;">
                         <ul class="nav nav-tabs nav-justified">
                             <li class="active"><a href="#pane1" data-toggle="tab">Source ID</a></li>
                             <li><a href="#pane2" data-toggle="tab">Source base station</a></li>
@@ -129,9 +129,9 @@
                         <div class="tab-content">
                             <div id="pane1" class="tab-pane active">
                                 <h3 id="source_id">Source ID</h3>
-                                <div id="source_id_border">
+                                <div class="well">
                                     <div class="row">
-                                        <div class="col-lg-3">
+                                        <div class="col-lg-3" >
                                             <div ng-repeat="sourceId in sourceIds">
                                                 <input type="checkbox" ng-model="sourceId.include" ng-click="sourceIdsSelect(sourceId)">
                                                 <span>{{sourceId.text}}</span>
@@ -275,8 +275,8 @@
                             <div id="rawPane" class="tab-pane active">
                                 <h4>some raw setup</h4>
                             </div>
-                            <div id="tablePane" class="tab-pane">
-                                <div class="container" id="main"  ng-controller="dndCtrl">
+                            <div id="tablePane" class="tab-pane" ng-controller="dndCtrl">
+                                <div class="container" id="main">
                                     <div class="row">
                                         <div id="columnWrapper" class="col-lg-4">
                                             <p id="listTitles">Not included in query</p>
@@ -322,14 +322,13 @@
                                             <span>Include header</span>
                                         </div>
                                     </div>
-                                    <p>Example</p>
-                                    <div ng-hide="headerChecked">
-                                        <textarea id="stringBreadcrumb" readonly rows="2" cols="100">{{exPreview()}}</textarea>
-                                    </div>
-                                    <div ng-show="headerChecked">
-                                        <textarea id="stringBreadcrumb" readonly rows="2" cols="100">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
-                                    </div>
-
+                                </div>
+                                <span>Example</span>
+                                <div ng-hide="headerChecked">
+                                    <textarea id="stringHeaderShow" readonly rows="2" style="width: 100%;">{{exPreview()}}</textarea>
+                                </div>
+                                <div ng-show="headerChecked">
+                                    <textarea id="stringExShow" readonly rows="2" style="width: 100%;">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
                                 </div>
                             </div>
                         </div><!-- /.tab-content -->
