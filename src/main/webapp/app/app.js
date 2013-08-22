@@ -1,16 +1,25 @@
 var app = angular.module('aisHDD', ['$strap.directives']);
 
-app.controller('MainCtrl', function($scope, $window, $location) {
+app.controller('dateTimePicker', function($scope, $window, $location) {
 
     // Datepicker directive
-    $scope.startDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
+    $scope.startDatepicker = {date: ''};
+    $scope.endDatepicker = {date: ''};
 
-    $scope.endDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
+    $scope.startTimepicker = {time: ''};
+    $scope.endTimepicker = {time: ''};
 
 
-    $scope.starTimepicker;
+    ////TODO: change to service instead of pushing to root scope
+    $scope.$root.startDatepickerInRoot = $scope.startDatepicker;
+    $scope.$root.endDatepickerInRoot = $scope.endDatepicker;
 
-    $scope.endTimepicker;
+    $scope.$root.startTimepickerInRoot = $scope.startTimepicker;
+    $scope.$root.endTimepickerInRoot = $scope.endTimepicker;
+
+
+
+
 
 
 });

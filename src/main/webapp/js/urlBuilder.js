@@ -63,8 +63,11 @@ function SourceIds($scope) {
         var types = '';
         var samples = '';
         var area = '';
+        var fromDate = '';
+        var toDate = '';
         var tables = '';
         var separator = '';
+
 
         //append all source IDs if All is not selected else no ids in query
         if(_.first($scope.sourceIds).include==true) ids = '';
@@ -118,16 +121,63 @@ function SourceIds($scope) {
             if($scope.$root.includedInRoot.length!=0) separator='separator='+$scope.$root.tableSeparatorInRoot+'&';
         }
 
-        return 	base+
-                ids+
-                bases+
-                countries+
-                types+
-                area+
-                tables+
-                separator+
-                $scope.headerChecked+
-                samples;
+        //making from= string
+        if($scope.$root.startDatepickerInRoot.date != '' &&
+           $scope.$root.startTimepickerInRoot.time != ''){
+
+            var tempDate = $scope.$root.startDatepickerInRoot.date;
+            var tempTime = $scope.$root.startTimepickerInRoot.time;
+
+            var monthOfYear = tempDate.getMonth()+1;
+
+            fromDate =  'from=' +
+                        tempDate.getDate() + '.' +
+                        monthOfYear + '.' +
+                        tempDate.getFullYear() + ' - ' +
+                        tempTime + '(UTC)&';
+        }
+
+        //making to= string
+        if($scope.$root.endDatepickerInRoot.date != '' &&
+            $scope.$root.endTimepickerInRoot.time != ''){
+
+            var tempDate = $scope.$root.endDatepickerInRoot.date;
+            var tempTime = $scope.$root.endTimepickerInRoot.time;
+
+            var monthOfYear = tempDate.getMonth()+1;
+
+            toDate =  'to=' +
+                tempDate.getDate() + '.' +
+                monthOfYear + '.' +
+                tempDate.getFullYear() + ' - ' +
+                tempTime + '(UTC)&';
+        }
+
+        var almostFinalString = base+
+                                ids+
+                                bases+
+                                countries+
+                                types+
+                                area+
+                                fromDate+
+                                toDate+
+                                tables+
+                                separator+
+                                $scope.headerChecked+
+                                samples;
+
+        var finalString = base;
+        console.log('last digit:' +finalString.slice(-1));
+        console.log(finalString.slice(0,-1));
+
+        if (almostFinalString.slice(-1)=='&') {
+            finalString=almostFinalString.slice(0,-1);
+            console.log('inside');
+        }
+
+        //finalString=finalString.replace(/^'&'|,$/g,'');
+
+        return 	finalString;
     };
   
     function includeFromTextField(array,baseString) {

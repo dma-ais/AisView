@@ -67,10 +67,6 @@
 
         #mapdiv { width:800px; height:400px; }
 
-        #inputStartDatepicker {max-width: 120px;}
-
-        #inputStartTimepicker {max-width: 120px;}
-
 
         #source_id_border {
             padding:5px;
@@ -211,8 +207,8 @@
 					    <h1 id="time-selection">Time selection</h1>
 					</div>
 
-                    <div class="row">
-                        <div id="startTimeWrapper" class="col-lg-5">
+                    <div ng-controller="dateTimePicker" class="row">
+                        <div id="startTimeWrapper" class="col-lg-6">
                             <form class="form-inline well" role="form">
                                 <div class="row">
                                     <div class="col-lg-5">
@@ -225,19 +221,19 @@
                                     </div>
                                     <div class="col-lg-5">
                                         <div class="control-group form-group">
-                                            <label id="startTimeLabel" for="inputStartTimepicker">Start time</label><br>
+                                            <label id="startTimeLabel" for="inputStartTimepicker">Start time (UTC)</label><br>
                                             <input id="inputStartTimepicker" type="text" class="form-control" ng-model="startTimepicker.time" bs-timepicker="">
                                         </div>
                                     </div>
                                 </div>
                             </form>
 
+
                         </div>
 
-                        <div id="middleTimeWrapper" class="col-lg-2">
-                        </div>
 
-                        <div id="endTimeWrapper" class="col-lg-5">
+
+                        <div id="endTimeWrapper" class="col-lg-6">
                             <form class="form-inline well" role="form">
                                 <div class="row">
                                     <div class="col-lg-5">
@@ -250,7 +246,7 @@
                                     </div>
                                     <div class="col-lg-5">
                                         <div class="control-group form-group">
-                                            <label id="endTimeLabel" for="inputendTimepicker">End time</label><br>
+                                            <label id="endTimeLabel" for="inputendTimepicker">End time (UTC)</label><br>
                                             <input id="inputendTimepicker" type="text" class="form-control" ng-model="endTimepicker.time" bs-timepicker="">
                                         </div>
                                     </div>
@@ -342,7 +338,7 @@
 	  				<div class="page-header">
         				<h1 id="download">Download</h1>
                     </div>
-      				<textarea rows="4" cols="100" readonly>{{url()}}</textarea>
+      				<textarea rows="4" style="width: 100%;" readonly>{{url()}}</textarea>
       				
       				<div class="navbar">	
         				<form class="navbar-form pull-left">
