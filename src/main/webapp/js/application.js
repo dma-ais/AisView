@@ -1,6 +1,5 @@
-// NOTICE!! DO NOT USE ANY OF THIS JAVASCRIPT
-// IT'S ALL JUST JUNK FOR OUR DOCS!
-// ++++++++++++++++++++++++++++++++++++++++++
+// scrollspy functionality
+//TODO: move to some other file
 
 !function ($) {
 
