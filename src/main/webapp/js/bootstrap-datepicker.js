@@ -891,6 +891,7 @@
 				parts = format.match(this.validParts);
 			if (!separators || !separators.length || !parts || parts.length === 0){
 				throw new Error("Invalid date format.");
+                console.log('Invalid date!');
 			}
 			return {separators: separators, parts: parts};
 		},

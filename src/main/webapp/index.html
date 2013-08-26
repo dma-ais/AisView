@@ -119,11 +119,11 @@
         			</div>
                     <div class="tabbable" style="min-height: 300px;">
                         <ul class="nav nav-tabs nav-justified">
-                            <li class="active"><a href="#pane1" data-toggle="tab">Source ID</a></li>
-                            <li><a href="#pane2" data-toggle="tab">Source base station</a></li>
-                            <li><a href="#pane3" data-toggle="tab">Source Country</a></li>
-                            <li><a href="#pane4" data-toggle="tab">Source Type</a></li>
-                            <li><a href="#pane5" data-toggle="tab">Source region</a></li>
+                            <li class="active"><a href="#pane1" data-toggle="tab">{{sourceIdTabHeader}}</a></li>
+                            <li><a href="#pane2" data-toggle="tab">{{sourceBaseTabHeader}}</a></li>
+                            <li><a href="#pane3" data-toggle="tab">{{sourceCountryTabHeader}}</a></li>
+                            <li><a href="#pane4" data-toggle="tab">{{sourceTypeTabHeader}}</a></li>
+                            <li><a href="#pane5" data-toggle="tab">{{sourceRegionTabHeader}}</a></li>
 
                         </ul>
                         <div class="tab-content">
@@ -161,7 +161,7 @@
                             <div id="pane4" class="tab-pane">
                                 <h3 id="source_type">Source Type</h3>
                                 <p>Source type: Radio -> 3 options Any (default), LIVE, SAT </p>
-                                <form name="myForm">
+                                <form name="myForm" ng-click="sourceTypeHeadingControl()">
                                     <input type="radio" ng-model="sourceTypes" value="any">  Any <br/>
                                     <input type="radio" ng-model="sourceTypes" value="live">  LIVE <br/>
                                     <input type="radio" ng-model="sourceTypes" value="sat">  SAT <br/>
@@ -239,7 +239,7 @@
                                     <div class="col-lg-5">
                                         <div class="control-group form-group">
                                             <label id="endDateLabel" for="inputendDatepicker">End date</label><br>
-                                            <input id="inputendDatepicker" class="form-control" type="text" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker="">
+                                            <input id="inputendDatepicker" type="date" class="form-control" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" >
                                         </div>
                                     </div>
                                     <div class="col-lg-2">
@@ -247,14 +247,53 @@
                                     <div class="col-lg-5">
                                         <div class="control-group form-group">
                                             <label id="endTimeLabel" for="inputendTimepicker">End time (UTC)</label><br>
-                                            <input id="inputendTimepicker" type="text" class="form-control" ng-model="endTimepicker.time" bs-timepicker="">
+                                            <input id="inputendTimepicker" type="time" class="form-control" ng-model="endTimepicker.time">
                                         </div>
                                     </div>
+
+                                    {{endDatepicker.date}},{{endTimepicker.time}}
+
+                                    <style type="text/css">
+                                        .css-form input.ng-invalid.ng-dirty {
+                                            background-color: #FA787E;
+                                        }
+
+                                        .css-form input.ng-valid.ng-dirty {
+                                            background-color: #78FA89;
+                                        }
+
+
+                                    </style>
                                 </div>
                             </form>
 
                         </div>
                     </div>
+
+
+                            <form novalidate class="css-form">
+                                Name:
+                                <input type="text" ng-model="user.name" required /><br />
+                                E-mail: <input type="date" ng-model="user.email" required /><br />
+                                Gender: <input type="radio" ng-model="user.gender" value="male" />male
+                                <input type="radio" ng-model="user.gender" value="female" />female<br />
+                                <button ng-click="reset()">RESET</button>
+                                <button ng-click="update(user)">SAVE</button>
+                            </form>
+
+
+                        <style type="text/css">
+                            .css-form input.ng-invalid.ng-dirty {
+                                background-color: #FA787E;
+                            }
+
+                            .css-form input.ng-valid.ng-dirty {
+                                background-color: #78FA89;
+                            }
+
+
+                        </style>
+
 
 
 

@@ -3,6 +3,12 @@ function SourceIds($scope) {
 
     $scope.headerChecked = '';
 
+    $scope.sourceIdTabHeader = 'Source ID';
+    $scope.sourceBaseTabHeader = 'Source Base Station';
+    $scope.sourceCountryTabHeader = 'Source Country';
+    $scope.sourceTypeTabHeader = 'Source Type';
+    $scope.sourceRegionTabHeader = 'Source Region';
+
 
 
     //Map variables
@@ -22,20 +28,26 @@ function SourceIds($scope) {
         {text:'Source4', value: 'src4', include:false},
         {text:'Source5', value: 'src5', include:false},
         {text:'Source6', value: 'src6', include:false}];
-    
+
+
     $scope.sourceIdsSelect = function(sourceId) {
 		
 	    //if all is selected, deselect all other
 		if(sourceId.value==$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
-			angular.forEach($scope.sourceIds, function(sourceId) {
-      	sourceId.include=false;
-    	});
-    	$scope.sourceIds[0].include=true;  
-		}
+
+            angular.forEach($scope.sourceIds, function(sourceId) {
+      	        sourceId.include=false;
+    	    });
+
+            $scope.sourceIds[0].include=true;
+            $scope.sourceIdTabHeader = 'Source ID';
+
+        }
 		
 		//deselect all if any other is selected	
 		if(sourceId.value!=$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
 			$scope.sourceIds[0].include=false;
+            $scope.sourceIdTabHeader = 'Source ID (*)';
 		}
     }
     
@@ -167,12 +179,9 @@ function SourceIds($scope) {
                                 samples;
 
         var finalString = base;
-        console.log('last digit:' +finalString.slice(-1));
-        console.log(finalString.slice(0,-1));
 
         if (almostFinalString.slice(-1)=='&') {
             finalString=almostFinalString.slice(0,-1);
-            console.log('inside');
         }
 
         //finalString=finalString.replace(/^'&'|,$/g,'');
@@ -205,21 +214,64 @@ function SourceIds($scope) {
 
     $scope.newTextFieldBase = function(sourceBase) {
   	
-  	if(sourceBase.counter === $scope.sourceBases.length) {
-  		$scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
-  		countBase++;
-    }
+        if(sourceBase.counter === $scope.sourceBases.length) {
+            $scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
+            countBase++;
+        }
+
+        //Show that Source Base are edited
+        if(sourceBase.input.length!=0) $scope.sourceBaseTabHeader = 'Source Base Station(*)';
+
+        //Control to remove (*) if all textfields are empty
+        var allEmpty = true;
+        var keepGoing = true;
+        angular.forEach($scope.sourceBases, function(item) {
+            if (keepGoing && (item.input.length!==0)) {
+                allEmpty = false;
+                keepGoing = false;
+            }
+        });
+
+        if(allEmpty) {
+            $scope.sourceBaseTabHeader = 'Source Base Station';
+        }
     };
+
   
     $scope.newTextFieldCountry = function(sourceCountry) {
   	
-  	if(sourceCountry.counter === $scope.sourceCountries.length) {
-  	    $scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
-  	    countCountry++;
-    }
+
+        if(sourceCountry.counter === $scope.sourceCountries.length) {
+            $scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
+  	        countCountry++;
+        }
+        //Show that Source Country are edited if they are
+        if(sourceCountry.input.length!=0) $scope.sourceCountryTabHeader = 'Source Country(*)';
+
+        //Control to remove (*) if all textfields are empty
+        var allEmpty = true;
+        var keepGoing = true;
+        angular.forEach($scope.sourceCountries, function(item) {
+            if (keepGoing && (item.input.length!==0)) {
+                allEmpty = false;
+                keepGoing = false;
+            }
+        });
+
+        if(allEmpty) {
+            $scope.sourceCountryTabHeader = 'Source Country';
+        }
+
     };
   
     $scope.clearSources = function() {
+
+        //restore all TabHeaders
+        $scope.sourceIdTabHeader = 'Source ID';
+        $scope.sourceBaseTabHeader = 'Source Base Station';
+        $scope.sourceCountryTabHeader = 'Source Country';
+        $scope.sourceTypeTabHeader = 'Source Type';
+        $scope.sourceRegionTabHeader = 'Source Region';
 
         //set all source IDs to false
         angular.forEach($scope.sourceIds, function(item) {
@@ -241,9 +293,12 @@ function SourceIds($scope) {
         $scope.sourceTypes='any';
     }
   
-    $scope.test = function() {
+    $scope.sourceTypeHeadingControl = function() {
 
-        console.log('inside test');
+        if($scope.sourceTypes!='any'){
+            $scope.sourceTypeTabHeader = 'Source Type(*)';
+        }
+        else $scope.sourceTypeTabHeader = 'Source Type';
     }
 };
 
