@@ -9,16 +9,27 @@
 
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
-
-    <link href="css/docs.css" rel="stylesheet">
-
     <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
+
+    <!-- custom styles -->
     <link href="css/bootstrap-datepicker.css" rel="stylesheet">
     <link href="css/bootstrap-timepicker.css" rel="stylesheet">
+    <link href="css/columnSelector.css" rel="stylesheet">
+    <link href="css/docs.css" rel="stylesheet">
 
+    <style>
+        <!-- TODO: move to stylesheet -->
 
-    <!-- OpenLayers -->
-    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+        #mapdiv33 { width:800px; height:400px; }
+
+        #mapdiv { width:100%; height:400px; }
+
+        #bbox_drag_instruction { height:1.5em; }
+        #bbox_adjust_instruction { height:1.5em; display:none;  }
+
+    </style>
+
+    <!-- JavaScripts-->
 
     <!-- JavaScript plugins (requires jQuery) -->
     <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
@@ -61,23 +72,15 @@
 
     <script src="js/application.js"></script>
 
-    <!-- custom styles -->
-    <link href="css/columnSelector.css" rel="stylesheet">
+    <!-- OpenLayers -->
+    <link rel="stylesheet" href="http://ol3js.org/en/master/build/ol.css" type="text/css">
+    <script src="http://ol3js.org/en/master/build/ol.js"></script>
 
-    <style>
-        <!-- TODO: move to stylesheet -->
 
-        #mapdiv33 { width:800px; height:400px; }
 
-        #mapdiv { width:100%; height:400px; }
-
-        #bbox_drag_instruction { height:1.5em; }
-        #bbox_adjust_instruction { height:1.5em; display:none;  }
-
-    </style>
 
 </head>
-<body onload="init();" data-spy="scroll" data-target="#navbar-example">
+<body onload="init();">
 
 <div ng-controller="SourceIds">
   
@@ -296,8 +299,7 @@
 
                     <p>"For now just a Radio button with the two choices "Raw format" or "Table format"."</p>
 
-
-                    <div class="tabbable">
+                    <div class="tabbable" style="min-height: 367px;">
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
                             <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
@@ -355,12 +357,15 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span>Example</span>
-                                <div ng-hide="headerChecked">
-                                    <textarea id="stringHeaderShow" readonly rows="2" style="width: 100%;">{{exPreview()}}</textarea>
-                                </div>
-                                <div ng-show="headerChecked">
-                                    <textarea id="stringExShow" readonly rows="2" style="width: 100%;">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
+                                <br>
+
+                                <div style="margin-left: 15px;">
+                                    <div ng-hide="headerChecked">
+                                        <textarea id="stringHeaderShow" readonly rows="2" style="width: 100%;" placeholder="Example">{{exPreview()}}</textarea>
+                                    </div>
+                                    <div ng-show="headerChecked">
+                                        <textarea id="stringExShow" readonly rows="2" style="width: 100%;" placeholder="Example">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- /.tab-content -->
