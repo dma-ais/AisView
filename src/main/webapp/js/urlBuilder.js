@@ -1,6 +1,5 @@
 function SourceIds($scope) {
 
-
     $scope.headerChecked = '';
 
     $scope.sourceIdTabHeader = 'Source ID';
@@ -139,6 +138,7 @@ function SourceIds($scope) {
 
             var tempDate = $scope.$root.startDatepickerInRoot.date;
             var tempTime = $scope.$root.startTimepickerInRoot.time;
+            var tempTimeZone = $scope.$root.startTimeZoneInRoot.zone;
 
             var monthOfYear = tempDate.getMonth()+1;
 
@@ -146,8 +146,9 @@ function SourceIds($scope) {
                         tempDate.getDate() + '.' +
                         monthOfYear + '.' +
                         tempDate.getFullYear() + ' - ' +
-                        tempTime + '(UTC)&';
+                        tempTime+ '(' + tempTimeZone + ')&';
         }
+        //console.log('$scope.startTimeZoneSelected'+$scope.$scope.startTimeZoneSelected);
 
         //making to= string
         if($scope.$root.endDatepickerInRoot.date != '' &&
@@ -155,6 +156,7 @@ function SourceIds($scope) {
 
             var tempDate = $scope.$root.endDatepickerInRoot.date;
             var tempTime = $scope.$root.endTimepickerInRoot.time;
+            var tempTimeZone = $scope.$root.endTimeZoneInRoot.zone;
 
             var monthOfYear = tempDate.getMonth()+1;
 
@@ -162,7 +164,7 @@ function SourceIds($scope) {
                 tempDate.getDate() + '.' +
                 monthOfYear + '.' +
                 tempDate.getFullYear() + ' - ' +
-                tempTime + '(UTC)&';
+                tempTime + '(' + tempTimeZone + ')&';;
         }
 
         var almostFinalString = base+
@@ -299,6 +301,13 @@ function SourceIds($scope) {
             $scope.sourceTypeTabHeader = 'Source Type(*)';
         }
         else $scope.sourceTypeTabHeader = 'Source Type';
+    }
+
+    $scope.testMap = function() {
+
+        //testMapBBox($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
+        newInput($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
+        console.log('change in map');
     }
 };
 

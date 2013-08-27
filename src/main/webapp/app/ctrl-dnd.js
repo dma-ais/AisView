@@ -1,6 +1,13 @@
 function dndCtrl($scope) {
 
-    $scope.tableSeparator = ':';
+    $scope.tableSeparators = [
+        {ID: 'colon', Title: 'Colon', Value:':'},
+        {ID: 'semi-colon', Title: 'Semicolon', Value:';'},
+        {ID: 'comma', Title: 'Comma', Value:','},
+        {ID: 'tab', Title: 'Tab', Value:'   '}
+    ];
+
+    $scope.tableSeparator = {sep: 'colon'};
 
     //TODO: change to service instead of pushing to root scope
     $scope.$root.tableSeparatorInRoot = $scope.tableSeparator;
@@ -47,34 +54,32 @@ function dndCtrl($scope) {
     }
 
     $scope.headerPreview = function() {
+        //filter tableSeparators array to find separator character
+        var filteredArray = $scope.tableSeparators.filter(function (element) {
+            return element.ID == $scope.tableSeparator.sep;
+        });
+
         var breadcrumb = '';
         angular.forEach($scope.included, function(item) {
-            breadcrumb+=item.queryName+$scope.tableSeparator;
+            breadcrumb+=item.queryName+filteredArray[0].Value;
         });
         //always remove last separator from string
         breadcrumb=breadcrumb.slice(0, -1);
         return breadcrumb;
     };
     $scope.exPreview = function() {
+        //filter tableSeparators array to find separator character
+        var filteredArray = $scope.tableSeparators.filter(function (element) {
+            return element.ID == $scope.tableSeparator.sep;
+        });
+
         var breadcrumb = '';
         angular.forEach($scope.included, function(item) {
-            breadcrumb+=item.ex+$scope.tableSeparator;
+            breadcrumb+=item.ex+filteredArray[0].Value;
         });
         //always remove last separator from string
         breadcrumb=breadcrumb.slice(0, -1);
         return breadcrumb;
-
-    };
-
-    $scope.queryPreview = function() {
-        var nameCrumb = '';
-        var exCrumb = '';
-        angular.forEach($scope.included, function(item) {
-            nameCrumb+=item.queryName+$scope.tableSeparator;
-            exCrumb+=item.ex+$scope.tableSeparator;
-        });
-
-        return nameCrumb+"&#10;"+exCrumb;
 
     };
 }

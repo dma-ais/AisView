@@ -17,6 +17,7 @@
     <link href="css/columnSelector.css" rel="stylesheet">
     <link href="css/docs.css" rel="stylesheet">
 
+
     <style>
         <!-- TODO: move to stylesheet -->
 
@@ -120,7 +121,6 @@
                     </div><!-- /.tabbable -->
 
                     <button class="btn btn-danger" ng-click="clearSources()" >Clear All Source Filters</button>
-      				
 
                     <div class="page-header">
         				<h1 id="area-selection">Area Selection</h1>
@@ -135,12 +135,12 @@
     				<div id="bbox_result">
 
                         Top Left (Lat, Lon)
-                        (<input type="text" id="bbox_result_maxLat" ng-change="test()" ng-model="topLeftLat" size=5>,
-						<input type="text" id="bbox_result_minLon" ng-change="test()" ng-model="topLeftLon" size=5>)
+                        (<input type="text" id="bbox_result_maxLat" ng-change="testMap()" ng-model="topLeftLat" size=5>,
+						<input type="text" id="bbox_result_minLon" ng-change="testMap()" ng-model="topLeftLon" size=5>)
 
                         Buttom Right (Lat, Lon)
-						(<input type="text" id="bbox_result_minLat" ng-change="test()" ng-model="buttomRightLat" size=5>,
-						<input type="text" id="bbox_result_maxLon" ng-change="test()" ng-model="buttomRightLon" size=5>)
+						(<input type="text" id="bbox_result_minLat" ng-change="testMap()" ng-model="buttomRightLat" size=5>,
+						<input type="text" id="bbox_result_maxLon" ng-change="testMap()" ng-model="buttomRightLon" size=5>)
 		            </div>
 	  				<div class="page-header">
         				<h1 id="ship-types">Ship types</h1>
@@ -157,22 +157,32 @@
                         <div id="startTimeWrapper" class="col-lg-6">
                             <form class="form-inline well" role="form">
                                 <div class="row">
-                                    <div class="col-lg-5">
+                                    <div class="col-lg-4">
                                         <div class="control-group form-group">
                                             <label id="startDateLabel" for="inputStartDatepicker">Start date</label><br>
-                                            <input id="inputStartDatepicker" class="form-control" type="text" ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy" bs-datepicker="">
+                                            <input id="inputStartDatepicker" class="form-control" type="text"
+                                                   ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy"
+                                                   style="width: 110px;" bs-datepicker="">
                                         </div>
                                     </div>
-                                    <div class="col-lg-2">
-                                    </div>
-                                    <div class="col-lg-5">
+                                    <div class="col-lg-4">
                                         <div class="control-group form-group">
-                                            <label id="startTimeLabel" for="inputStartTimepicker">Start time (UTC)</label><br>
-                                            <input id="inputStartTimepicker" type="text" class="form-control" ng-model="startTimepicker.time" bs-timepicker="">
+                                            <label id="startTimeLabel" for="inputStartTimepicker">Start time</label><br>
+                                            <input id="inputStartTimepicker" type="text" class="form-control"
+                                                   ng-model="startTimepicker.time" style="width: 110px;" bs-timepicker="">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <div class="control-group form-group">
+                                            <label id="endTimezoneLabel" for="startTimeZonePicker">Timezone</label><br>
+                                            <select id="startTimeZonePicker" ng-model="startTimeZone.zone"  class="form-control"
+                                                    ng-options="item.ID as item.Title for item in timeZones"></select>
                                         </div>
                                     </div>
                                 </div>
                             </form>
+                            {{selected}}
+
 
 
                         </div>
@@ -182,66 +192,34 @@
                         <div id="endTimeWrapper" class="col-lg-6">
                             <form class="form-inline well" role="form">
                                 <div class="row">
-                                    <div class="col-lg-5">
+                                    <div class="col-lg-4">
                                         <div class="control-group form-group">
-                                            <label id="endDateLabel" for="inputendDatepicker">End date</label><br>
-                                            <input id="inputendDatepicker" type="date" class="form-control" ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy" >
+                                            <label id="endDateLabel" for="inputEndDatepicker">End date</label><br>
+                                            <input id="inputEndDatepicker" class="form-control" type="text"
+                                                   ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy"
+                                                   style="width: 110px;" bs-datepicker="">
                                         </div>
                                     </div>
-                                    <div class="col-lg-2">
-                                    </div>
-                                    <div class="col-lg-5">
+                                    <div class="col-lg-4">
                                         <div class="control-group form-group">
-                                            <label id="endTimeLabel" for="inputendTimepicker">End time (UTC)</label><br>
-                                            <input id="inputendTimepicker" type="time" class="form-control" ng-model="endTimepicker.time">
+                                            <label id="endTimeLabel" for="inputEndTimepicker">Start time</label><br>
+                                            <input id="inputEndTimepicker" type="text" class="form-control"
+                                                   ng-model="endTimepicker.time" style="width: 110px;" bs-timepicker="">
                                         </div>
                                     </div>
-
-                                    {{endDatepicker.date}},{{endTimepicker.time}}
-
-                                    <style type="text/css">
-                                        .css-form input.ng-invalid.ng-dirty {
-                                            background-color: #FA787E;
-                                        }
-
-                                        .css-form input.ng-valid.ng-dirty {
-                                            background-color: #78FA89;
-                                        }
-
-
-                                    </style>
+                                    <div class="col-lg-4">
+                                        <div class="control-group form-group">
+                                            <label id="endTimezoneLabel" for="endTimeZonePicker">Timezone</label><br>
+                                            <select id="endTimeZonePicker" ng-model="endTimeZone.zone"  class="form-control"
+                                                    ng-options="item.ID as item.Title for item in timeZones"></select>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
 
+
                         </div>
                     </div>
-
-
-                            <form novalidate class="css-form">
-                                Name:
-                                <input type="text" ng-model="user.name" required /><br />
-                                E-mail: <input type="date" ng-model="user.email" required /><br />
-                                Gender: <input type="radio" ng-model="user.gender" value="male" />male
-                                <input type="radio" ng-model="user.gender" value="female" />female<br />
-                                <button ng-click="reset()">RESET</button>
-                                <button ng-click="update(user)">SAVE</button>
-                            </form>
-
-
-                        <style type="text/css">
-                            .css-form input.ng-invalid.ng-dirty {
-                                background-color: #FA787E;
-                            }
-
-                            .css-form input.ng-valid.ng-dirty {
-                                background-color: #78FA89;
-                            }
-
-
-                        </style>
-
-
-
 
                     <div class="page-header">
 					    <h1 id="output-format">Output Format</h1>
@@ -295,13 +273,10 @@
                                         </div>
                                         <div id="seperatorSelect" class="col-lg-3">
                                             <p id="separatorTitle">Separator</p><br>
-                                            <select ng-model="tableSeparator">
-                                                <option value=":">Colon</option>
-                                                <option value=";">Semicolon</option>
-                                                <option value=",">Comma</option>
-                                                <option value=" ">Tab</option>
+                                            <select ng-model="tableSeparator.sep"
+                                                    ng-options="item.ID as item.Title for item in tableSeparators">
                                             </select><br>
-                                                <br>
+                                            <br>
                                             <input type="checkbox" ng-model="headerChecked" value="true">
                                             <span>Include header</span>
                                         </div>
@@ -324,6 +299,7 @@
 	  				<div class="page-header">
         				<h1 id="download">Download</h1>
                     </div>
+
       				<textarea rows="4" style="width: 100%;" readonly>{{url()}}</textarea>
       				
       				<div class="navbar">	
@@ -382,8 +358,6 @@
 
         <!-- OpenLayers -->
         <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
-
-
 
 
 
