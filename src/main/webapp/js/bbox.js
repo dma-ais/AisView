@@ -7,6 +7,8 @@
 var vectors;
 var box;
 var transform;
+var boxDraggedOnce = false;
+var boxDrawnOnce = false;
 
 function init() {
     console.log('init()');
@@ -62,38 +64,75 @@ function endDrag(bbox) {
 	box.deactivate();
 	
 	document.getElementById("bbox_drag_instruction").style.display = 'none';
-	document.getElementById("bbox_adjust_instruction").style.display = 'block';        
+	document.getElementById("bbox_adjust_instruction").style.display = 'block';
+
+    boxDraggedOnce = true;
 }
 
 function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
-    console.log('newInput() Bounds:'+b);
+    if (boxDraggedOnce){
+        //same as if dragNewBox();
+        box.activate();
+        transform.deactivate(); //The remove the box with handles
+        vectors.destroyFeatures();
 
-    //same as if dragNewBox();
-    box.activate();
-    transform.deactivate(); //The remove the box with handles
-    vectors.destroyFeatures();
+        //same as if endDrag()
+        var bounds = new OpenLayers.Bounds();
+        bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+        bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
 
-    //same as if dragNewBox()
-    var bounds = new OpenLayers.Bounds();
-	bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-	bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
-	
-	b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());	
-	
+        b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+        console.log('newInput() Bounds:'+b);
 
-    //setBounds2(b);
+        drawBox(b);
 
-    drawBox(b);
+        box.deactivate();
+    }else { //!boxDraggedOnce
+        if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(buttomRightLat)&&!isNaN(buttomRightLon)){
 
-    box.deactivate();
+            if(!boxDrawnOnce) {
+                console.log('getting ready to do some action');
+
+                //same as if dragNewBox();
+                //...
+
+                //same as if endDrag()
+                var bounds = new OpenLayers.Bounds();
+                bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+                bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+
+                b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+                console.log('newInput() Bounds:'+b);
+
+                drawBox(b);
+
+                box.deactivate();
+                boxDrawnOnce = true;
+            }else {     //boxDrawnOnce
+                //same as if dragNewBox();
+                box.activate();
+                transform.deactivate(); //The remove the box with handles
+                vectors.destroyFeatures();
+
+                //same as if endDrag()
+                var bounds = new OpenLayers.Bounds();
+                bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+                bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+
+                b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+                console.log('newInput() Bounds:'+b);
+
+                drawBox(b);
+
+                box.deactivate();
+            }
 
 
+        }else console.log('do nothing yet');
 
+    }
 
-	
-	document.getElementById("bbox_drag_instruction").style.display = 'none';
-	document.getElementById("bbox_adjust_instruction").style.display = 'block';        
 }
 
 function dragNewBox() {
