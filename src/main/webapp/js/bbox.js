@@ -71,45 +71,14 @@ function endDrag(bbox) {
 
 function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
-    if (boxDraggedOnce){
-        //same as if dragNewBox();
-        box.activate();
-        transform.deactivate(); //The remove the box with handles
-        vectors.destroyFeatures();
+    console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + buttomRightLat +','+ buttomRightLon);
 
-        //same as if endDrag()
-        var bounds = new OpenLayers.Bounds();
-        bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-        bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+    //fix of collapse of borders of box
+    if((topLeftLat!=buttomRightLat) || (topLeftLon!=buttomRightLon)){
 
-        b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-        console.log('newInput() Bounds:'+b);
-
-        drawBox(b);
-
-        box.deactivate();
-    }else { //!boxDraggedOnce
-        if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(buttomRightLat)&&!isNaN(buttomRightLon)){
-
-            if(!boxDrawnOnce) {
-                console.log('getting ready to do some action');
-
-                //same as if dragNewBox();
-                //...
-
-                //same as if endDrag()
-                var bounds = new OpenLayers.Bounds();
-                bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-                bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
-
-                b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                console.log('newInput() Bounds:'+b);
-
-                drawBox(b);
-
-                box.deactivate();
-                boxDrawnOnce = true;
-            }else {     //boxDrawnOnce
+        if (boxDraggedOnce){
+            //check if input is blank
+            if((topLeftLat!='') && (topLeftLon!='')&&(buttomRightLat!='')&&(buttomRightLon!='')) {
                 //same as if dragNewBox();
                 box.activate();
                 transform.deactivate(); //The remove the box with handles
@@ -126,13 +95,61 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
                 drawBox(b);
 
                 box.deactivate();
+            }else{
+                console.log('some input is blank-do nothing');
             }
+        }else { //!boxDraggedOnce
+            if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(buttomRightLat)&&!isNaN(buttomRightLon)){
+
+                if(!boxDrawnOnce) {
+                    console.log('getting ready to do some action');
+
+                    //same as if dragNewBox();
+                    //...
+
+                    //same as if endDrag()
+                    var bounds = new OpenLayers.Bounds();
+                    bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+                    bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+
+                    b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+                    console.log('newInput() Bounds:'+b);
+
+                    drawBox(b);
+
+                    box.deactivate();
+                    boxDrawnOnce = true;
+                }else {     //boxDrawnOnce
+                    //check if input is blank
+                    if((topLeftLat!='') && (topLeftLon!='')&&(buttomRightLat!='')&&(buttomRightLon!='')) {
+                        //same as if dragNewBox();
+                        box.activate();
+                        transform.deactivate(); //The remove the box with handles
+                        vectors.destroyFeatures();
+
+                        //same as if endDrag()
+                        var bounds = new OpenLayers.Bounds();
+                        bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
+                        bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+
+                        b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+                        console.log('newInput() Bounds:'+b);
+
+                        drawBox(b);
+
+                        box.deactivate();
+                    }else{
+                        console.log('some input is blank-do nothing');
+                    }
+                }
 
 
-        }else console.log('do nothing yet');
+            }else console.log('do nothing yet');
+
+        }
 
     }
-
+    else console.log('same borders');
 }
 
 function dragNewBox() {
