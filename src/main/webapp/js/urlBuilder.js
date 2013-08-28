@@ -303,11 +303,11 @@ function SourceIds($scope) {
         else $scope.sourceTypeTabHeader = 'Source Type';
     }
 
-    $scope.testMap = function() {
+    $scope.changeMapInputField = function() {
 
         //testMapBBox($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
         newInput($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
-        console.log('change in map');
+
     }
 };
 

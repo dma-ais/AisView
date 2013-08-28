@@ -9,6 +9,7 @@ var box;
 var transform;
 
 function init() {
+    console.log('init()');
     map = new OpenLayers.Map("mapdiv");
     var openstreetmap = new OpenLayers.Layer.OSM();
     map.addLayer(openstreetmap);
@@ -18,7 +19,7 @@ function init() {
         new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
     );
 
-    var zoom = 5;
+    var zoom = 2;
 
     vectors = new OpenLayers.Layer.Vector("Vector Layer", {
         displayInLayerSwitcher: false
@@ -53,12 +54,9 @@ function init() {
 }
 
 
-
-
-
 function endDrag(bbox) {
 	var bounds = bbox.getBounds();
-	console.log('Bounds:'+bounds);
+	console.log('endDrag() Bounds:'+bounds);
 	setBounds(bounds);
 	drawBox(bounds);
 	box.deactivate();
@@ -68,33 +66,39 @@ function endDrag(bbox) {
 }
 
 function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
-	
-	var bounds = new OpenLayers.Bounds();
+
+    console.log('newInput() Bounds:'+b);
+
+    //same as if dragNewBox();
+    box.activate();
+    transform.deactivate(); //The remove the box with handles
+    vectors.destroyFeatures();
+
+    //same as if dragNewBox()
+    var bounds = new OpenLayers.Bounds();
 	bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
 	bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
 	
 	b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());	
 	
-	console.log('Bounds:'+b);
+
     //setBounds2(b);
 
-
-    //dragNewBox();
-    box.activate();
-    transform.deactivate(); //The remove the box with handles
-    vectors.destroyFeatures();
-
-    document.getElementById("bbox_drag_instruction").style.display = 'block';
-    document.getElementById("bbox_adjust_instruction").style.display = 'none';
-
     drawBox(b);
+
+    box.deactivate();
+
+
+
+
 	
 	document.getElementById("bbox_drag_instruction").style.display = 'none';
 	document.getElementById("bbox_adjust_instruction").style.display = 'block';        
 }
 
 function dragNewBox() {
-	box.activate();
+	console.log('dragNewBox()');
+    box.activate();
 	transform.deactivate(); //The remove the box with handles
 	vectors.destroyFeatures();
 	
@@ -106,11 +110,12 @@ function dragNewBox() {
 
 function boxResize(event) {
 	setBounds(event.feature.geometry.bounds);
-	console.log('Bounds:'+event.feature.geometry.bounds);
+	console.log('Bounds boxResize():'+event.feature.geometry.bounds);
 }
 
 function drawBox(bounds) {
-	var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
+	console.log('drawBox()');
+    var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
 
 	vectors.addFeatures(feature);
 	transform.setFeature(feature);
@@ -122,7 +127,8 @@ function toPrecision(zoom, value) {
 }
 
 function setBounds(bounds) {
-	if (bounds == null) {
+	console.log('setBounds()');
+    if (bounds == null) {
 		var scope = angular.element('#bbox_result').scope();
 			scope.$apply(function(){
   			scope.topLeftLat = null;
@@ -171,30 +177,5 @@ function setBounds(bounds) {
 		//});
 	}
 }
-
-function setBounds2(bounds) {
-    if (bounds == null) {
-        var scope = angular.element('#bbox_result').scope();
-        scope.$apply(function(){
-            scope.topLeftLat = null;
-            scope.topLeftLon = null;
-            scope.buttomRightLat = null;
-            scope.buttomRightLon = null;
-        });
-
-
-    } else {
-        b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-        //minlon = toPrecision(map.getZoom(), b.left);
-        //minlat = toPrecision(map.getZoom(), b.bottom);
-        //maxlon = toPrecision(map.getZoom(), b.right);
-        //maxlat = toPrecision(map.getZoom(), b.top);
-    }
-}
-
-function testMapBBox(a,b,c,d) {
-    console.log('insideBBOX with: ' +a);
-}
-
 
       
