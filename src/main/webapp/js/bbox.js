@@ -74,7 +74,18 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
     console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + buttomRightLat +','+ buttomRightLon);
 
     //fix of collapse of borders of box
-    if((topLeftLat!=buttomRightLat) || (topLeftLon!=buttomRightLon)){
+    //TODO: take care of 10==10.==10.0...
+    if(topLeftLat==buttomRightLat) {
+        console.log('same borders');
+        var scope = angular.element('#mapInputWarning').scope();
+        scope.mapInputWarning = 'Same latitude on both points';
+    }
+    else if(topLeftLon==buttomRightLon){
+        console.log('same borders');
+        var scope = angular.element('#mapInputWarning').scope();
+        scope.mapInputWarning = 'Same longitude on both points';
+    }
+    else{
 
         if (boxDraggedOnce){
             //check if input is blank
@@ -95,17 +106,24 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
                 drawBox(b);
 
                 box.deactivate();
+
+                document.getElementById("bbox_drag_instruction").style.display = 'none';
+                document.getElementById("bbox_adjust_instruction").style.display = 'block';
+
+                var scope = angular.element('#mapInputWarning').scope();
+                scope.mapInputWarning = '';
+
             }else{
                 console.log('some input is blank-do nothing');
+                var scope = angular.element('#mapInputWarning').scope();
+                scope.mapInputWarning = 'Some input fields are empty';
+
             }
         }else { //!boxDraggedOnce
             if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(buttomRightLat)&&!isNaN(buttomRightLon)){
 
                 if(!boxDrawnOnce) {
                     console.log('getting ready to do some action');
-
-                    //same as if dragNewBox();
-                    //...
 
                     //same as if endDrag()
                     var bounds = new OpenLayers.Bounds();
@@ -119,6 +137,13 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
                     box.deactivate();
                     boxDrawnOnce = true;
+
+                    document.getElementById("bbox_drag_instruction").style.display = 'none';
+                    document.getElementById("bbox_adjust_instruction").style.display = 'block';
+
+                    var scope = angular.element('#mapInputWarning').scope();
+                    scope.mapInputWarning = '';
+
                 }else {     //boxDrawnOnce
                     //check if input is blank
                     if((topLeftLat!='') && (topLeftLon!='')&&(buttomRightLat!='')&&(buttomRightLon!='')) {
@@ -138,18 +163,22 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
                         drawBox(b);
 
                         box.deactivate();
+
+                        document.getElementById("bbox_drag_instruction").style.display = 'none';
+                        document.getElementById("bbox_adjust_instruction").style.display = 'block';
+
+                        var scope = angular.element('#mapInputWarning').scope();
+                        scope.mapInputWarning = '';
                     }else{
                         console.log('some input is blank-do nothing');
+                        var scope = angular.element('#mapInputWarning').scope();
+                        scope.mapInputWarning = 'Some input fields are empty';
+
                     }
                 }
-
-
             }else console.log('do nothing yet');
-
         }
-
     }
-    else console.log('same borders');
 }
 
 function dragNewBox() {
@@ -177,60 +206,42 @@ function drawBox(bounds) {
 	transform.setFeature(feature);
 }
 
-function toPrecision(zoom, value) {
-	var decimals = 1000;
-	return Math.round(value * decimals) / decimals;
-}
-
 function setBounds(bounds) {
 	console.log('setBounds()');
     if (bounds == null) {
 		var scope = angular.element('#bbox_result').scope();
-			scope.$apply(function(){
-  			scope.topLeftLat = null;
-				scope.topLeftLon = null;
-				scope.buttomRightLat = null;
-				scope.buttomRightLon = null;
+
+        scope.$apply(function(){
+                scope.topLeftLat = '';
+				scope.topLeftLon = '';
+				scope.buttomRightLat = '';
+				scope.buttomRightLon = '';
 		});
 		
 		
 	} else {
 		b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
-		//minlon = toPrecision(map.getZoom(), b.left);
-		//minlat = toPrecision(map.getZoom(), b.bottom);
-		//maxlon = toPrecision(map.getZoom(), b.right);
-		//maxlat = toPrecision(map.getZoom(), b.top);
-		
-		
+
 		//Sending values to right scope in angular
 		var scope = angular.element('#bbox_result_maxLat').scope();
 			scope.$apply(function(){
-  			scope.topLeftLat = toPrecision(map.getZoom(), b.top);
+  			scope.topLeftLat = b.top.toFixed(3);
 		});
 			
 		var scope = angular.element('#bbox_result_minLon').scope();
 			scope.$apply(function(){
-  			scope.topLeftLon = toPrecision(map.getZoom(), b.left);
+  			scope.topLeftLon = b.left.toFixed(3);
 		});
 		
 		var scope = angular.element('#bbox_result_minLat').scope();
 			scope.$apply(function(){
-  			scope.buttomRightLat = toPrecision(map.getZoom(), b.bottom);
+  			scope.buttomRightLat = b.bottom.toFixed(3);
 		});
 		
 		var scope = angular.element('#bbox_result_maxLon').scope();
 			scope.$apply(function(){
-  			scope.buttomRightLon = toPrecision(map.getZoom(), b.right);
+  			scope.buttomRightLon = b.right.toFixed(3);
 		});
-		
-		
-		//var scope = angular.element('#bbox_result').scope();
-		//	scope.$apply(function(){
-  	//		scope.topLeftLat = toPrecision(map.getZoom(), b.top);
-		//		scope.topLeftLon = toPrecision(map.getZoom(), b.left);
-		//		scope.buttomRightLat = toPrecision(map.getZoom(), b.bottom);
-		//		scope.buttomRightLon = toPrecision(map.getZoom(), b.right);
-		//});
 	}
 }
 

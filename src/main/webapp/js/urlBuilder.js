@@ -1,5 +1,7 @@
 function SourceIds($scope) {
 
+    $scope.mapInputWarning = '';
+
     $scope.headerChecked = '';
 
     $scope.sourceIdTabHeader = 'Source ID';

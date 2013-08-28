@@ -129,19 +129,20 @@
         
 
                     <div id="bbox_drag_instruction">Drag a box:</div>
-    				<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" value="Clear Area Selection" onclick="dragNewBox();"></div>
+    				<div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" class="btn btn-danger" value="Clear Area Selection" onclick="dragNewBox();"></div>
     				<br>
     				<div id="mapdiv"></div>
     				<div id="bbox_result">
 
                         Top Left (Lat, Lon)
-                        (<input type="text" id="bbox_result_maxLat" ng-change="changeMapInputField()" ng-model="topLeftLat" size=5>,
+                        (<input type="text" pattern="\d+" id="bbox_result_maxLat" ng-change="changeMapInputField()" ng-model="topLeftLat" size=5>,
 						<input type="text" id="bbox_result_minLon" ng-change="changeMapInputField()" ng-model="topLeftLon" size=5>)
 
                         Buttom Right (Lat, Lon)
 						(<input type="text" id="bbox_result_minLat" ng-change="changeMapInputField()" ng-model="buttomRightLat" size=5>,
 						<input type="text" id="bbox_result_maxLon" ng-change="changeMapInputField()" ng-model="buttomRightLon" size=5>)
 		            </div>
+                    <p id="mapInputWarning" style="background-color:red;">{{mapInputWarning}}</p>
 	  				<div class="page-header">
         				<h1 id="ship-types">Ship types</h1>
                         15 typer med overkategorier: markeres med checkboxes
