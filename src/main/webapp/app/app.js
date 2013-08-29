@@ -1,54 +1,59 @@
-var app = angular.module('aisHDD', ['$strap.directives']);
+var app = angular.module('aisHDD', []);
 
-app.controller('dateTimePicker', function($scope, $window, $location) {
-
-    $scope.timeZones = [
-        {ID: 'utc', Title: 'UTC'},
-        {ID: 'utc/gmt+1', Title: 'UTC/GMT+1'}
-    ];
-
-    // Datepicker directive
-    $scope.startDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
-    $scope.endDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
-
-    $scope.startTimepicker = {time: "00:00 AM"};
-    $scope.endTimepicker = {time: "00:00 AM"};
-
-    $scope.startTimeZone = {zone: 'utc'};
-    $scope.endTimeZone = {zone: 'utc'};
-
-    ////TODO: change to service instead of pushing to root scope
-    $scope.$root.startDatepickerInRoot = $scope.startDatepicker;
-    $scope.$root.endDatepickerInRoot = $scope.endDatepicker;
-
-    $scope.$root.startTimepickerInRoot = $scope.startTimepicker;
-    $scope.$root.endTimepickerInRoot = $scope.endTimepicker;
-
-    $scope.$root.startTimeZoneInRoot = $scope.startTimeZone;
-    $scope.$root.endTimeZoneInRoot = $scope.endTimeZone;
-
-
-
-
-
-});
-
-var INTEGER_REGEXP = /^\-?\d*$/;
-app.directive('integer', function() {
+app.factory('UrlService', function() {
     return {
-        require: 'ngModel',
-        link: function(scope, elm, attrs, ctrl) {
-            ctrl.$parsers.unshift(function(viewValue) {
-                if (INTEGER_REGEXP.test(viewValue)) {
-                    // it is valid
-                    ctrl.$setValidity('integer', true);
-                    return viewValue;
-                } else {
-                    // it is invalid, return undefined (no model update)
-                    ctrl.$setValidity('integer', false);
-                    return undefined;
-                }
-            });
+        area: null,
+        ids:null,
+        bases:null,
+        countries: null,
+        types: null,
+        format: null,
+        tables: null,
+        separator: null,
+        header: null,
+        fromDate: null,
+        toDate: null,
+        samples: null,
+        setArea: function(msg) {
+            this.area = msg;
+        },
+        setIds: function(msg) {
+            this.ids = msg;
+        },
+        setBases: function(msg) {
+            this.bases = msg;
+        },
+        setCountries: function(msg){
+            this.countries = msg;
+        },
+        setTypes: function(msg){
+            this.types = msg;
+        },
+        setFormat: function(msg){
+            this.format = msg;
+        },
+        setTables: function(msg){
+            this.tables = msg;
+        },
+        setSeparator: function(msg){
+            this.separator = msg;
+        },
+        setHeader: function(msg){
+            this.header = msg;
+        },
+        setFromDate: function(msg){
+            this.fromDate = msg;
+        },
+        setToDate: function(msg){
+            this.toDate = msg;
+        },
+        setSamples: function(msg){
+            this.samples = msg;
         }
-    };
+    }
 });
+
+
+
+
+

@@ -1,4 +1,10 @@
-function dndCtrl($scope) {
+function dndCtrl($scope,UrlService) {
+
+    //Control of header included in query
+    $scope.headerChecked = false;
+
+    //Control of format
+    $scope.format = '';
 
     $scope.tableSeparators = [
         {ID: 'colon', Title: 'Colon', Value:':'},
@@ -8,9 +14,6 @@ function dndCtrl($scope) {
     ];
 
     $scope.tableSeparator = {sep: 'colon'};
-
-    //TODO: change to service instead of pushing to root scope
-    $scope.$root.tableSeparatorInRoot = $scope.tableSeparator;
 
     $scope.filterCategory = 'all';
     
@@ -29,9 +32,6 @@ function dndCtrl($scope) {
  		
  	//Array of objects included in query
     $scope.included = [];
-
-    //TODO: change to service instead of pushing to root scope
-    $scope.$root.includedInRoot = $scope.included;
 
     // watch, use 'true' to also receive updates when values
     // change, instead of just the reference
@@ -53,6 +53,7 @@ function dndCtrl($scope) {
         return $scope.notIncluded.length == 0;
     }
 
+    //Make the example of header line
     $scope.headerPreview = function() {
         //filter tableSeparators array to find separator character
         var filteredArray = $scope.tableSeparators.filter(function (element) {
@@ -67,6 +68,8 @@ function dndCtrl($scope) {
         breadcrumb=breadcrumb.slice(0, -1);
         return breadcrumb;
     };
+
+    //Make the example of query line
     $scope.exPreview = function() {
         //filter tableSeparators array to find separator character
         var filteredArray = $scope.tableSeparators.filter(function (element) {
@@ -82,4 +85,58 @@ function dndCtrl($scope) {
         return breadcrumb;
 
     };
+    //If included array are changed push to service
+    $scope.$watch('included', function() {
+        var tables = '';
+        var separator = '';
+        console.log('inside watch: '+$scope.included.length!==0);
+        //append all tables if format is 'table' else no tables
+        if($scope.format=='') {
+            tables = '';
+            separator = '';
+        }
+        else {
+            //only append if included tables list is not empty
+            if($scope.included.length!=0){
+                tables='tables=';
+                angular.forEach($scope.included, function(includedItem) {
+                    tables+=includedItem.queryName+',';
+                });
+
+                //delete , with & at end of string
+                tables=tables.replace(/^,|,$/g,'&');
+
+                separator='separator='+$scope.tableSeparator.sep+'&';
+            }
+        }
+
+        //Send to service
+        UrlService.setTables(tables);
+        UrlService.setSeparator(separator);
+    }, true);
+
+    //If tableSeparator are changed push to service
+    $scope.$watch('tableSeparator', function() {
+        var separator = '';
+
+        if($scope.format=='') separator = '';
+        else {
+            //only append if included tables list is not empty
+            if($scope.included.length!=0) separator='separator='+$scope.tableSeparator.sep+'&';
+        }
+        //Send to service
+        UrlService.setSeparator(separator);
+    }, true); // <-- objectEquality
+
+    //If headerChecked are changed push to service
+    $scope.$watch('headerChecked', function() {
+
+        var header = '';
+        if($scope.included.length!=0 && $scope.headerChecked) header = 'header=true&';
+            else header = '';
+
+        //Send to service
+        UrlService.setHeader(header);
+    });
+
 }

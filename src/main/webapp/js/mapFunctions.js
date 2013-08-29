@@ -1,8 +1,8 @@
 /**
-* script controlling bounding box 
-* inspiration from:
-* harrywood.co.uk/maps/examples/openlayers/bbox-selector.html
-*/  
+ * script controlling bounding box
+ * inspiration from:
+ * harrywood.co.uk/maps/examples/openlayers/bbox-selector.html
+ */
 
 var vectors;
 var box;
@@ -64,7 +64,7 @@ function init() {
 
 
 function endDrag(bbox) {
-	var bounds = bbox.getBounds();
+    var bounds = bbox.getBounds();
 
 
 
@@ -82,11 +82,11 @@ function endDrag(bbox) {
     console.log('endDrag() Bounds WGS-1984:'+bounds);
 
     setBounds(bounds);
-	drawBox(bounds);
-	box.deactivate();
-	
-	document.getElementById("bbox_drag_instruction").style.display = 'none';
-	document.getElementById("bbox_adjust_instruction").style.display = 'block';
+    drawBox(bounds);
+    box.deactivate();
+
+    document.getElementById("bbox_drag_instruction").style.display = 'none';
+    document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
     boxDraggedOnce = true;
 }
@@ -213,87 +213,80 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 }
 
 function dragNewBox() {
-	//console.log('dragNewBox()');
+    //console.log('dragNewBox()');
     box.activate();
-	transform.deactivate(); //The remove the box with handles
-	vectors.destroyFeatures();
-	
-	document.getElementById("bbox_drag_instruction").style.display = 'block';
-	document.getElementById("bbox_adjust_instruction").style.display = 'none';
-	
-	setBounds(null); 
+    transform.deactivate(); //The remove the box with handles
+    vectors.destroyFeatures();
+
+    document.getElementById("bbox_drag_instruction").style.display = 'block';
+    document.getElementById("bbox_adjust_instruction").style.display = 'none';
+
+    setBounds(null);
 }
 
 function boxResize(event) {
-	setBounds(event.feature.geometry.bounds);
-	console.log('Bounds boxResize():'+event.feature.geometry.bounds);
+    setBounds(event.feature.geometry.bounds);
+    console.log('Bounds boxResize():'+event.feature.geometry.bounds);
 }
 
 function drawBox(bounds) {
-	//console.log('drawBox()');
+    //console.log('drawBox()');
     var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
 
-	vectors.addFeatures(feature);
-	transform.setFeature(feature);
+    vectors.addFeatures(feature);
+    transform.setFeature(feature);
 }
 
 function setBounds(bounds) {
-	//console.log('setBounds()');
+    //console.log('setBounds()');
     if (bounds == null) {
-		var scope = angular.element('#bbox_result').scope();
+        var scope = angular.element('#bbox_result').scope();
 
         scope.$apply(function(){
-                scope.topLeftLat = '';
-				scope.topLeftLon = '';
-				scope.bottomRightLat = '';
-				scope.bottomRightLon = '';
-		});
-		
-		
-	} else {
-		b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
+            scope.topLeftLat = '';
+            scope.topLeftLon = '';
+            scope.bottomRightLat = '';
+            scope.bottomRightLon = '';
+        });
+
+
+    } else {
+        b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
 
         //Sending values to right scope in angular
-		var scope = angular.element('#bbox_result').scope();
-			scope.$apply(function(){
-                scope.topLeftLat = b.top.toFixed(3);
-                scope.bottomRightLat = b.bottom.toFixed(3);
+        var scope = angular.element('#bbox_result').scope();
+        scope.$apply(function(){
+            scope.topLeftLat = b.top.toFixed(3);
+            scope.bottomRightLat = b.bottom.toFixed(3);
 
-                //wrap the world for lons
-                if(b.left>180 || b.left<-180 ) scope.topLeftLon = (((b.left-(101*180))%360)+180).toFixed(3);
-                else scope.topLeftLon = b.left.toFixed(3);
+            //wrap the world for lons
+            if(b.left>180 || b.left<-180 ) scope.topLeftLon = (((b.left-(101*180))%360)+180).toFixed(3);
+            else scope.topLeftLon = b.left.toFixed(3);
 
-                if(b.right>180 || b.right<-180 ) scope.bottomRightLon = (((b.right-(101*180))%360)+180).toFixed(3);
-                else scope.bottomRightLon = b.right.toFixed(3);
-		});
-	}
+            if(b.right>180 || b.right<-180 ) scope.bottomRightLon = (((b.right-(101*180))%360)+180).toFixed(3);
+            else scope.bottomRightLon = b.right.toFixed(3);
+        });
+    }
 }
 
 function handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
-    //check lons: -180:180
-    //correct lons
-    //Lat: keep as-is
-    //Lon: if topLeftLon > bottomRightLon => dateLine crossed
 
     //if(topLeftLon>-180)
 
     var returnArray = new Array();
-
-    if(topLeftLon>bottomRightLon) {
-        console.log('crossing date line');
-
+    if(Number(topLeftLon)>Number(bottomRightLon)) {
+        //console.log('crossing date line');
         var bottomRightLonNumber = Number(bottomRightLon);
         bottomRightLonNumber+=360;
         bottomRightLon=bottomRightLonNumber.toString();
 
     }
     else {
-        console.log('not crossing date line');
+        //console.log('not crossing date line');
 
     }
-    console.log('bottomRightLon: '+bottomRightLon);
+
     returnArray=[topLeftLat, topLeftLon, bottomRightLat, bottomRightLon];
+    console.log('returnArray: '+returnArray);
     return returnArray;
 }
-
-      
