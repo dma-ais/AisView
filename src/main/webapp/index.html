@@ -135,12 +135,12 @@
     				<div id="bbox_result">
 
                         Top Left (Lat, Lon)
-                        (<input type="text" pattern="\d+" id="bbox_result_maxLat" onchange="handleLimitsTopLeftLat(this)" ng-change="changeMapInputField()" ng-model="topLeftLat" size=5>,
-						<input type="text" id="bbox_result_minLon" onblur="force()" onchange="handleLimitsTopLeftLon(this)" ng-change="changeMapInputField()" ng-model="topLeftLon" size=5>)
+                        (<input type="text" pattern="\d+" id="bbox_result_maxLat" ng-change="changeMapInputField()" ng-model="topLeftLat" size=5>,
+						<input type="text" id="bbox_result_minLon" onblur="force()" ng-change="changeMapInputField()" ng-model="topLeftLon" size=5>)
 
                         Buttom Right (Lat, Lon)
-						(<input type="text" id="bbox_result_minLat" onchange="handleLimitsButtomRightLat(this)" ng-change="changeMapInputField()" ng-model="bottomRightLat" size=5>,
-						<input type="text" id="bbox_result_maxLon" onchange="handleLimitsButtomRightLon(this)" ng-change="changeMapInputField()" ng-model="bottomRightLon" size=5>)
+						(<input type="text" id="bbox_result_minLat" ng-change="changeMapInputField()" ng-model="bottomRightLat" size=5>,
+						<input type="text" id="bbox_result_maxLon" ng-change="changeMapInputField()" ng-model="bottomRightLon" size=5>)
 		            </div>
 
                     <p id="mapInputWarning" style="background-color:red;">{{mapInputWarning}}</p>

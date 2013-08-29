@@ -23,7 +23,7 @@ function init() {
     var openstreetmap = new OpenLayers.Layer.OSM();
     map.addLayer(openstreetmap);
 
-    var lonlat = new OpenLayers.LonLat(-160, 0).transform(
+    var lonlat = new OpenLayers.LonLat(160, 0).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
     );
@@ -65,8 +65,23 @@ function init() {
 
 function endDrag(bbox) {
 	var bounds = bbox.getBounds();
-	//console.log('endDrag() Bounds:'+bounds);
-	setBounds(bounds);
+
+
+
+    bounds.transform(
+        new OpenLayers.Projection("EPSG:900913"),   // transform from WGS 1984
+        new OpenLayers.Projection("EPSG:4326")      // to Spherical Mercator
+    );
+    console.log('endDrag() Bounds degrees:'+bounds);
+
+    bounds.transform(
+        new OpenLayers.Projection("EPSG:4326"),     //  transform from Spherical Mercator
+        new OpenLayers.Projection("EPSG:900913")    //  to WGS 1984
+    );
+
+    console.log('endDrag() Bounds WGS-1984:'+bounds);
+
+    setBounds(bounds);
 	drawBox(bounds);
 	box.deactivate();
 	
@@ -211,7 +226,7 @@ function dragNewBox() {
 
 function boxResize(event) {
 	setBounds(event.feature.geometry.bounds);
-	//console.log('Bounds boxResize():'+event.feature.geometry.bounds);
+	console.log('Bounds boxResize():'+event.feature.geometry.bounds);
 }
 
 function drawBox(bounds) {
@@ -238,25 +253,18 @@ function setBounds(bounds) {
 	} else {
 		b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"));
 
-		//Sending values to right scope in angular
-		var scope = angular.element('#bbox_result_maxLat').scope();
+        //Sending values to right scope in angular
+		var scope = angular.element('#bbox_result').scope();
 			scope.$apply(function(){
-  			scope.topLeftLat = b.top.toFixed(3);
-		});
-			
-		var scope = angular.element('#bbox_result_minLon').scope();
-			scope.$apply(function(){
-  			scope.topLeftLon = b.left.toFixed(3);
-		});
-		
-		var scope = angular.element('#bbox_result_minLat').scope();
-			scope.$apply(function(){
-  			scope.bottomRightLat = b.bottom.toFixed(3);
-		});
-		
-		var scope = angular.element('#bbox_result_maxLon').scope();
-			scope.$apply(function(){
-  			scope.bottomRightLon = b.right.toFixed(3);
+                scope.topLeftLat = b.top.toFixed(3);
+                scope.bottomRightLat = b.bottom.toFixed(3);
+
+                //wrap the world for lons
+                if(b.left>180 || b.left<-180 ) scope.topLeftLon = (((b.left-(101*180))%360)+180).toFixed(3);
+                else scope.topLeftLon = b.left.toFixed(3);
+
+                if(b.right>180 || b.right<-180 ) scope.bottomRightLon = (((b.right-(101*180))%360)+180).toFixed(3);
+                else scope.bottomRightLon = b.right.toFixed(3);
 		});
 	}
 }
@@ -286,41 +294,6 @@ function handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) 
     console.log('bottomRightLon: '+bottomRightLon);
     returnArray=[topLeftLat, topLeftLon, bottomRightLat, bottomRightLon];
     return returnArray;
-}
-
-function force(){
-    console.log('force');
-}
-
-function handleLimitsTopLeftLat(input) {
-//    if (input.value < -90 ) input.value = -90;
-//    if (input.value > 90) input.value = 90;
-//    var scope = angular.element('#bbox_result_maxLat').scope();
-//    scope.$apply(function(){
-//        scope.topLeftLat = input.value;
-//    });
-
-}
-function handleLimitsTopLeftLon(input) {
-//    if (input.value < -180) input.value = -180;
-//    if (input.value > 180) input.value = 180;
-//    var scope = angular.element('#bbox_result_minLon').scope();
-//    scope.$apply(function(){
-//        scope.topLeftLon = input.value;
-//    });
-
-}
-function handleLimitsButtomRightLat(input) {
-//    if (input.value < -90 ) input.value = -90;
-//    if (input.value > 90) input.value = 90;
-//    var scope = angular.element('#bbox_result_minLat').scope();
-//    scope.bottomRightLat = input.value;
-}
-function handleLimitsButtomRightLon(input) {
-//    if (input.value < -180) input.value = -180;
-//    if (input.value > 180) input.value = 180;
-//    var scope = angular.element('#bbox_result_maxLon').scope();
-//    scope.bottomRightLon = input.value;
 }
 
       
