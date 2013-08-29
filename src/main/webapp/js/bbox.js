@@ -11,12 +11,19 @@ var boxDraggedOnce = false;
 var boxDrawnOnce = false;
 
 function init() {
-    console.log('init()');
+    //console.log('init()');
     map = new OpenLayers.Map("mapdiv");
+
+    var mapserv = new OpenLayers.Layer.MapServer( "OpenLayers Basic",
+        "http://vmap0.tiles.osgeo.org/wms/vmap0",
+        {layers: 'basic'},
+        {wrapDateLine: true} );
+
+
     var openstreetmap = new OpenLayers.Layer.OSM();
     map.addLayer(openstreetmap);
 
-    var lonlat = new OpenLayers.LonLat(10.830917,55.906094	).transform(
+    var lonlat = new OpenLayers.LonLat(-160, 0).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
     );
@@ -58,7 +65,7 @@ function init() {
 
 function endDrag(bbox) {
 	var bounds = bbox.getBounds();
-	console.log('endDrag() Bounds:'+bounds);
+	//console.log('endDrag() Bounds:'+bounds);
 	setBounds(bounds);
 	drawBox(bounds);
 	box.deactivate();
@@ -69,18 +76,18 @@ function endDrag(bbox) {
     boxDraggedOnce = true;
 }
 
-function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
+function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
-    console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + buttomRightLat +','+ buttomRightLon);
+    console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + bottomRightLat +','+ bottomRightLon);
 
     //fix of collapse of borders of box
     //TODO: take care of 10==10.==10.0...
-    if(topLeftLat==buttomRightLat) {
+    if(topLeftLat==bottomRightLat) {
         console.log('same borders');
         var scope = angular.element('#mapInputWarning').scope();
         scope.mapInputWarning = 'Same latitude on both points';
     }
-    else if(topLeftLon==buttomRightLon){
+    else if(topLeftLon==bottomRightLon){
         console.log('same borders');
         var scope = angular.element('#mapInputWarning').scope();
         scope.mapInputWarning = 'Same longitude on both points';
@@ -89,16 +96,19 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
         if (boxDraggedOnce){
             //check if input is blank
-            if((topLeftLat!='') && (topLeftLon!='')&&(buttomRightLat!='')&&(buttomRightLon!='')) {
+            if((topLeftLat!='') && (topLeftLon!='')&&(bottomRightLat!='')&&(bottomRightLon!='')) {
                 //same as if dragNewBox();
                 box.activate();
                 transform.deactivate(); //The remove the box with handles
                 vectors.destroyFeatures();
 
                 //same as if endDrag()
+                var latLonArray = new Array();
+                latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
+
                 var bounds = new OpenLayers.Bounds();
-                bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-                bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+                bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
+                bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
                 b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                 console.log('newInput() Bounds:'+b);
@@ -120,15 +130,18 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
             }
         }else { //!boxDraggedOnce
-            if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(buttomRightLat)&&!isNaN(buttomRightLon)){
+            if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(bottomRightLat)&&!isNaN(bottomRightLon)){
 
                 if(!boxDrawnOnce) {
                     console.log('getting ready to do some action');
 
                     //same as if endDrag()
+                    var latLonArray = new Array();
+                    latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
+
                     var bounds = new OpenLayers.Bounds();
-                    bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-                    bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+                    bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
+                    bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
                     b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                     console.log('newInput() Bounds:'+b);
@@ -146,16 +159,19 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 
                 }else {     //boxDrawnOnce
                     //check if input is blank
-                    if((topLeftLat!='') && (topLeftLon!='')&&(buttomRightLat!='')&&(buttomRightLon!='')) {
+                    if((topLeftLat!='') && (topLeftLon!='')&&(bottomRightLat!='')&&(bottomRightLon!='')) {
                         //same as if dragNewBox();
                         box.activate();
                         transform.deactivate(); //The remove the box with handles
                         vectors.destroyFeatures();
 
                         //same as if endDrag()
+                        var latLonArray = new Array();
+                        latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
+
                         var bounds = new OpenLayers.Bounds();
-                        bounds.extend(new OpenLayers.LonLat(topLeftLon,topLeftLat));
-                        bounds.extend(new OpenLayers.LonLat(buttomRightLon,buttomRightLat));
+                        bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
+                        bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
                         b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
                         console.log('newInput() Bounds:'+b);
@@ -182,7 +198,7 @@ function newInput(topLeftLat, topLeftLon, buttomRightLat, buttomRightLon) {
 }
 
 function dragNewBox() {
-	console.log('dragNewBox()');
+	//console.log('dragNewBox()');
     box.activate();
 	transform.deactivate(); //The remove the box with handles
 	vectors.destroyFeatures();
@@ -195,11 +211,11 @@ function dragNewBox() {
 
 function boxResize(event) {
 	setBounds(event.feature.geometry.bounds);
-	console.log('Bounds boxResize():'+event.feature.geometry.bounds);
+	//console.log('Bounds boxResize():'+event.feature.geometry.bounds);
 }
 
 function drawBox(bounds) {
-	console.log('drawBox()');
+	//console.log('drawBox()');
     var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
 
 	vectors.addFeatures(feature);
@@ -207,15 +223,15 @@ function drawBox(bounds) {
 }
 
 function setBounds(bounds) {
-	console.log('setBounds()');
+	//console.log('setBounds()');
     if (bounds == null) {
 		var scope = angular.element('#bbox_result').scope();
 
         scope.$apply(function(){
                 scope.topLeftLat = '';
 				scope.topLeftLon = '';
-				scope.buttomRightLat = '';
-				scope.buttomRightLon = '';
+				scope.bottomRightLat = '';
+				scope.bottomRightLon = '';
 		});
 		
 		
@@ -235,14 +251,76 @@ function setBounds(bounds) {
 		
 		var scope = angular.element('#bbox_result_minLat').scope();
 			scope.$apply(function(){
-  			scope.buttomRightLat = b.bottom.toFixed(3);
+  			scope.bottomRightLat = b.bottom.toFixed(3);
 		});
 		
 		var scope = angular.element('#bbox_result_maxLon').scope();
 			scope.$apply(function(){
-  			scope.buttomRightLon = b.right.toFixed(3);
+  			scope.bottomRightLon = b.right.toFixed(3);
 		});
 	}
+}
+
+function handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
+    //check lons: -180:180
+    //correct lons
+    //Lat: keep as-is
+    //Lon: if topLeftLon > bottomRightLon => dateLine crossed
+
+    //if(topLeftLon>-180)
+
+    var returnArray = new Array();
+
+    if(topLeftLon>bottomRightLon) {
+        console.log('crossing date line');
+
+        var bottomRightLonNumber = Number(bottomRightLon);
+        bottomRightLonNumber+=360;
+        bottomRightLon=bottomRightLonNumber.toString();
+
+    }
+    else {
+        console.log('not crossing date line');
+
+    }
+    console.log('bottomRightLon: '+bottomRightLon);
+    returnArray=[topLeftLat, topLeftLon, bottomRightLat, bottomRightLon];
+    return returnArray;
+}
+
+function force(){
+    console.log('force');
+}
+
+function handleLimitsTopLeftLat(input) {
+//    if (input.value < -90 ) input.value = -90;
+//    if (input.value > 90) input.value = 90;
+//    var scope = angular.element('#bbox_result_maxLat').scope();
+//    scope.$apply(function(){
+//        scope.topLeftLat = input.value;
+//    });
+
+}
+function handleLimitsTopLeftLon(input) {
+//    if (input.value < -180) input.value = -180;
+//    if (input.value > 180) input.value = 180;
+//    var scope = angular.element('#bbox_result_minLon').scope();
+//    scope.$apply(function(){
+//        scope.topLeftLon = input.value;
+//    });
+
+}
+function handleLimitsButtomRightLat(input) {
+//    if (input.value < -90 ) input.value = -90;
+//    if (input.value > 90) input.value = 90;
+//    var scope = angular.element('#bbox_result_minLat').scope();
+//    scope.bottomRightLat = input.value;
+}
+function handleLimitsButtomRightLon(input) {
+//    if (input.value < -180) input.value = -180;
+//    if (input.value > 180) input.value = 180;
+//    var scope = angular.element('#bbox_result_maxLon').scope();
+//    scope.bottomRightLon = input.value;
 }
 
       

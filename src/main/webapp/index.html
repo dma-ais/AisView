@@ -139,46 +139,9 @@
 						<input type="text" id="bbox_result_minLon" onblur="force()" onchange="handleLimitsTopLeftLon(this)" ng-change="changeMapInputField()" ng-model="topLeftLon" size=5>)
 
                         Buttom Right (Lat, Lon)
-						(<input type="text" id="bbox_result_minLat" onchange="handleLimitsButtomRightLat(this)" ng-change="changeMapInputField()" ng-model="buttomRightLat" size=5>,
-						<input type="text" id="bbox_result_maxLon" onchange="handleLimitsButtomRightLon(this)" ng-change="changeMapInputField()" ng-model="buttomRightLon" size=5>)
+						(<input type="text" id="bbox_result_minLat" onchange="handleLimitsButtomRightLat(this)" ng-change="changeMapInputField()" ng-model="bottomRightLat" size=5>,
+						<input type="text" id="bbox_result_maxLon" onchange="handleLimitsButtomRightLon(this)" ng-change="changeMapInputField()" ng-model="bottomRightLon" size=5>)
 		            </div>
-
-                    <script>
-                        function force(){
-                            console.log('force');
-                        }
-
-                        function handleLimitsTopLeftLat(input) {
-                            if (input.value < -90 ) input.value = -90;
-                            if (input.value > 90) input.value = 90;
-                            var scope = angular.element('#bbox_result_maxLat').scope();
-                            scope.$apply(function(){
-                                scope.topLeftLat = input.value;
-                            });
-
-                        }
-                        function handleLimitsTopLeftLon(input) {
-                            if (input.value < -180) input.value = -180;
-                            if (input.value > 180) input.value = 180;
-                            var scope = angular.element('#bbox_result_minLon').scope();
-                            scope.$apply(function(){
-                                scope.topLeftLon = input.value;
-                            });
-
-                        }
-                        function handleLimitsButtomRightLat(input) {
-                            if (input.value < -90 ) input.value = -90;
-                            if (input.value > 90) input.value = 90;
-                            var scope = angular.element('#bbox_result_minLat').scope();
-                            scope.buttomRightLat = input.value;
-                        }
-                        function handleLimitsButtomRightLon(input) {
-                            if (input.value < -180) input.value = -180;
-                            if (input.value > 180) input.value = 180;
-                            var scope = angular.element('#bbox_result_maxLon').scope();
-                            scope.buttomRightLon = input.value;
-                        }
-                    </script>
 
                     <p id="mapInputWarning" style="background-color:red;">{{mapInputWarning}}</p>
 

@@ -15,8 +15,8 @@ function SourceIds($scope) {
     //Map variables
 	$scope.topLeftLat;
 	$scope.topLeftLon;
-	$scope.buttomRightLat;
-	$scope.buttomRightLon;
+	$scope.bottomRightLat;
+	$scope.bottomRightLon;
 
 
 
@@ -107,9 +107,9 @@ function SourceIds($scope) {
 
         if ($scope.topLeftLat != null &&
                 $scope.topLeftLon != null &&
-                $scope.buttomRightLat != null &&
-                $scope.buttomRightLon != null) {
-            area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.buttomRightLat+','+$scope.buttomRightLon+'&';
+                $scope.bottomRightLat != null &&
+                $scope.bottomRightLon != null) {
+            area='area='+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.bottomRightLat+','+$scope.bottomRightLon+'&';
         }else area='';
 
         //append all tables if format is 'table' else no tables
@@ -307,8 +307,8 @@ function SourceIds($scope) {
 
     $scope.changeMapInputField = function() {
 
-        //testMapBBox($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
-        newInput($scope.topLeftLat,$scope.topLeftLon,$scope.buttomRightLat,$scope.buttomRightLon);
+        //testMapBBox($scope.topLeftLat,$scope.topLeftLon,$scope.bottomRightLat,$scope.bottomRightLon);
+        newInput($scope.topLeftLat,$scope.topLeftLon,$scope.bottomRightLat,$scope.bottomRightLon);
 
     }
 };
