@@ -70,7 +70,7 @@ public class WebServer {
         ServletHolder sho = new ServletHolder(new ServletContainer());
         sho.setClassName("org.glassfish.jersey.servlet.ServletContainer");
         sho.setInitParameter("jersey.config.server.provider.packages",
-                "dk.dma.ais.view.rest,dk.dma.commons.web.rest.defaults");
+                "dk.dma.ais.view.rest, dk.dma.commons.web.rest.defaults");
         // This flag is set to disable internal buffering in jersey.
         // this is mainly done to avoid delays from when people request something. To the first output is delivered
         sho.setInitParameter(CommonProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, "-1");
@@ -84,13 +84,13 @@ public class WebServer {
             public void handle(String target, Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
                 long start = System.nanoTime();
+                String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
                 LOG.info("Received connection from " + request.getRemoteHost() + " (" + request.getRemoteAddr() + ":"
-                        + request.getRemotePort() + ") request = " + request.getRequestURI() + "?"
-                        + request.getQueryString());
+                        + request.getRemotePort() + ") request = " + request.getRequestURI() + queryString);
                 super.handle(target, baseRequest, request, response);
                 LOG.info("Connection closed from " + request.getRemoteHost() + " (" + request.getRemoteAddr() + ":"
-                        + request.getRemotePort() + ") request = " + request.getRequestURI() + "?"
-                        + request.getQueryString() + ", Duration = " + (System.nanoTime() - start) / 1000000 + " ms");
+                        + request.getRemotePort() + ") request = " + request.getRequestURI() + queryString
+                        + ", Duration = " + (System.nanoTime() - start) / 1000000 + " ms");
             }
         };
         hw.setHandler(context);

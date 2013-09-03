@@ -16,7 +16,7 @@
 package dk.dma.ais.view;
 
 import java.io.File;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,6 +30,7 @@ import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.tracker.TargetTracker;
+import dk.dma.ais.tracker.TargetTrackerFileBackupService;
 import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
 
@@ -50,11 +51,8 @@ public class Main extends AbstractDaemon {
     @Parameter(names = "-databaseName", description = "The cassandra database to write data to")
     String cassandraDatabase = "aisdata";
 
-    @Parameter(names = "-database", description = "A list of cassandra hosts that can store the data")
-    List<String> cassandraSeeds = Arrays.asList("10.3.240.203");
-
-    @Parameter(names = "-nodatabase", description = "Disables access to ais store")
-    boolean disableAisStore = true;
+    @Parameter(names = "-database", description = "A list of cassandra hosts that can store the data, list=empty -> AisStore disabled")
+    List<String> cassandraSeeds = Collections.emptyList();
 
     @Parameter(description = "A list of AIS sources (sourceName=host:port,host:port sourceName=host:port ...")
     List<String> sources;
@@ -68,10 +66,11 @@ public class Main extends AbstractDaemon {
         AisReaderGroup g = AisReaders.createGroup("AisView", sources == null ? Collections.<String> emptyList()
                 : sources);
         AisReaders.manageGroup(g);
+        JobManager jobManager = new JobManager();
+        Files.createDirectories(backup.toPath());
+        start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
 
-        // Files.createDirectories(backup.toPath());
-        // start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
-
+        // We don't do any cleaning
         // start(new AbstractScheduledService() {
         // protected Scheduler scheduler() {
         // return Scheduler.newFixedRateSchedule(1, 1, TimeUnit.MINUTES);
@@ -85,10 +84,12 @@ public class Main extends AbstractDaemon {
         start(g.asService());
 
         // Start Ais Store Connection
-        AisStoreConnection con = disableAisStore ? null : start(AisStoreConnection.create("aisdata", cassandraSeeds));
+        AisStoreConnection con = cassandraSeeds.isEmpty() ? null : start(AisStoreConnection.create("aisdata",
+                cassandraSeeds));
 
         WebServer ws = new WebServer(port);
-        ws.getContext().setAttribute(AbstractResource.CONFIG, AbstractResource.create(g, con, targetTracker));
+        ws.getContext().setAttribute(AbstractResource.CONFIG,
+                AbstractResource.create(g, con, targetTracker, jobManager));
 
         ws.start();
         LOG.info("AisView started");
@@ -96,7 +97,7 @@ public class Main extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        args = AisReaders.getDefaultSources();
+        // args = AisReaders.getDefaultSources();
         new Main().execute(args);
     }
 }

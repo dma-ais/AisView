@@ -75,6 +75,7 @@ class QueryHelper {
 
     final Predicate<? super AisPacket> sourceFilter;
     final UriInfo uriInfo;
+    final String jobId;
 
     public QueryHelper(UriInfo uriInfo) {
         this.uriInfo = requireNonNull(uriInfo);
@@ -89,6 +90,7 @@ class QueryHelper {
         minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null, Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
         outputSink = getOutputSink(uriInfo);
+        jobId = QueryParameterValidators.getParameter(uriInfo, "jobId", null);
     }
 
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {

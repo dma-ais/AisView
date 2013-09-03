@@ -15,6 +15,8 @@
  */
 package dk.dma.ais.view.rest;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -31,6 +33,7 @@ import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.view.JobManager;
+import dk.dma.ais.view.JobManager.Job;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.JSONObject;
 import dk.dma.commons.web.rest.AbstractResource;
@@ -46,9 +49,9 @@ import dk.dma.commons.web.rest.query.QueryParameterValidators;
 public class AisStoreResource extends AbstractResource {
 
     /**
-     * Returns a list of source ids in the source. This one is hardcoded for now
+     * Returns a list of source IDs in the source. This one is hard coded for now
      * 
-     * @return a list of source ids in the source
+     * @return a list of source IDs in the source
      */
     @GET
     @Path("/sourceIDs")
@@ -56,13 +59,20 @@ public class AisStoreResource extends AbstractResource {
         return JSONObject.singleList("sourceIDs", "AISD", "IALA", "AISSAT", "MSSIS", "AISHUB");
     }
 
+    /**
+     * Used to query job status for long running AisStore access jobs.
+     */
     @GET
-    @Produces("text/plain")
-    @Path("/status")
-    public StreamingOutput queryStatus(@Context UriInfo info, @PathParam("jobId") String jobId) {
-        AisStoreQueryResult r = get(JobManager.class).getResult(jobId);
-
-        return null;
+    @Produces("application/json")
+    @Path("/status/{jobId : \\w+}")
+    public JSONObject queryStatus(@Context UriInfo info, @PathParam("jobId") String jobId) {
+        if (jobId != null) {
+            Job j = get(JobManager.class).getResult(jobId);
+            if (j != null) {
+                return j.toJSON();
+            }
+        }
+        return new JSONObject();
     }
 
     @GET
@@ -85,13 +95,18 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(p.getInterval());
 
         // Create the query
-        Iterable<AisPacket> query = get(AisStoreConnection.class).execute(b);
-
+        AtomicLong counter = new AtomicLong();
+        AisStoreQueryResult query = get(AisStoreConnection.class).execute(b);
+        Iterable<AisPacket> q = query;
         // Apply filters from the user
         // Apply area filter again, problem with position tagging of static data
-        query = p.applySourceFilter(query);
-        query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
-        return StreamingUtil.createStreamingOutput(query, p.getOutputSink());
+        q = p.applySourceFilter(q);
+        q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other filters reject packets)
+        q = Iterables.counting(q, counter);
+        if (p.jobId != null) {
+            get(JobManager.class).addJob(p.jobId, query, counter);
+        }
+        return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
     }
 
     @GET
@@ -114,4 +129,5 @@ public class AisStoreResource extends AbstractResource {
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
+
 }

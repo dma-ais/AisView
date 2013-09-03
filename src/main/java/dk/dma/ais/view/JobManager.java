@@ -16,35 +16,66 @@
 package dk.dma.ais.view;
 
 import static java.util.Objects.requireNonNull;
+
+import java.util.concurrent.atomic.AtomicLong;
+
 import jsr166e.ConcurrentHashMapV8;
 import dk.dma.ais.store.AisStoreQueryResult;
+import dk.dma.commons.util.JSONObject;
 
 /**
+ * Keeps track of all current download jobs.
  * 
  * @author Kasper Nielsen
  */
 public class JobManager {
+
     private final ConcurrentHashMapV8<String, Job> jobs = new ConcurrentHashMapV8<>();
 
-    public void addJob(String key, AisStoreQueryResult queryResult) {
-        jobs.put(requireNonNull(key), new Job(queryResult));
+    /**
+     * Adds the specified job to the manager.
+     * 
+     * @param key
+     *            the string key of the job
+     * @param queryResult
+     * @param releaseCounter
+     */
+    public void addJob(String key, AisStoreQueryResult queryResult, AtomicLong releaseCounter) {
+        jobs.put(requireNonNull(key), new Job(key, queryResult, releaseCounter));
     }
 
     public void cleanup() {
 
     }
 
-    public AisStoreQueryResult getResult(String key) {
-        Job j = jobs.get(key);
-        return j == null ? null : j.queryResult;
+    public Job getResult(String key) {
+        return jobs.get(key);
     }
 
-    static class Job {
+    public static class Job {
+        final String id;
         final AisStoreQueryResult queryResult;
+        final AtomicLong releaseCounter;
 
-        Job(AisStoreQueryResult queryResult) {
+        Job(String id, AisStoreQueryResult queryResult, AtomicLong releaseCounter) {
+            this.id = requireNonNull(id);
             this.queryResult = requireNonNull(queryResult);
+            this.releaseCounter = requireNonNull(releaseCounter);
+        }
+
+        /**
+         * @return the queryResult
+         */
+        public AisStoreQueryResult getQuery() {
+            return queryResult;
+        }
+
+        public JSONObject toJSON() {
+            JSONObject j = new JSONObject();
+            j.addElement("jobId", id);
+            j.addElement("packetsReturned", releaseCounter.get());
+            j.addElement("status", queryResult.getState());
+            return j;
         }
     }
-
 }

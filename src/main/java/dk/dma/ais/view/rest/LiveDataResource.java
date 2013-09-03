@@ -53,7 +53,7 @@ public class LiveDataResource extends AbstractResource {
                 s = p.applyLimitFilter(s);
 
                 CountingOutputStream cos = new CountingOutputStream(os);
-                // We flush the sink, to be more responsive
+                // We flush the sink after each written line, to be more responsive
                 Subscription ss = s.subscribeSink(p.getOutputSink().newFlushEveryTimeSink(), cos);
 
                 // Since this is an infinite stream. We await for the user to cancel the subscription.
