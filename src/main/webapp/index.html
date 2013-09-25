@@ -11,7 +11,9 @@
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
     <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
 
+
     <!-- custom styles -->
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/flick/jquery-ui.css" rel="stylesheet">
     <link href="css/bootstrap-datepicker.css" rel="stylesheet">
     <link href="css/bootstrap-timepicker.css" rel="stylesheet">
     <link href="css/columnSelector.css" rel="stylesheet">
@@ -21,12 +23,18 @@
     <style>
         <!-- TODO: move to stylesheet -->
 
+
+
         #mapdiv33 { width:800px; height:400px; }
 
         #mapdiv { width:100%; height:400px; }
 
         #bbox_drag_instruction { height:1.5em; }
         #bbox_adjust_instruction { height:1.5em; display:none;  }
+
+        .myClass {
+            background-color: red;
+        }
 
     </style>
 
@@ -101,11 +109,15 @@
                             </div>
                             <div id="pane3" class="tab-pane">
                                 <h3 id="source_country">Source Country</h3>
+
                                 <p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
 
                                 <div ng-repeat="sourceCountry in sourceCountries">
                                     <span>{{sourceCountry.text}}</span>
-                                    <input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
+                                    <input type="text" size="45" auto-complete ui-items="countryDatabase"
+                                           ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)"
+                                           ng-blur="controlTextFieldCountry(sourceCountry)"
+                                           ng-class="{myClass: textValidator == true }">
                                 </div>
                             </div>
                             <div id="pane4" class="tab-pane">
@@ -316,6 +328,10 @@
     </div><!-- /.doc -->
 
     <!-- JavaScripts-->
+
+    <!-- Data-files-->
+    <script src="js/landcodes.js"></script>
+
     <!-- JavaScript plugins (requires jQuery) -->
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 
