@@ -1,4 +1,4 @@
-var app = angular.module('aisHDD', []);
+var app = angular.module('aisHDD', ['$strap.directives']);
 
 //idea from http://jsfiddle.net/sebmade/swfjT/
 app.directive('ngBlur', function() {

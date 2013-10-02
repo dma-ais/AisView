@@ -7,7 +7,7 @@ function timeSelection($scope,UrlService) {
 
     // Datepicker directive
     $scope.startDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
-    $scope.endDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
+    $scope.endDatepicker = {date: new Date("2012-09-10T00:00:00.000Z")};
 
     $scope.startTimepicker = {time: "00:00 AM"};
     $scope.endTimepicker = {time: "00:00 AM"};
