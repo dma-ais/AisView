@@ -32,8 +32,8 @@
         #bbox_drag_instruction { height:1.5em; }
         #bbox_adjust_instruction { height:1.5em; display:none;  }
 
-        .myClass {
-            background-color: red;
+        .countryValidatorClass {
+            background-color: #FFCCCC;
         }
 
     </style>
@@ -116,8 +116,7 @@
                                     <span>{{sourceCountry.text}}</span>
                                     <input type="text" size="45" auto-complete ui-items="countryDatabase"
                                            ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)"
-                                           ng-blur="controlTextFieldCountry(sourceCountry)"
-                                           ng-class="{myClass: textValidator == true }">
+                                           ng-class="{countryValidatorClass: checkCountryDB(sourceCountry)}">
                                 </div>
                             </div>
                             <div id="pane4" class="tab-pane">

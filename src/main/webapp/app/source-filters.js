@@ -79,17 +79,10 @@ function sourceFilters($scope,UrlService) {
         var testString = $scope.sourceCountries[index-1].input.toUpperCase();
         var indexOfCountry = $scope.countryDatabase.indexOf(testString);
 
-        if(indexOfCountry!=-1) $scope.textValidator = false;
-
         if(sourceCountry.counter === $scope.sourceCountries.length && indexOfCountry!=-1) {
             $scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
             countCountry++;
         }
-
-        //if(sourceCountry.counter === $scope.sourceCountries.length) {
-        //    $scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
-        //    countCountry++;
-        //}
 
         //Show that Source Country are edited if they are
         if(sourceCountry.input.length!=0) $scope.sourceCountryTabHeader = 'Source Country(*)';
@@ -109,19 +102,20 @@ function sourceFilters($scope,UrlService) {
         }
 
     };
-    $scope.controlTextFieldCountry = function(sourceCountry) {
-        var index = sourceCountry.counter;
-        var testString = $scope.sourceCountries[index-1].input.toUpperCase();
 
-        console.log('blur on '+index +' '+testString+'!');
+    //Function to validate user country input
+    $scope.checkCountryDB = function(sourceCountry) {
+        //user input
+        var testString = $scope.sourceCountries[sourceCountry.counter-1].input.toUpperCase();
 
+        //test to see if user input is in country db
         var indexOfControlCountry = $scope.countryDatabase.indexOf(testString);
-        console.log('blur on '+indexOfControlCountry);
-        if (indexOfControlCountry===-1) {
-            console.log('not at valid country');
-            $scope.textValidator = true;
-            //$scope.sourceCountries[index-1].input='';
-        }else $scope.textValidator = false;
+
+        //console.log('blur on text field '+index +' with input: '+testString+' with index ' +indexOfControlCountry +' in db');
+
+        //Making boolean to control css-class
+        if (testString.length != 0 && indexOfControlCountry===-1) return true;
+        else return false;
     }
 
     //Adding new text field for bases
@@ -263,19 +257,27 @@ function sourceFilters($scope,UrlService) {
     //Include all text from custom number of dynamic text fields if input is in database
     function includeFromTextFieldWithDB(array,dbArray,baseString) {
         var returnString;
+
+        //any output and any true country input?
         var someInput = false;
-        //append all source bases
+        var trueInput = false;
+        var indexOfCountry;
+
         angular.forEach(array, function(item) {
+            indexOfCountry = dbArray.indexOf(item.input.toUpperCase());
+            //check input length
             if(item.input.length>0) someInput=true;
+            //check input quality
+            if(indexOfCountry!=-1) trueInput = true;
+
         });
-        if(someInput) {
+        //append all input which are in database
+        if(someInput && trueInput) {
             returnString=baseString;
 
             var indexOfCountry;
             angular.forEach(array, function(item) {
-                console.log('led efter: '+item.input);
                 indexOfCountry = dbArray.indexOf(item.input.toUpperCase());
-                console.log('indexOfCountry: '+indexOfCountry);
                 if(item.input.length>0 && indexOfCountry!=-1) returnString+=$scope.countryCode[indexOfCountry]+',';
             });
         }else returnString='';
