@@ -1,5 +1,6 @@
 var app = angular.module('aisHDD', []);
 
+//idea from http://jsfiddle.net/sebmade/swfjT/
 app.directive('ngBlur', function() {
     return function( scope, elem, attrs ) {
         elem.bind('blur', function() {
