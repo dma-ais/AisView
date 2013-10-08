@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -28,17 +28,20 @@ import com.google.inject.Injector;
 
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
-import dk.dma.ais.store.AisStoreConnection;
+import dk.dma.ais.store.job.JobManager;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.tracker.TargetTrackerFileBackupService;
+import dk.dma.ais.view.rest.WebServer;
 import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
+import dk.dma.db.cassandra.CassandraConnection;
 
 /**
  * 
  * @author Kasper Nielsen
  */
 public class Main extends AbstractDaemon {
+
     /** The logger */
     static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
@@ -62,11 +65,16 @@ public class Main extends AbstractDaemon {
     protected void runDaemon(Injector injector) throws Exception {
 
         final TargetTracker targetTracker = new TargetTracker();
+
         // Setup the readers
         AisReaderGroup g = AisReaders.createGroup("AisView", sources == null ? Collections.<String> emptyList()
                 : sources);
         AisReaders.manageGroup(g);
+
+        // A job manager that takes care of tracking ongoing jobs
         JobManager jobManager = new JobManager();
+
+        // Setup the backup process
         Files.createDirectories(backup.toPath());
         start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
 
@@ -80,11 +88,11 @@ public class Main extends AbstractDaemon {
         // targetTracker.clean();
         // }
         // });
-        targetTracker.readFrom(g.stream());
+        targetTracker.readFromStream(g.stream());
         start(g.asService());
 
         // Start Ais Store Connection
-        AisStoreConnection con = cassandraSeeds.isEmpty() ? null : start(AisStoreConnection.create("aisdata",
+        CassandraConnection con = cassandraSeeds.isEmpty() ? null : start(CassandraConnection.create("aisdata",
                 cassandraSeeds));
 
         WebServer ws = new WebServer(port);

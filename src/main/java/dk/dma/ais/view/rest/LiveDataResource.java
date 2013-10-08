@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -45,7 +45,7 @@ public class LiveDataResource extends AbstractResource {
     @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
     public StreamingOutput livestream(@Context UriInfo info) {
-        final QueryHelper p = new QueryHelper(info);
+        final QueryParameterHelper p = new QueryParameterHelper(info);
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
                 AisPacketStream s = LiveDataResource.this.get(AisReaderGroup.class).stream();

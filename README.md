@@ -15,4 +15,6 @@ Start up AisView by specifying the AisSources to listen to, for example the free
 
 Streaming
 =======
-At any point all data that is received by 
+At any point all messages that is received by AisView by all datasources can be strea
+
+> curl localhost:8090/stream 

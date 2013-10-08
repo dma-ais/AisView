@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,16 +29,16 @@ import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketOutputSinks;
-import dk.dma.ais.store.AisStoreConnection;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
-import dk.dma.ais.view.JobManager;
-import dk.dma.ais.view.JobManager.Job;
+import dk.dma.ais.store.job.JobManager;
+import dk.dma.ais.store.job.JobManager.Job;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.JSONObject;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
+import dk.dma.db.cassandra.CassandraConnection;
 
 /**
  * Resources that query AisStore.
@@ -79,7 +79,7 @@ public class AisStoreResource extends AbstractResource {
     @Produces("text/plain")
     @Path("/query")
     public StreamingOutput query(@Context UriInfo info) {
-        QueryHelper p = new QueryHelper(info);
+        QueryParameterHelper p = new QueryParameterHelper(info);
 
         // Create builder, we first need to determine which of the 3 AisStore tables we need to use
         AisStoreQueryBuilder b;
@@ -96,7 +96,7 @@ public class AisStoreResource extends AbstractResource {
 
         // Create the query
         AtomicLong counter = new AtomicLong();
-        AisStoreQueryResult query = get(AisStoreConnection.class).execute(b);
+        AisStoreQueryResult query = get(CassandraConnection.class).execute(b);
         Iterable<AisPacket> q = query;
         // Apply filters from the user
         // Apply area filter again, problem with position tagging of static data
@@ -113,14 +113,14 @@ public class AisStoreResource extends AbstractResource {
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
     public StreamingOutput pastTrack(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
-        QueryHelper p = new QueryHelper(info);
+        QueryParameterHelper p = new QueryParameterHelper(info);
 
         // Execute the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
         b.setInterval(p.getInterval());
 
         // Create the query
-        Iterable<AisPacket> query = get(AisStoreConnection.class).execute(b);
+        Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
 
         // Apply filters from the user
         query = Iterables.filter(query, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));

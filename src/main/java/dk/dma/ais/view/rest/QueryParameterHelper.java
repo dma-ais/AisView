@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -58,11 +58,14 @@ import dk.dma.enav.util.function.Predicate;
  * 
  * @author Kasper Nielsen
  */
-class QueryHelper {
+class QueryParameterHelper {
 
+    /** An optional area for the query. */
     final Area area;
 
+    /** The interval for the query */
     final Interval interval;
+
     final Integer limit;
 
     final Integer minDistance;
@@ -70,14 +73,19 @@ class QueryHelper {
     final Long minDuration;
 
     final long timeToRun = -1;
+
     final int[] mmsis;
+
     final OutputStreamSink<AisPacket> outputSink;
 
+    /** A predicate on the source of each packet. */
     final Predicate<? super AisPacket> sourceFilter;
+
     final UriInfo uriInfo;
+
     final String jobId;
 
-    public QueryHelper(UriInfo uriInfo) {
+    public QueryParameterHelper(UriInfo uriInfo) {
         this.uriInfo = requireNonNull(uriInfo);
         this.area = findArea(uriInfo);
         this.interval = findInterval(uriInfo);
