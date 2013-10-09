@@ -20,6 +20,7 @@ function timeSelection($scope,UrlService) {
 
     $scope.datepicker = {date: new Date("2012-09-01T00:00:00.000Z"), setStartDate: new Date('2012-08-01T00:00:00.000Z')};
 
+    $scope.invalidDateObject = false;
 
     //Watch for updates
     $scope.$watch('startDatepicker', updateStartTime, true);
@@ -30,23 +31,28 @@ function timeSelection($scope,UrlService) {
     //Build string and end to service
     function updateStartTime(){
         var fromDate = '';
-        console.log('11');
+
         //making from= string
         if($scope.startDatepicker.date != '' &&
             $scope.startTimepicker.time != ''){
-            console.log('22');
 
             var tempDate = $scope.startDatepicker.date;
             var tempTime = $scope.startTimepicker.time;
             var tempTimeZone = $scope.startTimeZone.zone;
+            var txt="";
 
-            var monthOfYear = tempDate.getMonth()+1;
+            try{
+                var monthOfYear = tempDate.getMonth()+1;
 
-            fromDate =  'from=' +
-                tempDate.getDate() + '.' +
-                monthOfYear + '.' +
-                tempDate.getFullYear() + ' - ' +
-                tempTime+ '(' + tempTimeZone + ')&';
+                fromDate =  'from=' +
+                    tempDate.getDate() + '.' +
+                    monthOfYear + '.' +
+                    tempDate.getFullYear() + ' - ' +
+                    tempTime+ '(' + tempTimeZone + ')&';
+            }
+            catch(err){
+                //do something maybe
+            }
         }
         //Send to service
         UrlService.setFromDate(fromDate);
@@ -63,13 +69,18 @@ function timeSelection($scope,UrlService) {
                 var tempTime = $scope.endTimepicker.time;
                 var tempTimeZone = $scope.endTimeZone.zone;
 
+            try{
                 var monthOfYear = tempDate.getMonth()+1;
 
                 toDate =  'to=' +
                     tempDate.getDate() + '.' +
                     monthOfYear + '.' +
                     tempDate.getFullYear() + ' - ' +
-                    tempTime + '(' + tempTimeZone + ')&';;
+                    tempTime + '(' + tempTimeZone + ')&';
+            }
+            catch(err){
+                //do something maybe
+            }
         }
         //Send to service
         UrlService.setToDate(toDate);
@@ -78,22 +89,18 @@ function timeSelection($scope,UrlService) {
     //Validation of dates
     //
     //Check if date is en future
-    $scope.checkIfFutureDate = function() {
-        var startDate = new Date($scope.startDatepicker.date);
+    $scope.checkIfFutureDate = function(date) {
+        var startDate = new Date(date);
         var currentDate = new Date();
-
-        console.log('check date: input: '+startDate+'now:'+currentDate);
-
-
 
         //Making boolean to control css-class
         //We want only past dates
         if (currentDate<startDate) {
-            console.log('future');
+            //This is a future date
             return true;
         }
         else {
-            console.log('past');
+            //This is a past date
             return false;
         }
     }
@@ -101,23 +108,36 @@ function timeSelection($scope,UrlService) {
     $scope.afterStartDate = function() {
         var startDate = new Date($scope.startDatepicker.date)
         var endDate = new Date($scope.endDatepicker.date);
-        //var currentDate = new Date();
-
-        //console.log('check date: input: '+inputDate+'now:'+currentDate);
-
-
 
         //Making boolean to control css-class
         //We want only past dates
         if (startDate>endDate) {
-            console.log('startDate after endDate :(');
+            //Start date after end date->what we dont want
             return true;
         }
         else {
-            console.log('startDate before endDate :)');
+            //Start date before end date->what we want
             return false;
         }
     }
+    //Check to see if user entered string is a valid date format
+    $scope.validDate = function(date) {
+
+        var timestamp=Date.parse(date)
+
+        if (isNaN(timestamp)==false) return false;
+        else return true;
+    }
+
+    //
+    //Validation of times
+    //
+    //If start/end dates are equal check start/end times
+    $scope.afterStartTime = function(startTime,endTime) {
+
+    }
+
+
     $scope.returnNowDate = function() {
         //angular strap will not accept dynamic dates for start/end dates
         //nowdate will be today no matter what it is assigned to
