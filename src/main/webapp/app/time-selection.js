@@ -12,8 +12,8 @@ function timeSelection($scope,UrlService) {
     $scope.startDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
     $scope.endDatepicker = {date: new Date("2012-09-10T00:00:00.000Z")};
 
-    $scope.startTimepicker = {time: "00:00 AM"};
-    $scope.endTimepicker = {time: "00:00 AM"};
+    $scope.startTimepicker = {time: "00:00"};
+    $scope.endTimepicker = {time: "00:00"};
 
     $scope.startTimeZone = {zone: 'utc'};
     $scope.endTimeZone = {zone: 'utc'};
@@ -133,7 +133,24 @@ function timeSelection($scope,UrlService) {
     //Validation of times
     //
     //If start/end dates are equal check start/end times
-    $scope.afterStartTime = function(startTime,endTime) {
+    $scope.afterStartTime = function() {
+        if($scope.startDatepicker.date.getDate() === $scope.endDatepicker.date.getDate()){
+            console.log("both dates are the same");
+            if ($scope.startTimepicker.time>=$scope.endTimepicker.time) {
+                //Start time after end time->what we dont want
+                console.log("start time after end time :(");
+                return true;
+            }
+            else {
+                //Start time before end time->what we want
+                console.log("start time before end time :)");
+                return false;
+            }
+        }
+        else {
+            console.log("both dates are NOT the same");
+            return false;
+        }
 
     }
 

@@ -183,21 +183,23 @@
                             <h4>Start of data query</h4>
                             <form class="form-inline well" role="form">
                                 <div class="row">
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-7">
                                         <div class="control-group form-group">
                                             <label id="startDateLabel" for="inputStartDatepicker">Date</label><br>
                                             <input id="inputStartDatepicker" class="form-control" type="text"
                                                    ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy"
                                                    data-end-date="returnNowDate()"
-                                                   style="width: 110px;" bs-datepicker=""
+                                                   style="width: 105px;" bs-datepicker=""
                                                    ng-class="{countryValidatorClass: checkIfFutureDate(startDatepicker.date) || afterStartDate() || validDate(startDatepicker.date)}">
                                         </div>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-5">
                                         <div class="control-group form-group">
                                             <label id="startTimeLabel" for="inputStartTimepicker">Time</label><br>
                                             <input id="inputStartTimepicker" type="text" class="form-control"
-                                                   ng-model="startTimepicker.time" style="width: 110px;" bs-timepicker="">
+                                                   ng-model="startTimepicker.time" style="width: 65px;"
+                                                   data-show-meridian="false" bs-timepicker=""
+                                                   ng-class="{countryValidatorClass: afterStartTime()}">
                                         </div>
                                     </div>
                                 </div>
@@ -208,21 +210,23 @@
                             <h4>End of data query</h4>
                             <form class="form-inline well" role="form">
                                 <div class="row">
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-7">
                                         <div class="control-group form-group">
                                             <label id="endDateLabel" for="inputEndDatepicker">Date</label><br>
                                             <input id="inputEndDatepicker" class="form-control" type="text"
                                                    ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy"
                                                    data-end-date="returnNowDate()"
-                                                   style="width: 110px;" bs-datepicker=""
+                                                   style="width: 105px;" bs-datepicker=""
                                                    ng-class="{countryValidatorClass: checkIfFutureDate(endDatepicker.date) || afterStartDate() || validDate(endDatepicker.date)}">
                                         </div>
                                     </div>
-                                    <div class="col-lg-6">
+                                    <div class="col-lg-5">
                                         <div class="control-group form-group">
                                             <label id="endTimeLabel" for="inputEndTimepicker">Time</label><br>
                                             <input id="inputEndTimepicker" type="text" class="form-control"
-                                                   ng-model="endTimepicker.time" style="width: 110px;" bs-timepicker="">
+                                                   ng-model="endTimepicker.time" style="width: 65px;"
+                                                   data-show-meridian="false" bs-timepicker=""
+                                                   ng-class="{countryValidatorClass: afterStartTime()}">
                                         </div>
                                     </div>
                                 </div>
@@ -251,6 +255,8 @@
                             >Error: Start date must not be in the future</div>
                     <div class="validator-warning" ng-show="checkIfFutureDate(endDatepicker.date)"
                             >Error: End date must not be in the future</div>
+                    <div class="validator-warning" ng-show="afterStartTime()">Error: Start time must be before end time on when same start/end date is chosen</div>
+
 
                 </div><!-- /#time_selection_body -->
                 <!-- Output Format-->
