@@ -1,6 +1,9 @@
 // directive for dnd between lists
 app.directive('dndBetweenList', function($parse) {
- 
+
+    //inspiration from:
+    //http://www.smartjava.org/content/drag-and-drop-angularjs-using-jquery-ui
+
     return function(scope, element, attrs) {
  
         // contains the args for this component

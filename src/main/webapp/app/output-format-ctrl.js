@@ -1,5 +1,6 @@
 function dndCtrl($scope,UrlService) {
-
+    //inspiration from:
+    //http://www.smartjava.org/content/drag-and-drop-angularjs-using-jquery-ui
     //Control of header included in query
     $scope.headerChecked = false;
 
@@ -16,7 +17,7 @@ function dndCtrl($scope,UrlService) {
     $scope.tableSeparator = {sep: 'colon'};
 
     $scope.filterCategory = 'all';
-    
+
     //Array of objects not included in query
     $scope.notIncluded = [
         { 'id': 0,	value: "Longitude",     queryName: "longitude",     ex: "12.369",       category: "all,xyz"},
@@ -29,7 +30,7 @@ function dndCtrl($scope,UrlService) {
         { 'id': 7, 	value: "Signal2",		queryName: "signal2",       ex: "beta",         category: "all,signal"},
         { 'id': 8, 	value: "Signal3",		queryName: "signal3",       ex: "charlie",      category: "all,signal"},
         { 'id': 9, 	value: "Signal4",		queryName: "signal4",       ex: "delta",        category: "all,signal"}];
- 		
+
  	//Array of objects included in query
     $scope.included = [];
 
@@ -38,17 +39,17 @@ function dndCtrl($scope,UrlService) {
     $scope.$watch("notIncluded", function(value) {
         //console.log("NotIncluded: " + value.map(function(e){return e.id}).join(','));
     },true);
- 
+
     // watch, use 'true' to also receive updates when values
     // change, instead of just the reference
     $scope.$watch("included", function(value) {
         //console.log("Included: " + value.map(function(e){return e.id}).join(','));
     },true);
-    
+
     $scope.includedEmpty = function() {
         return $scope.included.length == 0;
     }
- 
+
     $scope.notIncludedEmpty = function() {
         return $scope.notIncluded.length == 0;
     }
