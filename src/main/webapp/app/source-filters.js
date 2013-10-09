@@ -1,5 +1,22 @@
 function sourceFilters($scope,UrlService) {
 
+    $scope.textValidator = 'false';
+
+    //trying autocomplete for sourceCountries
+    $scope.countryDatabase = [];
+    $scope.countryCode = [];
+
+    for (var i=0; i<countryCodes.length; i++) {
+        $scope.countryDatabase[i]=countryCodes[i].name;
+        $scope.countryCode[i]=countryCodes[i].code;
+
+   }
+
+    angular.forEach($scope.landcodes, function(item) {
+        console.log(item.name);
+        $scope.names[landCounter]=item.name;
+    });
+
     //Source Tab Headings
     $scope.sourceIdTabHeader = 'Source ID';
     $scope.sourceBaseTabHeader = 'Source Base Station';
@@ -50,18 +67,23 @@ function sourceFilters($scope,UrlService) {
         //deselect all if any other is selected
         if(sourceId.value!=$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
             $scope.sourceIds[0].include=false;
-            $scope.sourceIdTabHeader = 'Source ID (*)';
+            $scope.sourceIdTabHeader = 'Source ID(*)';
         }
     }
 
     //Adding new text field for countries
     $scope.newTextFieldCountry = function(sourceCountry) {
 
+        //Adding new text field
+        var index = sourceCountry.counter;
+        var testString = $scope.sourceCountries[index-1].input.toUpperCase();
+        var indexOfCountry = $scope.countryDatabase.indexOf(testString);
 
-        if(sourceCountry.counter === $scope.sourceCountries.length) {
+        if(sourceCountry.counter === $scope.sourceCountries.length && indexOfCountry!=-1) {
             $scope.sourceCountries.push({text:countCountry+'.', input:'', counter: countCountry});
             countCountry++;
         }
+
         //Show that Source Country are edited if they are
         if(sourceCountry.input.length!=0) $scope.sourceCountryTabHeader = 'Source Country(*)';
 
@@ -81,8 +103,32 @@ function sourceFilters($scope,UrlService) {
 
     };
 
+    //Function to validate user country input
+    $scope.checkCountryDB = function(sourceCountry) {
+        //user input
+        var testString = $scope.sourceCountries[sourceCountry.counter-1].input.toUpperCase();
+
+        //test to see if user input is in country db
+        var indexOfControlCountry = $scope.countryDatabase.indexOf(testString);
+
+        //console.log('blur on text field '+index +' with input: '+testString+' with index ' +indexOfControlCountry +' in db');
+
+        //Making boolean to control css-class
+        if (testString.length != 0 && indexOfControlCountry===-1) return true;
+        else return false;
+    }
+
     //Adding new text field for bases
     $scope.newTextFieldBase = function(sourceBase) {
+
+        //check max char
+        maxChar = 9;
+        if(sourceBase.input.length===maxChar+1) {
+            temp = sourceBase.input;
+            temp = temp.slice(0,temp.length - 1);
+            sourceBase.input=temp;
+        }
+        console.log('length of ?: '+sourceBase.input.length);
 
         if(sourceBase.counter === $scope.sourceBases.length) {
             $scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
@@ -172,7 +218,7 @@ function sourceFilters($scope,UrlService) {
     $scope.$watch('sourceCountries', function() {
 
         //Send to service
-        UrlService.setCountries(includeFromTextField($scope.sourceCountries,'ctry='));
+        UrlService.setCountries(includeFromTextFieldWithDB($scope.sourceCountries,$scope.countryDatabase,'ctry='));
     }, true); // <-- objectEquality
 
     //If sourceTypes array are changed push to service
@@ -197,7 +243,42 @@ function sourceFilters($scope,UrlService) {
         if(someInput) {
             returnString=baseString;
             angular.forEach(array, function(item) {
+                console.log('led efter2: '+item.input);
                 if(item.input.length>0) returnString+=item.input+',';
+            });
+        }else returnString='';
+
+        //replace , with & at end of string
+        returnString=returnString.replace(/^,|,$/g,'&');
+
+        return returnString;
+    }
+
+    //Include all text from custom number of dynamic text fields if input is in database
+    function includeFromTextFieldWithDB(array,dbArray,baseString) {
+        var returnString;
+
+        //any output and any true country input?
+        var someInput = false;
+        var trueInput = false;
+        var indexOfCountry;
+
+        angular.forEach(array, function(item) {
+            indexOfCountry = dbArray.indexOf(item.input.toUpperCase());
+            //check input length
+            if(item.input.length>0) someInput=true;
+            //check input quality
+            if(indexOfCountry!=-1) trueInput = true;
+
+        });
+        //append all input which are in database
+        if(someInput && trueInput) {
+            returnString=baseString;
+
+            var indexOfCountry;
+            angular.forEach(array, function(item) {
+                indexOfCountry = dbArray.indexOf(item.input.toUpperCase());
+                if(item.input.length>0 && indexOfCountry!=-1) returnString+=$scope.countryCode[indexOfCountry]+',';
             });
         }else returnString='';
 

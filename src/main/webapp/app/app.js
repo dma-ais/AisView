@@ -1,4 +1,27 @@
-var app = angular.module('aisHDD', []);
+var app = angular.module('aisHDD', ['$strap.directives']);
+
+//idea from http://jsfiddle.net/sebmade/swfjT/
+app.directive('ngBlur', function() {
+    return function( scope, elem, attrs ) {
+        elem.bind('blur', function() {
+            scope.$apply(attrs.ngBlur);
+        });
+    };
+});
+
+//autocomplete textfields in source sections
+app.directive('autoComplete', function($timeout) {
+    return function(scope, iElement, iAttrs) {
+        iElement.autocomplete({
+            source: scope[iAttrs.uiItems],
+            select: function() {
+                $timeout(function() {
+                    iElement.trigger('input');
+                }, 0);
+            }
+        });
+    };
+});
 
 app.factory('UrlService', function() {
     return {

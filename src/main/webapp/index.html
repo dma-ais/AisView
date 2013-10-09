@@ -11,7 +11,9 @@
     <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
     <link href="https://mgcrea.github.com/angular-strap/css/prettify.css" rel="stylesheet">
 
+
     <!-- custom styles -->
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/flick/jquery-ui.css" rel="stylesheet">
     <link href="css/bootstrap-datepicker.css" rel="stylesheet">
     <link href="css/bootstrap-timepicker.css" rel="stylesheet">
     <link href="css/columnSelector.css" rel="stylesheet">
@@ -21,12 +23,18 @@
     <style>
         <!-- TODO: move to stylesheet -->
 
+
+
         #mapdiv33 { width:800px; height:400px; }
 
         #mapdiv { width:100%; height:400px; }
 
         #bbox_drag_instruction { height:1.5em; }
         #bbox_adjust_instruction { height:1.5em; display:none;  }
+
+        .countryValidatorClass {
+            background-color: #FFCCCC;
+        }
 
     </style>
 
@@ -101,11 +109,14 @@
                             </div>
                             <div id="pane3" class="tab-pane">
                                 <h3 id="source_country">Source Country</h3>
+
                                 <p>Source country: multiple inputboxes (max 3 characters), add a new one each time one is filled out </p>
 
                                 <div ng-repeat="sourceCountry in sourceCountries">
                                     <span>{{sourceCountry.text}}</span>
-                                    <input type="text" ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)">
+                                    <input type="text" size="45" auto-complete ui-items="countryDatabase"
+                                           ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)"
+                                           ng-class="{countryValidatorClass: checkCountryDB(sourceCountry)}">
                                 </div>
                             </div>
                             <div id="pane4" class="tab-pane">
@@ -161,60 +172,67 @@
                     <h1 id="time_selection">Time selection</h1>
                 </div>
 
-                <div id="time_selection_body" ng-controller="timeSelection">
-                    <div id="startTimeWrapper" class="col-lg-6">
+                <div id="time_selection_body" ng-controller="timeSelection" class="row">
+
+                    <div id="startTimeWrapper" class="col-lg-4">
+                        <h4>Start of data query</h4>
                         <form class="form-inline well" role="form">
                             <div class="row">
-                                <div class="col-lg-4">
+                                <div class="col-lg-6">
                                     <div class="control-group form-group">
-                                        <label id="startDateLabel" for="inputStartDatepicker">Start date</label><br>
+                                        <label id="startDateLabel" for="inputStartDatepicker">Date</label><br>
                                         <input id="inputStartDatepicker" class="form-control" type="text"
                                                ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy"
-                                               style="width: 110px;" bs-datepicker="">
+                                               data-end-date="returnNowDate()"
+                                               style="width: 110px;" bs-datepicker=""
+                                               ng-class="{countryValidatorClass: checkIfFutureDate()}">
                                     </div>
                                 </div>
-                                <div class="col-lg-4">
+                                <div class="col-lg-6">
                                     <div class="control-group form-group">
-                                        <label id="startTimeLabel" for="inputStartTimepicker">Start time</label><br>
+                                        <label id="startTimeLabel" for="inputStartTimepicker">Time</label><br>
                                         <input id="inputStartTimepicker" type="text" class="form-control"
                                                ng-model="startTimepicker.time" style="width: 110px;" bs-timepicker="">
                                     </div>
                                 </div>
-                                <div class="col-lg-4">
-                                    <div class="control-group form-group">
-                                        <label id="endTimezoneLabel" for="startTimeZonePicker">Timezone</label><br>
-                                        <select id="startTimeZonePicker" ng-model="startTimeZone.zone"  class="form-control"
-                                                ng-options="item.ID as item.Title for item in timeZones"></select>
-                                    </div>
-                                </div>
                             </div>
                         </form>
-                        {{selected}}
                     </div>
 
-                    <div id="endTimeWrapper" class="col-lg-6">
+                    <div id="endTimeWrapper" class="col-lg-4">
+                        <h4>End of data query</h4>
                         <form class="form-inline well" role="form">
                             <div class="row">
-                                <div class="col-lg-4">
+                                <div class="col-lg-6">
                                     <div class="control-group form-group">
-                                        <label id="endDateLabel" for="inputEndDatepicker">End date</label><br>
+                                        <label id="endDateLabel" for="inputEndDatepicker">Date</label><br>
                                         <input id="inputEndDatepicker" class="form-control" type="text"
                                                ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy"
-                                               style="width: 110px;" bs-datepicker="">
+                                               data-end-date="returnNowDate()"
+                                               style="width: 110px;" bs-datepicker=""
+                                               ng-class="{countryValidatorClass: afterStartDate()}">
                                     </div>
                                 </div>
-                                <div class="col-lg-4">
+                                <div class="col-lg-6">
                                     <div class="control-group form-group">
-                                        <label id="endTimeLabel" for="inputEndTimepicker">Start time</label><br>
+                                        <label id="endTimeLabel" for="inputEndTimepicker">Time</label><br>
                                         <input id="inputEndTimepicker" type="text" class="form-control"
                                                ng-model="endTimepicker.time" style="width: 110px;" bs-timepicker="">
                                     </div>
                                 </div>
-                                <div class="col-lg-4">
+                            </div>
+                        </form>
+                    </div>
+                    <div id="timeZoneWrapper" class="col-lg-3">
+                        <h4>Time zone</h4>
+                        <form class="form-inline well" role="form">
+                            <div class="row">
+                                <div class="col-lg-12">
                                     <div class="control-group form-group">
-                                        <label id="endTimezoneLabel" for="endTimeZonePicker">Timezone</label><br>
-                                        <select id="endTimeZonePicker" ng-model="endTimeZone.zone"  class="form-control"
+                                        <label id="timeZoneLabel" for="timeZonePicker">Time zone</label><br>
+                                        <select id="timeZonePicker" ng-model="endTimeZone.zone"  class="form-control"
                                                 ng-options="item.ID as item.Title for item in timeZones"></select>
+
                                     </div>
                                 </div>
                             </div>
@@ -316,8 +334,13 @@
     </div><!-- /.doc -->
 
     <!-- JavaScripts-->
+
+    <!-- Data-files-->
+    <script src="js/landcodes.js"></script>
+
     <!-- JavaScript plugins (requires jQuery) -->
-    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>-->
 
     <!-- jQuery UI -->
     <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
@@ -329,10 +352,17 @@
     <script src="https://cdn.jsdelivr.net/underscorejs/1.5.1/underscore-min.js"></script>
 
     <!-- Latest compiled and minified Botstrap JavaScript -->
-    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <!--<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+
+
+
+
 
     <!-- AngularStrap -->
-    <script src="https://mgcrea.github.com/angular-strap/js/angular-strap.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.4/angular-strap.min.js"></script>
+    <!--<script src="https://mgcrea.github.com/angular-strap/js/angular-strap.js"></script>-->
+
     <script src="js/bootstrap-datepicker.js"></script>
     <script src="js/bootstrap-timepicker.js"></script>
 
