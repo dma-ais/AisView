@@ -78,7 +78,7 @@ function dndCtrl($scope,UrlService) {
     $scope.$watch('included', function() {
         var tables = '';
         var separator = '';
-        console.log('inside watch: '+$scope.included.length!==0);
+
         //append all tables if format is 'table' else no tables
         if($scope.format=='') {
             tables = '';
