@@ -7,31 +7,19 @@ function dndCtrl($scope,UrlService) {
     //Control of format
     $scope.format = '';
 
-    $scope.tableSeparators = [
-        {ID: 'colon', Title: 'Colon', Value:':'},
-        {ID: 'semi-colon', Title: 'Semicolon', Value:';'},
-        {ID: 'comma', Title: 'Comma', Value:','},
-        {ID: 'tab', Title: 'Tab', Value:'   '}
-    ];
+    // Array of table separators: source data.js
+    $scope.tableSeparators = tableSeparators;
 
-    $scope.tableSeparator = {sep: 'colon'};
+    //Start up table separator: source data.js
+    $scope.tableSeparator = tableSeparator;
 
+    //Start filter on notIncludedList
     $scope.filterCategory = 'all';
 
-    //Array of objects not included in query
-    $scope.notIncluded = [
-        { 'id': 0,	value: "Longitude",     queryName: "longitude",     ex: "12.369",       category: "all,xyz"},
-        { 'id': 1, 	value: "Latitude",		queryName: "latitude",      ex: "55.634",       category: "all,xyz"},
-        { 'id': 2, 	value: "Height",		queryName: "height",        ex: "22.12",        category: "all,xyz"},
-        { 'id': 3, 	value: "Timeformat1",	queryName: "timeformat1",   ex: "YYYY-MM-DD",   category: "all,time"},
-        { 'id': 4, 	value: "Timeformat2",	queryName: "timeformat2",   ex: "YYYYMMDD",     category: "all,time"},
-        { 'id': 5, 	value: "Timeformat3",	queryName: "timeformat3",   ex: "DD-MM-YYYY",   category: "all,time"},
-        { 'id': 6, 	value: "Signal1",		queryName: "signal1",       ex: "alpha",        category: "all,signal"},
-        { 'id': 7, 	value: "Signal2",		queryName: "signal2",       ex: "beta",         category: "all,signal"},
-        { 'id': 8, 	value: "Signal3",		queryName: "signal3",       ex: "charlie",      category: "all,signal"},
-        { 'id': 9, 	value: "Signal4",		queryName: "signal4",       ex: "delta",        category: "all,signal"}];
+    //Array of objects not included in query: source data.js
+    $scope.notIncluded = notIncluded;
 
- 	//Array of objects included in query
+ 	//Array of objects included in query (starts empty)
     $scope.included = [];
 
     // watch, use 'true' to also receive updates when values

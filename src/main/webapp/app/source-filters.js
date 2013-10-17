@@ -1,8 +1,10 @@
 function sourceFilters($scope,UrlService) {
+    //Controllers of number of new Base and Country input field
+    var countBase = 2;
+    var countCountry = 2;
+    var maxBaseChar = 9; //maximum number of characters when user input base stations
 
-    $scope.textValidator = 'false';
-
-    //trying autocomplete for sourceCountries
+    //autocomplete for sourceCountries
     $scope.countryDatabase = [];
     $scope.countryCode = [];
 
@@ -12,42 +14,21 @@ function sourceFilters($scope,UrlService) {
 
    }
 
-    angular.forEach($scope.landcodes, function(item) {
-        console.log(item.name);
-        $scope.names[landCounter]=item.name;
-    });
+    //Source Tab Headings: source data.js
+    $scope.sourceIdTabHeader = tabHeadings[0];
+    $scope.sourceBaseTabHeader = tabHeadings[1];
+    $scope.sourceCountryTabHeader = tabHeadings[2];
+    $scope.sourceTypeTabHeader = tabHeadings[3];
+    $scope.sourceRegionTabHeader = tabHeadings[4];
 
-    //Source Tab Headings
-    $scope.sourceIdTabHeader = 'Source ID';
-    $scope.sourceBaseTabHeader = 'Source Base Station';
-    $scope.sourceCountryTabHeader = 'Source Country';
-    $scope.sourceTypeTabHeader = 'Source Type';
-    $scope.sourceRegionTabHeader = 'Source Region';
-
-    //Source ID variables
-    $scope.sourceIds = [
-        {text:'All', value: 'all&', include:true},
-        {text:'Source1', value: 'src1', include:false},
-        {text:'Source2', value: 'src2', include:false},
-        {text:'Source3', value: 'src3', include:false},
-        {text:'Source4', value: 'src4', include:false},
-        {text:'Source5', value: 'src5', include:false},
-        {text:'Source6', value: 'src6', include:false}];
-
+    //Source ID variables: source data.js
+    $scope.sourceIds = sourceIds;
     //Source Base variables
-    $scope.sourceBases = [
-        {text:1+'.', input:'', counter: 1}];
-
+    $scope.sourceBases = [{text:1+'.', input:'', counter: 1}];
     //Source Country variables
-    $scope.sourceCountries = [
-        {text:1+'.', input:'', counter: 1}];
-
+    $scope.sourceCountries = [{text:1+'.', input:'', counter: 1}];
     //Source Type variables
     $scope.sourceTypes = 'any';
-
-    //Controllers of number of new Base and Country input field
-    var countBase = 2;
-    var countCountry = 2;
 
     //Control of Source IDs
     $scope.sourceIdsSelect = function(sourceId) {
@@ -60,14 +41,14 @@ function sourceFilters($scope,UrlService) {
             });
 
             $scope.sourceIds[0].include=true;
-            $scope.sourceIdTabHeader = 'Source ID';
+            $scope.sourceIdTabHeader = tabHeadings[0];
 
         }
 
         //deselect all if any other is selected
         if(sourceId.value!=$scope.sourceIds[_.indexOf(_.pluck($scope.sourceIds, 'text'),'All')].value) {
             $scope.sourceIds[0].include=false;
-            $scope.sourceIdTabHeader = 'Source ID(*)';
+            $scope.sourceIdTabHeader = tabHeadings[0]+'(*)';
         }
     }
 
@@ -85,7 +66,7 @@ function sourceFilters($scope,UrlService) {
         }
 
         //Show that Source Country are edited if they are
-        if(sourceCountry.input.length!=0) $scope.sourceCountryTabHeader = 'Source Country(*)';
+        if(sourceCountry.input.length!=0) $scope.sourceCountryTabHeader = tabHeadings[2]+'(*)';
 
         //Control to remove (*) if all textfields are empty
         var allEmpty = true;
@@ -98,9 +79,8 @@ function sourceFilters($scope,UrlService) {
         });
 
         if(allEmpty) {
-            $scope.sourceCountryTabHeader = 'Source Country';
+            $scope.sourceCountryTabHeader = tabHeadings[2];
         }
-
     };
 
     //Function to validate user country input
@@ -122,13 +102,12 @@ function sourceFilters($scope,UrlService) {
     $scope.newTextFieldBase = function(sourceBase) {
 
         //check max char
-        maxChar = 9;
-        if(sourceBase.input.length===maxChar+1) {
+        if(sourceBase.input.length===maxBaseChar+1) {
             temp = sourceBase.input;
             temp = temp.slice(0,temp.length - 1);
             sourceBase.input=temp;
         }
-        console.log('length of ?: '+sourceBase.input.length);
+        //console.log('length of ?: '+sourceBase.input.length);
 
         if(sourceBase.counter === $scope.sourceBases.length) {
             $scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
@@ -136,7 +115,7 @@ function sourceFilters($scope,UrlService) {
         }
 
         //Show that Source Base are edited
-        if(sourceBase.input.length!=0) $scope.sourceBaseTabHeader = 'Source Base Station(*)';
+        if(sourceBase.input.length!=0) $scope.sourceBaseTabHeader = tabHeadings[1]+'(*)';
 
         //Control to remove (*) if all textfields are empty
         var allEmpty = true;
@@ -149,7 +128,7 @@ function sourceFilters($scope,UrlService) {
         });
 
         if(allEmpty) {
-            $scope.sourceBaseTabHeader = 'Source Base Station';
+            $scope.sourceBaseTabHeader = tabHeadings[1];
         }
     };
 
@@ -157,20 +136,20 @@ function sourceFilters($scope,UrlService) {
     $scope.sourceTypeHeadingControl = function() {
 
         if($scope.sourceTypes!='any'){
-            $scope.sourceTypeTabHeader = 'Source Type(*)';
+            $scope.sourceTypeTabHeader = tabHeadings[3]+'(*)';
         }
-        else $scope.sourceTypeTabHeader = 'Source Type';
+        else $scope.sourceTypeTabHeader = tabHeadings[3];
     }
 
     //Clear all Source filtering entries
     $scope.clearSources = function() {
 
         //restore all TabHeaders
-        $scope.sourceIdTabHeader = 'Source ID';
-        $scope.sourceBaseTabHeader = 'Source Base Station';
-        $scope.sourceCountryTabHeader = 'Source Country';
-        $scope.sourceTypeTabHeader = 'Source Type';
-        $scope.sourceRegionTabHeader = 'Source Region';
+        $scope.sourceIdTabHeader = tabHeadings[0];
+        $scope.sourceBaseTabHeader = tabHeadings[1];
+        $scope.sourceCountryTabHeader = tabHeadings[2];
+        $scope.sourceTypeTabHeader = tabHeadings[3];
+        $scope.sourceRegionTabHeader = tabHeadings[4];
 
         //set all source IDs to false
         angular.forEach($scope.sourceIds, function(item) {

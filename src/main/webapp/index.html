@@ -239,7 +239,7 @@
                                     <div class="col-lg-12">
                                         <div class="control-group form-group">
                                             <label id="timeZoneLabel" for="timeZonePicker">Time zone</label><br>
-                                            <select id="timeZonePicker" ng-model="endTimeZone.zone"  class="form-control"
+                                            <select id="timeZonePicker" ng-model="timeZone.ID"  class="form-control"
                                                     ng-options="item.ID as item.Title for item in timeZones"></select>
 
                                         </div>
@@ -278,8 +278,8 @@
                             <div id="tableContainer" class="container" >
                                 <div class="row">
 
-                                    <div id="columnWrapper" class="col-lg-4">
-                                        <p id="listTitles">Not included in query</p>
+                                    <div id="columnWrapper1" class="col-lg-4">
+                                        <p id="listTitles1">Not included in query</p>
 
                                         <ul id="notIncludedList"
                                             dnd-between-list="notIncluded,includedList"
@@ -300,8 +300,8 @@
                                         <img id="arrowImg" src="img/arrow.jpeg">
                                     </div><!-- /.col-lg-1 -->
 
-                                    <div id="columnWrapper" class="col-lg-4">
-                                        <p id="listTitles">Included in query</p>
+                                    <div id="columnWrapper2" class="col-lg-4">
+                                        <p id="listTitles2">Included in query</p>
                                         <ul id="includedList"
                                             dnd-between-list="included,notIncludedList"
                                             ng-class="{'minimalList':modelEmpty()}">
@@ -361,6 +361,7 @@
     </script>
 
     <!-- Data-files-->
+    <script src="js/data.js"></script>
     <script src="js/landcodes.js"></script>
 
     <!-- JavaScript plugins (requires jQuery) -->

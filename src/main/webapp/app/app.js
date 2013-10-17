@@ -36,6 +36,7 @@ app.factory('UrlService', function() {
         header: null,
         fromDate: null,
         toDate: null,
+        timeZone: null,
         samples: null,
         setArea: function(msg) {
             this.area = msg;
@@ -69,6 +70,9 @@ app.factory('UrlService', function() {
         },
         setToDate: function(msg){
             this.toDate = msg;
+        },
+        setTimeZone: function(msg){
+            this.timeZone = msg;
         },
         setSamples: function(msg){
             this.samples = msg;

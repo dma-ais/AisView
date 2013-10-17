@@ -1,7 +1,7 @@
 function urlBuilder($scope,UrlService) {
 
     $scope.url = function(){
-        var base = 'http://www.example.com/';
+        var base = requestDomain;
 
         var requestString = base+
             UrlService.ids+
@@ -11,6 +11,7 @@ function urlBuilder($scope,UrlService) {
             UrlService.area+
             UrlService.fromDate+
             UrlService.toDate+
+            UrlService.timeZone+
             UrlService.tables+
             UrlService.separator+
             UrlService.header+

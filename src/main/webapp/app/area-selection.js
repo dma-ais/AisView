@@ -19,8 +19,6 @@ function areaSelection($scope,UrlService) {
     $scope.$watch('bottomRightLat', updateURL);
     $scope.$watch('bottomRightLon', updateURL);
 
-
-
     //
     function updateURL() {
 
@@ -38,13 +36,6 @@ function areaSelection($scope,UrlService) {
         newInput($scope.topLeftLat,$scope.topLeftLon,$scope.bottomRightLat,$scope.bottomRightLon);
 
     }
-
-//    $scope.$watch('topLeftLat', updateURL)
-//    $scope.$watch('topLeftLon', updateURL)
-//    $scope.$watch('bottomRightLat', updateURL)
-//    $scope.$watch('bottomRightLon', updateURL)
-
-
 }
 
       
