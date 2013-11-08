@@ -8,6 +8,7 @@ function urlBuilder($scope,UrlService) {
             UrlService.bases+
             UrlService.countries+
             UrlService.types+
+            UrlService.regions+
             UrlService.area+
             UrlService.fromDate+
             UrlService.toDate+

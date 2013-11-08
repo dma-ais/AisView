@@ -1,6 +1,7 @@
 function sourceFilters($scope,UrlService) {
     //Controllers of number of new Base and Country input field
     var countBase = 2;
+    var countRegion = 2;
     var countCountry = 2;
     var maxBaseChar = 9; //maximum number of characters when user input base stations
 
@@ -29,6 +30,8 @@ function sourceFilters($scope,UrlService) {
     $scope.sourceCountries = [{text:1+'.', input:'', counter: 1}];
     //Source Type variables
     $scope.sourceTypes = 'any';
+    //Source Region variables
+    $scope.sourceRegions = [{text:1+'.', input:'', counter: 1}];
 
     //Control of Source IDs
     $scope.sourceIdsSelect = function(sourceId) {
@@ -110,8 +113,8 @@ function sourceFilters($scope,UrlService) {
         //console.log('length of ?: '+sourceBase.input.length);
 
         if(sourceBase.counter === $scope.sourceBases.length) {
-            $scope.sourceBases.push({text:countBase+'.', input:'', counter: countBase});
-            countBase++;
+            $scope.sourceBases.push({text:countRegion+'.', input:'', counter: countRegion});
+            countRegion++;
         }
 
         //Show that Source Base are edited
@@ -129,6 +132,32 @@ function sourceFilters($scope,UrlService) {
 
         if(allEmpty) {
             $scope.sourceBaseTabHeader = tabHeadings[1];
+        }
+    };
+
+    //Adding new text field for regions
+    $scope.newTextFieldRegion = function(sourceRegion) {
+
+        if(sourceRegion.counter === $scope.sourceRegions.length) {
+            $scope.sourceRegions.push({text:countBase+'.', input:'', counter: countBase});
+            countBase++;
+        }
+
+        //Show that Source Base are edited
+        if(sourceRegion.input.length!=0) $scope.sourceRegionTabHeader = tabHeadings[4]+'(*)';
+
+        //Control to remove (*) if all textfields are empty
+        var allEmpty = true;
+        var keepGoing = true;
+        angular.forEach($scope.sourceRegions, function(item) {
+            if (keepGoing && (item.input.length!==0)) {
+                allEmpty = false;
+                keepGoing = false;
+            }
+        });
+
+        if(allEmpty) {
+            $scope.sourceRegionTabHeader = tabHeadings[4];
         }
     };
 
@@ -157,14 +186,18 @@ function sourceFilters($scope,UrlService) {
         });
         //and 'all' to true
         _.first($scope.sourceIds).include=true;
-
+        //clear source bases
         $scope.sourceBases = [
             {text:1+'.', input:'', counter: 1}];
         countBase = 2;
-
+        //clear source countries
         $scope.sourceCountries = [
             {text:1+'.', input:'', counter: 1}];
         countCountry = 2;
+        //clear source regions
+        $scope.sourceRegions = [
+            {text:1+'.', input:'', counter: 1}];
+        countRegion = 2;
 
         $scope.sourceTypes='any';
     }
@@ -211,6 +244,12 @@ function sourceFilters($scope,UrlService) {
         UrlService.setTypes(types);
     });
 
+    //If sourceRegions array are changed push to service
+    $scope.$watch('sourceRegions', function() {
+        //Send to service
+        UrlService.setRegions(includeFromTextField($scope.sourceRegions,'region='));
+    }, true); // <-- objectEquality
+
     //Include all text from custom number of dynamic text fields
     function includeFromTextField(array,baseString) {
         var returnString;
@@ -222,7 +261,6 @@ function sourceFilters($scope,UrlService) {
         if(someInput) {
             returnString=baseString;
             angular.forEach(array, function(item) {
-                console.log('led efter2: '+item.input);
                 if(item.input.length>0) returnString+=item.input+',';
             });
         }else returnString='';

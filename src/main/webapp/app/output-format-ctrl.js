@@ -74,6 +74,11 @@ function dndCtrl($scope,UrlService) {
         return breadcrumb;
 
     };
+
+    $scope.settingTab = function(name) {
+        console.log("Pane is" +name);
+    }
+
     //If included array are changed push to service
     $scope.$watch('included', function() {
         var tables = '';

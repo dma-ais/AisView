@@ -25,18 +25,18 @@ app.directive('autoComplete', function($timeout) {
 
 app.factory('UrlService', function() {
     return {
-        area: null,
         ids:null,
         bases:null,
         countries: null,
         types: null,
-        format: null,
-        tables: null,
-        separator: null,
-        header: null,
+        regions: null,
+        area: null,
         fromDate: null,
         toDate: null,
         timeZone: null,
+        tables: null,
+        separator: null,
+        header: null,
         samples: null,
         setArea: function(msg) {
             this.area = msg;
@@ -53,8 +53,8 @@ app.factory('UrlService', function() {
         setTypes: function(msg){
             this.types = msg;
         },
-        setFormat: function(msg){
-            this.format = msg;
+        setRegions: function(msg){
+            this.regions = msg;
         },
         setTables: function(msg){
             this.tables = msg;
