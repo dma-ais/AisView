@@ -12,7 +12,16 @@ var boxDrawnOnce = false;
 
 function init() {
     //console.log('init()');
-    map = new OpenLayers.Map("mapdiv");
+    map = new OpenLayers.Map('mapdiv', {
+        controls: [
+            new OpenLayers.Control.Navigation(),
+            new OpenLayers.Control.PanZoomBar(),
+            new OpenLayers.Control.ScaleLine(),
+            new OpenLayers.Control.MousePosition({"numDigits": 3,displayProjection: new OpenLayers.Projection("EPSG:4326")}),
+            new OpenLayers.Control.KeyboardDefaults()
+        ],
+        numZoomLevels: 4
+    });
 
     var mapserv = new OpenLayers.Layer.MapServer( "OpenLayers Basic",
         "http://vmap0.tiles.osgeo.org/wms/vmap0",
@@ -23,7 +32,7 @@ function init() {
     var openstreetmap = new OpenLayers.Layer.OSM();
     map.addLayer(openstreetmap);
 
-    var lonlat = new OpenLayers.LonLat(160, 0).transform(
+    var lonlat = new OpenLayers.LonLat(0, 50).transform(
         new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
         new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator
     );
@@ -215,7 +224,22 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 function dragNewBox() {
     //console.log('dragNewBox()');
     box.activate();
-    transform.deactivate(); //The remove the box with handles
+
+    //We need to destroy the transform-feature 'transform' and make it again
+    //to deal with collapsed bounds
+
+    transform.destroy();
+
+    transform = new OpenLayers.Control.TransformFeature(vectors, {
+        rotate: false,
+        irregular: true
+    });
+
+    transform.events.register("transformcomplete", transform, boxResize);
+
+    map.addControl(transform);
+
+    //transform.deactivate(); //The remove the box with handles
     vectors.destroyFeatures();
 
     document.getElementById("bbox_drag_instruction").style.display = 'block';
