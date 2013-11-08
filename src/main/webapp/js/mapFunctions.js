@@ -94,7 +94,7 @@ function endDrag(bbox) {
     drawBox(bounds);
     box.deactivate();
 
-    document.getElementById("bbox_drag_instruction").style.display = 'none';
+    //document.getElementById("bbox_drag_instruction").style.display = 'none';
     document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
     boxDraggedOnce = true;
@@ -141,7 +141,7 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
                 box.deactivate();
 
-                document.getElementById("bbox_drag_instruction").style.display = 'none';
+                //document.getElementById("bbox_drag_instruction").style.display = 'none';
                 document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
                 var scope = angular.element('#mapInputWarning').scope();
@@ -175,7 +175,7 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
                     box.deactivate();
                     boxDrawnOnce = true;
 
-                    document.getElementById("bbox_drag_instruction").style.display = 'none';
+                    //document.getElementById("bbox_drag_instruction").style.display = 'none';
                     document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
                     var scope = angular.element('#mapInputWarning').scope();
@@ -204,7 +204,7 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
                         box.deactivate();
 
-                        document.getElementById("bbox_drag_instruction").style.display = 'none';
+                        //document.getElementById("bbox_drag_instruction").style.display = 'none';
                         document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
                         var scope = angular.element('#mapInputWarning').scope();
@@ -242,7 +242,7 @@ function dragNewBox() {
     //transform.deactivate(); //The remove the box with handles
     vectors.destroyFeatures();
 
-    document.getElementById("bbox_drag_instruction").style.display = 'block';
+    //document.getElementById("bbox_drag_instruction").style.display = 'block';
     document.getElementById("bbox_adjust_instruction").style.display = 'none';
 
     setBounds(null);

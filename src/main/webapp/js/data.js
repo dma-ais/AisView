@@ -71,7 +71,7 @@ var tableSeparator = {sep: 'colon'};
 //Extra entries can be added/removed
 //id must be 0,1,2,3....x
 //value-, queryName-, ex-values can be changed
-//category values can NOT be changed for now TODO: make category values changeable eg in output-format-dir l 47
+//category values can NOT be changed for now TODO: make category values changeable eg in output-format-dir line 47
 var notIncluded = [
     { 'id': 0,	value: "Longitude",     queryName: "longitude",     ex: "12.369",       category: "all,xyz"},
     { 'id': 1, 	value: "Latitude",		queryName: "latitude",      ex: "55.634",       category: "all,xyz"},

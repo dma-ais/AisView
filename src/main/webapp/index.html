@@ -147,20 +147,47 @@
                 </div>
 
                 <div id="area_selection_body" ng-controller='areaSelection'>
-                    <p>This map can be used to restrict the area for which Ais Data should be returned from:</p>
+                    <p>This map can be used to restrict the area for which Ais Data should be returned from.</p>
                     <div id="mapdiv"></div>
-                    <div id="bbox_drag_instruction">Drag a box:</div>
-                    <div id="bbox_adjust_instruction">Adjust the box ...or <input type="button" class="btn btn-danger" value="Clear Area Selection" onclick="dragNewBox();"></div>
                     <br>
+                    <div id="bbox_result" class="row">
+                        <div id="topLeftCorner" class="col-lg-4">
+                            <div class="well">
+                                <label>Top left corner</label><br>
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <input type="text" id="bbox_result_maxLat" class="form-control" size=6
+                                               ng-change="changeMapInputField()" ng-model="topLeftLat" placeholder="Lat">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <input  type="text" id="bbox_result_minLon" class="form-control" size=6
+                                                ng-change="changeMapInputField()" ng-model="topLeftLon" placeholder="Lon">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="bottomRightCorner" class="col-lg-4">
+                            <div class="well">
+                            <label>Bottom right corner</label><br>
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <input type="text" id="bbox_result_minLat" class="form-control" size=6
+                                           ng-change="changeMapInputField()" ng-model="bottomRightLat" placeholder="Lat">
+                                    </div>
+                                    <div class="col-lg-6">
 
-                    <div id="bbox_result" class="well">
-                        Or type in: Top Left (Lat, Lon)
-                        (<input type="text" id="bbox_result_maxLat" ng-change="changeMapInputField()" ng-model="topLeftLat" size=5>,
-                        <input  type="text" id="bbox_result_minLon" ng-change="changeMapInputField()" ng-model="topLeftLon" size=5>)
+                                        <input  type="text" id="bbox_result_maxLon" class="form-control" ng-change="changeMapInputField()"
+                                            ng-model="bottomRightLon" placeholder="Lon" size=6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="clearSelected" class="col-lg-4">
 
-                        Buttom Right (Lat, Lon)
-                        (<input type="text" id="bbox_result_minLat" ng-change="changeMapInputField()" ng-model="bottomRightLat" size=5>,
-                        <input  type="text" id="bbox_result_maxLon" ng-change="changeMapInputField()" ng-model="bottomRightLon" size=5>)
+                            <div id="bbox_adjust_instruction">
+                                <input type="button" class="btn btn-danger" value="Clear Area Selection" onclick="dragNewBox();">
+                            </div>
+                        </div>
                     </div>
                     <p id="mapInputWarning" style="background-color:red;">{{mapInputWarning}}</p>
                 </div><!-- /#area_selection_body -->
@@ -248,14 +275,14 @@
                             </form>
                         </div>
                     </div>
-                    <div class="validator-warning" ng-show="validDate(startDatepicker.date)">Error: Start date has wrong format</div>
-                    <div class="validator-warning" ng-show="validDate(endDatepicker.date)">Error: End date has wrong format</div>
-                    <div class="validator-warning" ng-show="afterStartDate()">Error: Start date must be before end date</div>
+                    <div class="validator-warning" ng-show="validDate(startDatepicker.date)">Start date has wrong format</div>
+                    <div class="validator-warning" ng-show="validDate(endDatepicker.date)">End date has wrong format</div>
+                    <div class="validator-warning" ng-show="afterStartDate()">Start date must be before end date</div>
                     <div class="validator-warning" ng-show="checkIfFutureDate(startDatepicker.date)"
-                            >Error: Start date must not be in the future</div>
+                            >Start date must not be in the future</div>
                     <div class="validator-warning" ng-show="checkIfFutureDate(endDatepicker.date)"
-                            >Error: End date must not be in the future</div>
-                    <div class="validator-warning" ng-show="afterStartTime()">Error: Start time must be before end time on when same start/end date is chosen</div>
+                            >End date must not be in the future</div>
+                    <div class="validator-warning" ng-show="afterStartTime()">Start time must be before end time when same start/end date is chosen</div>
 
 
                 </div><!-- /#time_selection_body -->
