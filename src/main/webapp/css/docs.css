@@ -65,6 +65,10 @@ body {
   position: static;
 }
 
+.something.affix {
+    position: static;
+}
+
 /* First level of nav */
 .bs-sidenav {
   margin-top: 30px;
@@ -139,6 +143,34 @@ body {
     width: 155px;
   }
 }
+
+/* Show and affix the side nav when space allows it */
+@media screen and (min-width: 992px) {
+    /* Widen the fixed sidebar */
+    .something.affix,
+    .something.affix-bottom {
+
+    }
+    .something.affix {
+        position: fixed; /* Undo the static from mobile first approach */
+        bottom: 10px;
+    }
+    .something.affix-bottom {
+        position: fixed; /* Undo the static from mobile first approach */
+    }
+
+}
+@media screen and (min-width: 1200px) {
+    /* Widen the fixed sidebar again */
+    .something.affix-bottom,
+    .something.affix {
+
+    }
+}
+
+
+
+
 
 
 /*

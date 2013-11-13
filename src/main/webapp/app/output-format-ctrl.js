@@ -7,6 +7,11 @@ function dndCtrl($scope,UrlService) {
     //Control of format
     $scope.format = '';
 
+    $scope.formatChange = function(formatString) {
+        $scope.format = formatString;
+        console.log("format is "+formatString);
+    }
+
     // Array of table separators: source data.js
     $scope.tableSeparators = tableSeparators;
 
@@ -79,8 +84,49 @@ function dndCtrl($scope,UrlService) {
         console.log("Pane is" +name);
     }
 
+    //If format is changed push to service
+    $scope.$watch('format', function() {
+        console.log("inside watchFormat");
+
+        var tables = '';
+        var separator = '';
+        var header = '';
+
+        //append all tables if format is 'table' else no tables
+        if($scope.format=='') {
+            tables = '';
+            separator = '';
+        }
+        else {
+            //only append if included tables list is not empty
+            if($scope.included.length!=0){
+                tables='tables=';
+                angular.forEach($scope.included, function(includedItem) {
+                    tables+=includedItem.queryName+',';
+                });
+
+                //delete , with & at end of string
+                tables=tables.replace(/^,|,$/g,'&');
+
+                separator='separator='+$scope.tableSeparator.sep+'&';
+            }
+        }
+
+        //header control
+        if($scope.headerChecked && $scope.format!='') header = 'header=true&';
+        else header = '';
+
+        //Send to service
+        UrlService.setTables(tables);
+        UrlService.setSeparator(separator);
+        UrlService.setHeader(header);
+    }, true);
+
+
     //If included array are changed push to service
     $scope.$watch('included', function() {
+        console.log("inside watchIncluded");
+
         var tables = '';
         var separator = '';
 
@@ -126,7 +172,7 @@ function dndCtrl($scope,UrlService) {
     $scope.$watch('headerChecked', function() {
 
         var header = '';
-        if($scope.included.length!=0 && $scope.headerChecked) header = 'header=true&';
+        if($scope.headerChecked) header = 'header=true&';
             else header = '';
 
         //Send to service

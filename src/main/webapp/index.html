@@ -46,6 +46,15 @@
             text-align: center;
         }
 
+        footer {
+            width: 100%;
+            position: fixed;
+            left: 0%;
+            bottom: 0%;
+            background: #3a3a3a;
+            z-index:10000;
+        }
+
     </style>
 </head>
 <body onload="init()">
@@ -134,7 +143,7 @@
                                 </form>
                             </div>
                             <div id="pane5" class="tab-pane fade">
-                                <h3 id="source_region">Source region</h3>
+                                <h3 id="source_region">Source Region</h3>
                                 <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
                                 <div ng-repeat="sourceRegion in sourceRegions">
                                     <span>{{sourceRegion.text}}</span>
@@ -296,10 +305,10 @@
                     <h1 id="output_format">Output Format</h1>
                 </div>
 
-                <div id="output_format_body" ng-controller="dndCtrl" class="tabbable" style="min-height: 367px;">
+                <div id="output_format_body" ng-controller="dndCtrl" class="tabbable" style="min-height: 402px;">
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
-                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
+                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="formatChange('')">Raw</a></li>
+                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="formatChange('tables=')">Table select</a></li>
                     </ul>
 
                     <div class="tab-content">
@@ -371,7 +380,7 @@
                 </div>
 
                 <div id="download_body" ng-controller="download">
-                    <div ng-controller="urlBuilder"><textarea rows="4" style="width: 100%;" readonly>{{url()}}</textarea></div>
+                    <div ng-controller="urlBuilder"><textarea rows="3" style="width: 100%;" readonly>{{url()}}</textarea></div>
                     <div class="navbar">
                         <form class="navbar-form pull-left">
                             <input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
@@ -380,8 +389,14 @@
                         </form>
                     </div>
                 </div><!-- /#download_body -->
+                <footer>
+                    <div style="color:white; padding-left: 2px;" ng-controller="urlBuilder">
+                        <p style="padding-left: 4px; padding-top: 2px;">{{url()}}</p>
+                    </div>
+                </footer>
             </div><!-- /.bs-docs-section -->
         </div><!-- /.col-lg-10 -->
+
     </div><!-- /.doc -->
 
     <!-- JavaScripts-->
