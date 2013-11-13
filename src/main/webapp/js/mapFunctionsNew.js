@@ -10,23 +10,6 @@ var transform;
 var boxDraggedOnce = false;
 var boxDrawnOnce = false;
 
-/**
- * TESTING AREA!!!
- */
-
-
-function latitudeCheck(input){
-    console.log("Time is Money");
-    if((parseFloat(input) > 90) || (parseFloat(input) < -90)) return false;
-    else return true;
-}
-
-
-/**
- * TESTING AREA FINISH!!!
- */
-
-
 function init() {
     //console.log('init()');
     map = new OpenLayers.Map('mapdiv', {
@@ -116,6 +99,13 @@ function endDrag(bbox) {
 
     boxDraggedOnce = true;
 }
+
+function latitudeCheck(input){
+
+    if((parseFloat(input) > 90) || (parseFloat(input) < -90)) return false;
+    else return true;
+}
+
 
 function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
@@ -338,11 +328,3 @@ function handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) 
     console.log('returnArray: '+returnArray);
     return returnArray;
 }
-
-//Checks
-
-function allValuesInputCheck(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
-    if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(bottomRightLat)&&!isNaN(bottomRightLon)) return true;
-    else return false;
-}
-

@@ -108,6 +108,7 @@ function timeSelection($scope,UrlService) {
     }
     //Check if end date is after start date
     $scope.afterStartDate = function() {
+        console.log("Time is Money");
         var startDate = new Date($scope.startDatepicker.date)
         var endDate = new Date($scope.endDatepicker.date);
 

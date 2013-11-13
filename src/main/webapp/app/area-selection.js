@@ -12,6 +12,27 @@ function areaSelection($scope,UrlService) {
     //Sting to send to request URL
     var area = '';
 
+    $scope.latitudeCheck = function(input){
+        console.log("Wrong lat");
+        if((parseFloat(input) > 90) || (parseFloat(input) < -90)) return true;
+        else return false;
+    }
+
+    $scope.sameLatCheck = function(){
+        console.log("Same lat");
+        if($scope.topLeftLat == $scope.bottomRightLat) return true;
+        else return false;
+    }
+
+    $scope.sameLonCheck = function(){
+        console.log("Same lon");
+        if($scope.topLeftLon == $scope.bottomRightLon) return true;
+        else return false;
+    }
+
+
+
+
     //$scope.$watch('topLeftLat'+'topLeftLon'+'bottomRightLat'+'bottomRightLon', updateURL)
 
     $scope.$watch('topLeftLat', updateURL);
