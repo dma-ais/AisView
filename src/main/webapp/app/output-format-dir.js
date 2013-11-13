@@ -54,7 +54,7 @@ app.directive('dndBetweenList', function($parse) {
                 	else startIndex = ($(ui.item).index());		
                 } 
                 toTarget = false;
-                console.log('startIndex: '+startIndex);
+                //console.log('startIndex: '+startIndex);
             },
             stop:function (event, ui) {
                 var newParent = ui.item[0].parentNode.id;
@@ -90,7 +90,7 @@ app.directive('dndBetweenList', function($parse) {
                 	else newIndex=startIndex;
                	}
                	
-                console.log('newIndex: '+newIndex);
+                //console.log('newIndex: '+newIndex);
  
                 // we need to remove him from the configured model
                 toUpdate.splice(startIndex,1);

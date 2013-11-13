@@ -1,5 +1,5 @@
 /*
- * Docs styling
+ * AIS-Store Downloader styling
  *
  */
 
@@ -19,7 +19,7 @@ body {
 /*
  * Main navigation
  *
- * Turn the `.navbar` at the top of the docs purple.
+ * Turn the `.navbar` at the top of the docs black-white-grey-nice.
  */
 
 .bs-docs-nav {
@@ -63,10 +63,6 @@ body {
 /* By default it's not affixed in mobile views, so undo that */
 .bs-sidebar.affix {
   position: static;
-}
-
-.something.affix {
-    position: static;
 }
 
 /* First level of nav */
@@ -113,65 +109,27 @@ body {
   font-size: 90%;
 }
 
-/* Show and affix the side nav when space allows it */
-@media screen and (min-width: 992px) {
-  .bs-sidebar .nav > .active > ul {
-    display: block;
-  }
-  /* Widen the fixed sidebar */
-  .bs-sidebar.affix,
-  .bs-sidebar.affix-bottom {
-    width: 213px;
-  }
-  .bs-sidebar.affix {
-    position: fixed; /* Undo the static from mobile first approach */
-    top: 80px;
-  }
-  .bs-sidebar.affix-bottom {
-    position: absolute; /* Undo the static from mobile first approach */
-  }
-  .bs-sidebar.affix-bottom .bs-sidenav,
-  .bs-sidebar.affix .bs-sidenav {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
-}
-@media screen and (min-width: 1200px) {
-  /* Widen the fixed sidebar again */
-  .bs-sidebar.affix-bottom,
-  .bs-sidebar.affix {
-    width: 155px;
-  }
-}
 
-/* Show and affix the side nav when space allows it */
-@media screen and (min-width: 992px) {
-    /* Widen the fixed sidebar */
-    .something.affix,
-    .something.affix-bottom {
-
-    }
-    .something.affix {
-        position: fixed; /* Undo the static from mobile first approach */
-        bottom: 10px;
-    }
-    .something.affix-bottom {
-        position: fixed; /* Undo the static from mobile first approach */
-    }
-
-}
 @media screen and (min-width: 1200px) {
     /* Widen the fixed sidebar again */
-    .something.affix-bottom,
-    .something.affix {
+    .bs-sidebar.affix,
+    .bs-sidebar.affix-bottom {
+        width: 155px;
+    }
 
+    .bs-sidebar.affix {
+        position: fixed; /* Undo the static from mobile first approach */
+        top: 80px;
+    }
+    .bs-sidebar.affix-bottom {
+        position: absolute; /* Undo the static from mobile first approach */
+    }
+    .bs-sidebar.affix-bottom .bs-sidenav,
+    .bs-sidebar.affix .bs-sidenav {
+        margin-top: 0;
+        margin-bottom: 0;
     }
 }
-
-
-
-
-
 
 /*
  * Docs sections
@@ -188,4 +146,54 @@ body {
 h1[id] {
   padding-top: 80px;
   margin-top: -45px;
+}
+
+ /*
+ * Validations
+ *
+ * Different custom validations round the index.html
+ */
+
+.textboxValidatorClass {
+    background-color: #FFCCCC;
+}
+
+.textValidatorClass {
+    color: #FF0000;
+    display:block;
+}
+
+/*
+ * Sticky screen footer
+ */
+
+footer {
+    width: 100%;
+    position: fixed;
+    left: 0%;
+    bottom: 0%;
+    background: #3a3a3a;
+    z-index:10000;
+}
+
+/*
+ * Map styles in area-selection
+ */
+
+#mapdiv {
+    width:100%;
+    height:400px;
+}
+
+#bbox_adjust_instruction {
+    height:1.5em;
+    display:none;
+}
+
+/*
+* Misc
+*/
+.outputlist-headlines {
+    display: block;
+    text-align: center;
 }

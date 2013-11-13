@@ -7,11 +7,6 @@ function dndCtrl($scope,UrlService) {
     //Control of format
     $scope.format = '';
 
-    $scope.formatChange = function(formatString) {
-        $scope.format = formatString;
-        console.log("format is "+formatString);
-    }
-
     // Array of table separators: source data.js
     $scope.tableSeparators = tableSeparators;
 
@@ -27,18 +22,6 @@ function dndCtrl($scope,UrlService) {
  	//Array of objects included in query (starts empty)
     $scope.included = [];
 
-    // watch, use 'true' to also receive updates when values
-    // change, instead of just the reference
-    $scope.$watch("notIncluded", function(value) {
-        //console.log("NotIncluded: " + value.map(function(e){return e.id}).join(','));
-    },true);
-
-    // watch, use 'true' to also receive updates when values
-    // change, instead of just the reference
-    $scope.$watch("included", function(value) {
-        //console.log("Included: " + value.map(function(e){return e.id}).join(','));
-    },true);
-
     $scope.includedEmpty = function() {
         return $scope.included.length == 0;
     }
@@ -47,7 +30,7 @@ function dndCtrl($scope,UrlService) {
         return $scope.notIncluded.length == 0;
     }
 
-    //Make the example of header line
+    //Make example of a header line
     $scope.headerPreview = function() {
         //filter tableSeparators array to find separator character
         var filteredArray = $scope.tableSeparators.filter(function (element) {
@@ -80,14 +63,8 @@ function dndCtrl($scope,UrlService) {
 
     };
 
-    $scope.settingTab = function(name) {
-        console.log("Pane is" +name);
-    }
-
     //If format is changed push to service
     $scope.$watch('format', function() {
-        console.log("inside watchFormat");
-
         var tables = '';
         var separator = '';
         var header = '';
@@ -125,8 +102,6 @@ function dndCtrl($scope,UrlService) {
 
     //If included array are changed push to service
     $scope.$watch('included', function() {
-        console.log("inside watchIncluded");
-
         var tables = '';
         var separator = '';
 

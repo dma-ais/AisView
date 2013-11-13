@@ -17,45 +17,8 @@
     <link href="css/bootstrap-datepicker.css" rel="stylesheet">
     <link href="css/bootstrap-timepicker.css" rel="stylesheet">
     <link href="css/columnSelector.css" rel="stylesheet">
-    <link href="css/docs.css" rel="stylesheet">
+    <link href="css/ais-store-styles.css" rel="stylesheet">
 
-
-    <style>
-        <!-- TODO: move to stylesheet -->
-
-
-
-        #mapdiv33 { width:800px; height:400px; }
-
-        #mapdiv { width:100%; height:400px; }
-
-
-        #bbox_adjust_instruction { height:1.5em; display:none;  }
-
-        .countryValidatorClass {
-            background-color: #FFCCCC;
-        }
-
-        .validator-warning {
-            color: #FF0000;
-            display:block;
-        }
-
-        .outputlist-headlines {
-            display: block;
-            text-align: center;
-        }
-
-        footer {
-            width: 100%;
-            position: fixed;
-            left: 0%;
-            bottom: 0%;
-            background: #3a3a3a;
-            z-index:10000;
-        }
-
-    </style>
 </head>
 <body onload="init()">
 
@@ -119,7 +82,6 @@
 
                             <div id="pane2" class="tab-pane fade">
                                 <h3 id="source_base">Source Base Station</h3>
-                                <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
                                 <div ng-repeat="sourceBase in sourceBases">
                                     <span>{{sourceBase.text}}</span>
                                     <input type="text" ng-model="sourceBase.input" ng-change="newTextFieldBase(sourceBase)">
@@ -131,7 +93,7 @@
                                     <span>{{sourceCountry.text}}</span>
                                     <input type="text" size="45" auto-complete ui-items="countryDatabase"
                                            ng-model="sourceCountry.input" ng-change="newTextFieldCountry(sourceCountry)"
-                                           ng-class="{countryValidatorClass: checkCountryDB(sourceCountry)}">
+                                           ng-class="{textboxValidatorClass: checkCountryDB(sourceCountry)}">
                                 </div>
                             </div>
                             <div id="pane4" class="tab-pane fade">
@@ -144,7 +106,6 @@
                             </div>
                             <div id="pane5" class="tab-pane fade">
                                 <h3 id="source_region">Source Region</h3>
-                                <p>Source basestation: multiple inputboxes (max 9 characters), add a new one each time one is filled out</p>
                                 <div ng-repeat="sourceRegion in sourceRegions">
                                     <span>{{sourceRegion.text}}</span>
                                     <input type="text" ng-model="sourceRegion.input" ng-change="newTextFieldRegion(sourceRegion)">
@@ -203,7 +164,7 @@
                             </div>
                         </div>
                     </div>
-                    <p id="mapInputWarning" style="background-color:red;">{{mapInputWarning}}</p>
+                    <div id="mapInputWarning" class="textValidatorClass">{{mapInputWarning}}</div>
                 </div><!-- /#area_selection_body -->
 
                 <!-- Ship Types -->
@@ -231,7 +192,7 @@
                                                    ng-model="startDatepicker.date" data-date-format="dd/mm/yyyy"
                                                    data-end-date="returnNowDate()"
                                                    style="width: 105px;" bs-datepicker=""
-                                                   ng-class="{countryValidatorClass: checkIfFutureDate(startDatepicker.date) || afterStartDate() || validDate(startDatepicker.date)}">
+                                                   ng-class="{textboxValidatorClass: checkIfFutureDate(startDatepicker.date) || afterStartDate() || validDate(startDatepicker.date)}">
                                         </div>
                                     </div>
                                     <div class="col-lg-5">
@@ -240,7 +201,7 @@
                                             <input id="inputStartTimepicker" type="text" class="form-control"
                                                    ng-model="startTimepicker.time" style="width: 65px;"
                                                    data-show-meridian="false" bs-timepicker=""
-                                                   ng-class="{countryValidatorClass: afterStartTime()}">
+                                                   ng-class="{textboxValidatorClass: afterStartTime()}">
                                         </div>
                                     </div>
                                 </div>
@@ -258,7 +219,7 @@
                                                    ng-model="endDatepicker.date" data-date-format="dd/mm/yyyy"
                                                    data-end-date="returnNowDate()"
                                                    style="width: 105px;" bs-datepicker=""
-                                                   ng-class="{countryValidatorClass: checkIfFutureDate(endDatepicker.date) || afterStartDate() || validDate(endDatepicker.date)}">
+                                                   ng-class="{textboxValidatorClass: checkIfFutureDate(endDatepicker.date) || afterStartDate() || validDate(endDatepicker.date)}">
                                         </div>
                                     </div>
                                     <div class="col-lg-5">
@@ -267,7 +228,7 @@
                                             <input id="inputEndTimepicker" type="text" class="form-control"
                                                    ng-model="endTimepicker.time" style="width: 65px;"
                                                    data-show-meridian="false" bs-timepicker=""
-                                                   ng-class="{countryValidatorClass: afterStartTime()}">
+                                                   ng-class="{textboxValidatorClass: afterStartTime()}">
                                         </div>
                                     </div>
                                 </div>
@@ -289,14 +250,14 @@
                             </form>
                         </div>
                     </div>
-                    <div class="validator-warning" ng-show="validDate(startDatepicker.date)">Start date has wrong format</div>
-                    <div class="validator-warning" ng-show="validDate(endDatepicker.date)">End date has wrong format</div>
-                    <div class="validator-warning" ng-show="afterStartDate()">Start date must be before end date</div>
-                    <div class="validator-warning" ng-show="checkIfFutureDate(startDatepicker.date)"
+                    <div class="textValidatorClass" ng-show="validDate(startDatepicker.date)">Start date has wrong format</div>
+                    <div class="textValidatorClass" ng-show="validDate(endDatepicker.date)">End date has wrong format</div>
+                    <div class="textValidatorClass" ng-show="afterStartDate()">Start date must be before end date</div>
+                    <div class="textValidatorClass" ng-show="checkIfFutureDate(startDatepicker.date)"
                             >Start date must not be in the future</div>
-                    <div class="validator-warning" ng-show="checkIfFutureDate(endDatepicker.date)"
+                    <div class="textValidatorClass" ng-show="checkIfFutureDate(endDatepicker.date)"
                             >End date must not be in the future</div>
-                    <div class="validator-warning" ng-show="afterStartTime()">Start time must be before end time when same start/end date is chosen</div>
+                    <div class="textValidatorClass" ng-show="afterStartTime()">Start time must be before end time when same start/end date is chosen</div>
 
 
                 </div><!-- /#time_selection_body -->
@@ -307,8 +268,8 @@
 
                 <div id="output_format_body" ng-controller="dndCtrl" class="tabbable" style="min-height: 402px;">
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="formatChange('')">Raw</a></li>
-                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="formatChange('tables=')">Table select</a></li>
+                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
+                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
                     </ul>
 
                     <div class="tab-content">
