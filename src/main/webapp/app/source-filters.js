@@ -1,4 +1,5 @@
-function sourceFilters($scope,UrlService) {
+function sourceFilters($scope,UrlService,$http) {
+
     //Controllers of number of new Base and Country input field
     var countBase = 2;
     var countRegion = 2;
@@ -24,6 +25,21 @@ function sourceFilters($scope,UrlService) {
 
     //Source ID variables: source data.js
     $scope.sourceIds = sourceIds;
+
+
+    //Source ID variables: source /store/sourceIDs
+    $http({method: 'GET', url: 'http://10.0.0.121:8090/store/sourceIDs'}).success(function(data){
+        $scope.user = data; // response data
+    });
+
+    console.log("Look: " +$scope.user);
+
+
+
+
+
+
+
     //Source Base variables
     $scope.sourceBases = [{text:1+'.', input:'', counter: 1}];
     //Source Country variables
@@ -261,7 +277,7 @@ function sourceFilters($scope,UrlService) {
         if(someInput) {
             returnString=baseString;
             angular.forEach(array, function(item) {
-                if(item.input.length>0) returnString+=item.input+',';
+                 if(item.input.length>0) returnString+=item.input+',';
             });
         }else returnString='';
 

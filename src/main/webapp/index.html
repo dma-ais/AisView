@@ -78,6 +78,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                {{user}}
                             </div>
 
                             <div id="pane2" class="tab-pane fade">
@@ -133,12 +134,12 @@
                                     <div class="col-lg-6">
                                         <input type="text" id="bbox_result_maxLat" class="form-control" size=6
                                                ng-change="changeMapInputField()" ng-model="topLeftLat" placeholder="Lat"
-                                               ng-class="{textboxValidatorClass: latitudeCheck(topLeftLat) || sameLatCheck()}">
+                                               ng-class="{textboxValidatorClass: latitudeCheck(topLeftLat) || sameLatCheck() }">
                                     </div>
                                     <div class="col-lg-6">
                                         <input  type="text" id="bbox_result_minLon" class="form-control" size=6
                                                 ng-change="changeMapInputField()" ng-model="topLeftLon" placeholder="Lon"
-                                                ng-class="{textboxValidatorClass: sameLonCheck()}">
+                                                ng-class="{textboxValidatorClass: longitudeCheck(topLeftLon) || sameLonCheck()}">
                                     </div>
                                 </div>
                             </div>
@@ -149,12 +150,14 @@
                                 <div class="row">
                                     <div class="col-lg-6">
                                         <input type="text" id="bbox_result_minLat" class="form-control" size=6
-                                           ng-change="changeMapInputField()" ng-model="bottomRightLat" placeholder="Lat">
+                                           ng-change="changeMapInputField()" ng-model="bottomRightLat" placeholder="Lat"
+                                           ng-class="{textboxValidatorClass: latitudeCheck(bottomRightLat) || sameLatCheck() }">
                                     </div>
                                     <div class="col-lg-6">
 
-                                        <input  type="text" id="bbox_result_maxLon" class="form-control" ng-change="changeMapInputField()"
-                                            ng-model="bottomRightLon" placeholder="Lon" size=6>
+                                        <input  type="text" id="bbox_result_maxLon" class="form-control" size=6
+                                                ng-change="changeMapInputField()" ng-model="bottomRightLon" placeholder="Lon"
+                                                ng-class="{textboxValidatorClass: longitudeCheck(bottomRightLon) || sameLonCheck()}">
                                     </div>
                                 </div>
                             </div>
@@ -166,8 +169,13 @@
                             </div>
                         </div>
                     </div>
-                    <div id="mapInputWarning" class="textValidatorClass">{{mapInputWarning}}</div>
+
                     <div class="textValidatorClass" ng-show="latitudeCheck(topLeftLat)">New: Latitude should be between -90 and 90 degrees.</div>
+                    <div class="textValidatorClass" ng-show="latitudeCheck(bottomRightLat)&& !latitudeCheck(topLeftLat)">New: Latitude should be between -90 and 90 degrees.</div>
+                    <div class="textValidatorClass" ng-show="longitudeCheck(topLeftLon)">New: Longitude should be between -180 and 180 degrees.</div>
+                    <div class="textValidatorClass" ng-show="longitudeCheck(bottomRightLon) && !longitudeCheck(topLeftLon)">New: Longitude should be between -180 and 180 degrees.</div>
+                    <div class="textValidatorClass" ng-show="sameLatCheck()">New: Same lat on both points.</div>
+                    <div class="textValidatorClass" ng-show="sameLonCheck()">New: Same lon on both points.</div>
 
                 </div><!-- /#area_selection_body -->
 
@@ -345,7 +353,10 @@
                 </div>
 
                 <div id="download_body" ng-controller="download">
-                    <div ng-controller="urlBuilder"><textarea rows="3" style="width: 100%;" readonly>{{url()}}</textarea></div>
+                    <div ng-controller="urlBuilder">
+                        <textarea rows="3" style="width: 100%;" readonly>{{url()}}</textarea>
+                        {{user.sourceIDs}}
+                    </div>
                     <div class="navbar">
                         <form class="navbar-form pull-left">
                             <input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
@@ -384,6 +395,7 @@
 
     <!-- AngularJS -->
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular-resource.min.js"></script>
 
     <!-- Underscore -->
     <script src="https://cdn.jsdelivr.net/underscorejs/1.5.1/underscore-min.js"></script>

@@ -10,23 +10,6 @@ var transform;
 var boxDraggedOnce = false;
 var boxDrawnOnce = false;
 
-/**
- * TESTING AREA!!!
- */
-
-
-function latitudeCheck(input){
-    console.log("Time is Money");
-    if((parseFloat(input) > 90) || (parseFloat(input) < -90)) return false;
-    else return true;
-}
-
-
-/**
- * TESTING AREA FINISH!!!
- */
-
-
 function init() {
     //console.log('init()');
     map = new OpenLayers.Map('mapdiv', {
@@ -121,128 +104,61 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
     console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + bottomRightLat +','+ bottomRightLon);
 
-    //fix of collapse of borders of box
-    //TODO: take care of 10==10.==10.0...
-    if(topLeftLat==bottomRightLat) {
-        console.log('same borders');
-        var scope = angular.element('#mapInputWarning').scope();
-        scope.mapInputWarning = 'Same latitude on both points';
-    }
-    else if(topLeftLon==bottomRightLon){
-        console.log('same borders');
-        var scope = angular.element('#mapInputWarning').scope();
-        scope.mapInputWarning = 'Same longitude on both points';
-    }
-    else{
+     if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(bottomRightLat)&&!isNaN(bottomRightLon)   //no NaN inputs
+        && topLeftLat!='' && topLeftLon!='' && bottomRightLat!='' && bottomRightLon!=''         //no empty strings
+        && topLeftLat<90 && topLeftLat>-90 && bottomRightLat<90 && bottomRightLat>-90           //lat control
+        && topLeftLon<180 && topLeftLon>-180 && bottomRightLon<180 && bottomRightLon>-180       //lon control
+        && topLeftLat!=bottomRightLat && topLeftLon!=bottomRightLon                             //not same values
+        ){
 
-        if (boxDraggedOnce){
-            //check if input is blank
-            if((parseFloat(topLeftLat) > 90) || (parseFloat(bottomRightLat) > 90 ||
-                parseFloat(topLeftLat) < -90) || (parseFloat(bottomRightLat) < -90)) {
-                console.log('lat +-90 error');
-                var scope = angular.element('#mapInputWarning').scope();
-                scope.mapInputWarning = 'Latitude should be between -90 and 90';
+        if(!boxDrawnOnce) {
+            console.log('getting ready to do some action');
 
-            }
-            else if((topLeftLat!='') && (topLeftLon!='')&&(bottomRightLat!='')&&(bottomRightLon!='')) {
-                //same as if dragNewBox();
-                box.activate();
-                transform.deactivate(); //The remove the box with handles
-                vectors.destroyFeatures();
+            //same as if endDrag()
+            var latLonArray = new Array();
+            latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
 
-                //same as if endDrag()
-                var latLonArray = new Array();
-                latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
+            var bounds = new OpenLayers.Bounds();
+            bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
+            bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
-                var bounds = new OpenLayers.Bounds();
-                bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
-                bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
+            b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+            console.log('newInput() Bounds:'+b);
 
-                b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                console.log('newInput() Bounds:'+b);
+            drawBox(b);
 
-                drawBox(b);
+            box.deactivate();
+            boxDrawnOnce = true;
 
-                box.deactivate();
+            //document.getElementById("bbox_drag_instruction").style.display = 'none';
+            document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
-                //document.getElementById("bbox_drag_instruction").style.display = 'none';
-                document.getElementById("bbox_adjust_instruction").style.display = 'block';
+        }else { //boxDrawnOnce
 
-                var scope = angular.element('#mapInputWarning').scope();
-                scope.mapInputWarning = '';
+            //same as if dragNewBox();
+            box.activate();
+            transform.deactivate(); //The remove the box with handles
+            vectors.destroyFeatures();
 
-            }else{
-                console.log('some input is blank-do nothing!!!');
-                var scope = angular.element('#mapInputWarning').scope();
-                scope.mapInputWarning = 'Some input fields are empty';
+            //same as if endDrag()
+            var latLonArray = new Array();
+            latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
 
-            }
-        }else { //!boxDraggedOnce
-            if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(bottomRightLat)&&!isNaN(bottomRightLon)){
+            var bounds = new OpenLayers.Bounds();
+            bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
+            bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
-                if(!boxDrawnOnce) {
-                    console.log('getting ready to do some action');
+            b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+            console.log('newInput() Bounds:'+b);
 
-                    //same as if endDrag()
-                    var latLonArray = new Array();
-                    latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
+            drawBox(b);
 
-                    var bounds = new OpenLayers.Bounds();
-                    bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
-                    bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
+            box.deactivate();
 
-                    b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                    console.log('newInput() Bounds:'+b);
-
-                    drawBox(b);
-
-                    box.deactivate();
-                    boxDrawnOnce = true;
-
-                    //document.getElementById("bbox_drag_instruction").style.display = 'none';
-                    document.getElementById("bbox_adjust_instruction").style.display = 'block';
-
-                    var scope = angular.element('#mapInputWarning').scope();
-                    scope.mapInputWarning = '';
-
-                }else {     //boxDrawnOnce
-                    //check if input is blank
-                    if((topLeftLat!='') && (topLeftLon!='')&&(bottomRightLat!='')&&(bottomRightLon!='')) {
-                        //same as if dragNewBox();
-                        box.activate();
-                        transform.deactivate(); //The remove the box with handles
-                        vectors.destroyFeatures();
-
-                        //same as if endDrag()
-                        var latLonArray = new Array();
-                        latLonArray = handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon);
-
-                        var bounds = new OpenLayers.Bounds();
-                        bounds.extend(new OpenLayers.LonLat(latLonArray[1],latLonArray[0]));
-                        bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
-
-                        b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-                        console.log('newInput() Bounds:'+b);
-
-                        drawBox(b);
-
-                        box.deactivate();
-
-                        //document.getElementById("bbox_drag_instruction").style.display = 'none';
-                        document.getElementById("bbox_adjust_instruction").style.display = 'block';
-
-                        var scope = angular.element('#mapInputWarning').scope();
-                        scope.mapInputWarning = '';
-                    }else{
-                        console.log('some input is blank-do nothing');
-                        var scope = angular.element('#mapInputWarning').scope();
-                        scope.mapInputWarning = 'Some input fields are empty222';
-
-                    }
-                }
-            }else console.log('do nothing yet');
+            //document.getElementById("bbox_drag_instruction").style.display = 'none';
+            document.getElementById("bbox_adjust_instruction").style.display = 'block';
         }
-    }
+    }else console.log('do nothing yet - big control');
 }
 
 function dragNewBox() {

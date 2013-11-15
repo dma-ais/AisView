@@ -1,5 +1,7 @@
 function urlBuilder($scope,UrlService) {
 
+
+
     $scope.url = function(){
         var base = requestDomain;
 
