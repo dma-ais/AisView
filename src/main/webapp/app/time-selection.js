@@ -26,7 +26,7 @@ function timeSelection($scope,UrlService) {
     function updateStartTime(){
         var fromDate = '';
 
-        //making from= string
+        //making from= string  http://en.wikipedia.org/wiki/ISO_8601
         if($scope.startDatepicker.date != '' &&
             $scope.startTimepicker.time != ''){
 
@@ -37,13 +37,16 @@ function timeSelection($scope,UrlService) {
             try{
                 var monthOfYear = tempDate.getMonth()+1;
 
-                fromDate =  'startTime=' +
-                    tempDate.getDate() + '.' +
-                    monthOfYear + '.' +
-                    tempDate.getFullYear() +'&';
+                fromDate =  time_restService +
+                    tempDate.getFullYear() + '-' +
+                    monthOfYear + '-' +
+                    tempDate.getDate() +
+                    'T' + tempTime + ':' +
+                    '00Z';
             }
             catch(err){
                 //do something maybe
+                console.log("TimeError: " +err);
             }
         }
         //Send to service
@@ -53,24 +56,30 @@ function timeSelection($scope,UrlService) {
     //Build endTime string and send to service
     function updateEndTime(){
         var toDate = '';
-        //making to= string
+        //making to= string http://en.wikipedia.org/wiki/ISO_8601
         if($scope.endDatepicker.date != '' &&
-                $scope.endTimepicker.time != ''){
 
-                var tempDate = $scope.endDatepicker.date;
-                var tempTime = $scope.endTimepicker.time;
-                var tempTimeZone = $scope.timeZone.zone;
+            $scope.endTimepicker.time != ''){
+
+            var tempDate = $scope.endDatepicker.date;
+            var tempTime = $scope.endTimepicker.time;
+            var tempTimeZone = $scope.timeZone.zone;
 
             try{
                 var monthOfYear = tempDate.getMonth()+1;
 
-                toDate =  'endTime=' +
-                    tempDate.getDate() + '.' +
-                    monthOfYear + '.' +
-                    tempDate.getFullYear() +'&';
+                toDate =  '/' +
+                    tempDate.getFullYear() + '-' +
+                    monthOfYear + '-' +
+                    tempDate.getDate() +
+                    'T' + tempTime + ':' +
+                '00Z'+
+                '&';
             }
             catch(err){
                 //do something maybe
+                console.log("TimeError "+err);
+
             }
         }
         //Send to service

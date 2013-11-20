@@ -23,21 +23,22 @@ function sourceFilters($scope,UrlService,$http) {
     $scope.sourceTypeTabHeader = tabHeadings[3];
     $scope.sourceRegionTabHeader = tabHeadings[4];
 
-    //Source ID variables: source data.js
-    $scope.sourceIds = sourceIds;
-
-
+    //
+    $scope.tempIds = [];
+    var sourceIds = [];
+    sourceIds[0]= {text:'All', value: 'all&', include:true};
     //Source ID variables: source /store/sourceIDs
     $http({method: 'GET', url: 'http://10.0.0.121:8090/store/sourceIDs'}).success(function(data){
-        $scope.user = data; // response data
+        $scope.tempIds = data.sourceIDs; // response data
+
+        //building the sourceIDs array
+        for (var i = 0; i < $scope.tempIds.length; i++) {
+            sourceIds[i+1]= {text:$scope.tempIds[i], value: $scope.tempIds[i], include:false}
+        }
     });
 
-    console.log("Look: " +$scope.user);
-
-
-
-
-
+    //Source ID variables: source data.js
+    $scope.sourceIds = sourceIds;
 
 
     //Source Base variables

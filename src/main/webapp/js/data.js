@@ -3,7 +3,20 @@
 //
 
 //Domain for request url
-var requestDomain = 'http://www.example.com/';
+var requestDomain = 'http://10.0.0.121:8090/store/query?';
+
+
+//
+//Rest-service query parameters
+//
+
+//Time selection
+var time_restService = 'interval=';         //used in time-selection.js
+var output_restService = 'output=table&';   //used in output-format-ctrl.js
+var columns_restService = 'columns=';       //used in output-format-ctrl.js
+var separator_restService = 'separator=';   //used in output-format-ctrl.js
+var noHeader_restService = 'noHeader&';    //used in output-format-ctrl.js
+var area_restService = 'box=';              //used in area-selection.js
 
 
 
@@ -15,7 +28,7 @@ var requestDomain = 'http://www.example.com/';
 var tabHeadings=['Source ID','Source Base Station','Source Country','Source Type','Source Region'];
 
 //Source Ids
-var sourceIds = [
+/*var sourceIds = [
     {text:'All', value: 'all&', include:true},
     {text:'Source1', value: 'src1', include:false},
     {text:'Source2', value: 'src2', include:false},
@@ -23,6 +36,7 @@ var sourceIds = [
     {text:'Source4', value: 'src4', include:false},
     {text:'Source5', value: 'src5', include:false},
     {text:'Source6', value: 'src6', include:false}];
+*/
 
 //Source Bases
 var sourceBases = [{text:1+'.', input:'', counter: 1}];
@@ -42,12 +56,12 @@ var timeZones = [
 ];
 
 //Start and end date of date-picker
-var startDatepicker = {date: new Date("2012-09-01T00:00:00.000Z")};
-var endDatepicker = {date: new Date("2012-09-10T00:00:00.000Z")};
+var startDatepicker = {date: new Date("2013-10-15T00:00:00.000Z")};
+var endDatepicker = {date: new Date("2013-10-15T00:00:00.000Z")};
 
 //Start and end time of time-picker
-var startTimepicker = {time: "00:00"};
-var endTimepicker = {time: "00:00"};
+var startTimepicker = {time: "14:00"};
+var endTimepicker = {time: "14:10"};
 
 //Time zone to start the time zone picker with (should be the same as on of the objects in timeZones
 var timeZone = {ID: 'utc', Title: 'UTC'};
@@ -58,14 +72,13 @@ var timeZone = {ID: 'utc', Title: 'UTC'};
 
 //List of available separators
 var tableSeparators = [
-    {ID: 'colon', Title: 'Colon', Value:':'},
-    {ID: 'semi-colon', Title: 'Semicolon', Value:';'},
-    {ID: 'comma', Title: 'Comma', Value:','},
-    {ID: 'tab', Title: 'Tab', Value:'   '}
+    {Title: 'Semicolon', Value:';'},
+    {Title: 'Colon', Value:':'},
+    {Title: 'Comma', Value:','}
 ];
 
 //Current separator (must be one of those in tableSeparators array)
-var tableSeparator = {sep: 'colon'};
+var tableSeparator = {sep: ';'};
 
 //Array of objects not currently included in query
 //Extra entries can be added/removed
@@ -73,10 +86,10 @@ var tableSeparator = {sep: 'colon'};
 //value-, queryName-, ex-values can be changed
 //category values can NOT be changed for now TODO: make category values changeable eg in output-format-dir line 47
 var notIncluded = [
-    { 'id': 0,	value: "Longitude",     queryName: "longitude",     ex: "12.369",       category: "all,xyz"},
-    { 'id': 1, 	value: "Latitude",		queryName: "latitude",      ex: "55.634",       category: "all,xyz"},
+    { 'id': 0,	value: "Longitude",     queryName: "lon",     ex: "12.369",       category: "all,xyz"},
+    { 'id': 1, 	value: "Latitude",		queryName: "lat",      ex: "55.634",       category: "all,xyz"},
     { 'id': 2, 	value: "Height",		queryName: "height",        ex: "22.12",        category: "all,xyz"},
-    { 'id': 3, 	value: "Timeformat1",	queryName: "timeformat1",   ex: "YYYY-MM-DD",   category: "all,time"},
+    { 'id': 3, 	value: "Timeformat1",	queryName: "utc",   ex: "YYYY-MM-DD",   category: "all,time"},
     { 'id': 4, 	value: "Timeformat2",	queryName: "timeformat2",   ex: "YYYYMMDD",     category: "all,time"},
     { 'id': 5, 	value: "Timeformat3",	queryName: "timeformat3",   ex: "DD-MM-YYYY",   category: "all,time"},
     { 'id': 6, 	value: "Signal1",		queryName: "signal1",       ex: "alpha",        category: "all,signal"},

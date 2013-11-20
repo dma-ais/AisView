@@ -78,7 +78,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                {{user}}
                             </div>
 
                             <div id="pane2" class="tab-pane fade">
@@ -280,8 +279,8 @@
 
                 <div id="output_format_body" ng-controller="dndCtrl" class="tabbable" style="min-height: 402px;">
                     <ul class="nav nav-tabs">
-                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="format=''">Raw</a></li>
-                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="format='tables='">Table select</a></li>
+                        <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="changeOutput('raw')">Raw</a></li>
+                        <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="changeOutput('table')">Table select</a></li>
                     </ul>
 
                     <div class="tab-content">
@@ -326,21 +325,21 @@
                                     <div id="seperatorSelect" class="col-lg-3">
                                         <label id="listTitles3" class="outputlist-headlines">Separator</label>
                                         <select ng-model="tableSeparator.sep"
-                                                ng-options="item.ID as item.Title for item in tableSeparators">
+                                                ng-options="item.Value as item.Title for item in tableSeparators">
                                         </select><br>
                                         <br>
                                         <input type="checkbox" ng-model="headerChecked" value="true">
-                                        <span>Include header</span>
+                                        <span>No header</span>
                                     </div><!-- /.col-lg-3 -->
                                 </div><!-- /.row -->
                             </div><!-- /.container -->
                             <br>
 
                             <div id="exampleQuery">
-                                <div ng-hide="headerChecked" class="form-group">
+                                <div ng-show="headerChecked" class="form-group">
                                     <textarea id="stringHeaderShow" readonly rows="2" style="width: 100%;" placeholder="Example">{{exPreview()}}</textarea>
                                 </div>
-                                <div ng-show="headerChecked" class="form-group">
+                                <div ng-hide="headerChecked" class="form-group">
                                     <textarea id="stringExShow" readonly rows="2" style="width: 100%;" placeholder="Example">{{headerPreview()}}&#10;{{exPreview()}}</textarea>
                                 </div>
                             </div>
@@ -353,17 +352,19 @@
                 </div>
 
                 <div id="download_body" ng-controller="download">
-                    <div ng-controller="urlBuilder">
+                    <div ng-controller="urlBuilder" >
                         <textarea rows="3" style="width: 100%;" readonly>{{url()}}</textarea>
-                        {{user.sourceIDs}}
                     </div>
-                    <div class="navbar">
+                    <div class="navbar" ng-controller="urlBuilder">
                         <form class="navbar-form pull-left">
                             <input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
                             <button type="submit" class="btn btn-default">Show Sample</button>
-                            <button type="submit" class="btn btn-default">Download</button>
+                            <button type="submit" ng-click="openRequestCall()" class="btn btn-default">Open in new tab</button>
+                            <button type="submit" ng-click="download()" class="btn btn-default">Save to disk</button>
+                            <p>NP: Save to disk only works in Chrome,Fixefox,Opera</p>
                         </form>
                     </div>
+                    <br><br><br>
                 </div><!-- /#download_body -->
                 <footer>
                     <div style="color:white; padding-left: 2px;" ng-controller="urlBuilder">
@@ -436,6 +437,9 @@
     <script src="app/download.js"></script>
 
     <script src="js/application.js"></script>
+
+    <!-- jQuery file download plugin -->
+    <script src="js/jquery.fileDownload.js" type="text/javascript"></script>
 
     <!-- OpenLayers -->
     <!--<script src="http://www.openlayers.org/api/OpenLayers.js"></script>-->

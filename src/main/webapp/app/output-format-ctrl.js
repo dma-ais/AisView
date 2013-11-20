@@ -1,6 +1,7 @@
 function dndCtrl($scope,UrlService) {
     //inspiration from:
     //http://www.smartjava.org/content/drag-and-drop-angularjs-using-jquery-ui
+
     //Control of header included in query
     $scope.headerChecked = false;
 
@@ -30,11 +31,19 @@ function dndCtrl($scope,UrlService) {
         return $scope.notIncluded.length == 0;
     }
 
+    $scope.changeOutput = function(str) {
+
+        if(str=='raw') $scope.format = '';
+        if(str=='table') $scope.format = 'tables';
+
+    }
+
+
     //Make example of a header line
     $scope.headerPreview = function() {
         //filter tableSeparators array to find separator character
         var filteredArray = $scope.tableSeparators.filter(function (element) {
-            return element.ID == $scope.tableSeparator.sep;
+            return element.Value == $scope.tableSeparator.sep;
         });
 
         var breadcrumb = '';
@@ -50,7 +59,7 @@ function dndCtrl($scope,UrlService) {
     $scope.exPreview = function() {
         //filter tableSeparators array to find separator character
         var filteredArray = $scope.tableSeparators.filter(function (element) {
-            return element.ID == $scope.tableSeparator.sep;
+            return element.Value == $scope.tableSeparator.sep;
         });
 
         var breadcrumb = '';
@@ -77,26 +86,28 @@ function dndCtrl($scope,UrlService) {
         else {
             //only append if included tables list is not empty
             if($scope.included.length!=0){
-                tables='tables=';
+                tables=output_restService+columns_restService;
                 angular.forEach($scope.included, function(includedItem) {
-                    tables+=includedItem.queryName+',';
+                    tables+=includedItem.queryName+';';
                 });
 
                 //delete , with & at end of string
                 tables=tables.replace(/^,|,$/g,'&');
 
-                separator='separator='+$scope.tableSeparator.sep+'&';
+                if($scope.tableSeparator.sep!=';') separator=separator_restService+$scope.tableSeparator.sep+'&';
+                else separator='';
             }
         }
 
         //header control
-        if($scope.headerChecked && $scope.format!='') header = 'header=true&';
+        if($scope.headerChecked==true && $scope.format!='' && $scope.included.length!=0) header = noHeader_restService;
         else header = '';
 
         //Send to service
         UrlService.setTables(tables);
         UrlService.setSeparator(separator);
         UrlService.setHeader(header);
+
     }, true);
 
 
@@ -104,6 +115,7 @@ function dndCtrl($scope,UrlService) {
     $scope.$watch('included', function() {
         var tables = '';
         var separator = '';
+        var header = '';
 
         //append all tables if format is 'table' else no tables
         if($scope.format=='') {
@@ -113,21 +125,27 @@ function dndCtrl($scope,UrlService) {
         else {
             //only append if included tables list is not empty
             if($scope.included.length!=0){
-                tables='tables=';
+                tables=output_restService+columns_restService;
                 angular.forEach($scope.included, function(includedItem) {
-                    tables+=includedItem.queryName+',';
+                    tables+=includedItem.queryName+';';
                 });
 
                 //delete , with & at end of string
-                tables=tables.replace(/^,|,$/g,'&');
+                tables=tables.replace(/^,|;$/g,'&');
 
-                separator='separator='+$scope.tableSeparator.sep+'&';
+                if($scope.tableSeparator.sep!=';') separator=separator_restService+$scope.tableSeparator.sep+'&';
+                else separator='';
             }
         }
+
+        //header control
+        if($scope.headerChecked==true && $scope.format!='' && $scope.included.length!=0) header = noHeader_restService;
+        else header = '';
 
         //Send to service
         UrlService.setTables(tables);
         UrlService.setSeparator(separator);
+        UrlService.setHeader(header);
     }, true);
 
     //If tableSeparator are changed push to service
@@ -137,7 +155,7 @@ function dndCtrl($scope,UrlService) {
         if($scope.format=='') separator = '';
         else {
             //only append if included tables list is not empty
-            if($scope.included.length!=0) separator='separator='+$scope.tableSeparator.sep+'&';
+            if($scope.included.length!=0) separator=separator_restService+$scope.tableSeparator.sep+'&';
         }
         //Send to service
         UrlService.setSeparator(separator);
@@ -147,8 +165,8 @@ function dndCtrl($scope,UrlService) {
     $scope.$watch('headerChecked', function() {
 
         var header = '';
-        if($scope.headerChecked) header = 'header=true&';
-            else header = '';
+        if($scope.headerChecked && $scope.included.length!=0) header = noHeader_restService;
+        else header = '';
 
         //Send to service
         UrlService.setHeader(header);
