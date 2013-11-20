@@ -14,7 +14,8 @@ Compile the code from the root of the project. Maven 3.0.4 (or later) and Java 7
 > mvn clean install
 
 Unless you already have AisStore setup. The easiest way to get started is by using a freely available AIS stream.
-Start up AisView by specifying the AisSources to listen to, for example the freely available hd-sf.com:9009
+
+Start up AisView by specifying the AisSources to listen to as parameters. Here we are using the freely available hd-sf.com:9009
 > java -jar target/ais-view-0.1-SNAPSHOT.jar free=hd-sf.com:9009
 
 
