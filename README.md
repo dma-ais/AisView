@@ -5,7 +5,7 @@ AisView allows aggregation and publishing of data from both real time and histor
 
 AisView has 3 main functionalities:
 * __Historic Qurying__  : Historic querying of AIS data via [AisStore](https://github.com/dma-ais/AisStore "AisStore")
-* __Realtime Streaming__ : Realtime streaming of incoming AIS data with easy-to-use filtering
+* __Realtime Streaming__ : Streaming of incoming AIS data with easy-to-use filtering
 * __Realtime Monitoring__: Reporting of latest static and positional data from vessels based on MMSI numbers
 
 Getting started
