@@ -34,10 +34,6 @@ Two output modes are supported: Raw data or Table:
 Filtering based on mmsi numbers:  
 ?mmsi=123456789,234567890,333444555
 
-### MMSI ###
-Filtering based on mmsi numbers:  
-?mmsi=123456789,234567890,333444555
-
 ### Limit ###
 A limit can be placed on the number of packets that should be returned:
 ?limit=50 (will only return 50 packets)
