@@ -1,11 +1,12 @@
 AisView
 =======
 
-AisView is a allows aggregation and publishing of data from both real time and historic AIS data sources using REST.
+AisView allows aggregation and publishing of data from both real time and historic AIS data sources using REST.
+
 AisView has 3 main functionalities:
-* __Historic__  : Historic querying of AIS data via [AisStore](https://github.com/dma-ais/AisStore "AisStore")
-* __Streaming__ : Realtime streaming of incoming AIS data with easy-to-use filtering
-* __Monitoring__: Reporting of latest static and positional data from vessels based on MMSI numbers
+* __Historic Qurying__  : Historic querying of AIS data via [AisStore](https://github.com/dma-ais/AisStore "AisStore")
+* __Realtime Streaming__ : Realtime streaming of incoming AIS data with easy-to-use filtering
+* __Realtime Monitoring__: Reporting of latest static and positional data from vessels based on MMSI numbers
 
 Getting started
 =======
