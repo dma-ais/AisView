@@ -23,7 +23,7 @@ function areaSelection($scope,UrlService) {
     }
 
     $scope.sameLatCheck = function(){
-        if(($scope.topLeftLat == $scope.bottomRightLat) &&
+        if(Number($scope.topLeftLat).toString() == Number($scope.bottomRightLat).toString() &&
             !isNaN($scope.topLeftLat) &&
             !isNaN($scope.bottomRightLat) &&
             $scope.topLeftLat!='' &&
@@ -32,7 +32,7 @@ function areaSelection($scope,UrlService) {
     }
 
     $scope.sameLonCheck = function(){
-        if($scope.topLeftLon == $scope.bottomRightLon &&
+        if(Number($scope.topLeftLon).toString() == Number($scope.bottomRightLon).toString() &&
             !isNaN($scope.topLeftLon) &&
             !isNaN($scope.bottomRightLon) &&
             $scope.topLeftLon!='' &&
@@ -58,9 +58,22 @@ function areaSelection($scope,UrlService) {
 
     $scope.changeMapInputField = function() {
 
-        //testMapBBox($scope.topLeftLat,$scope.topLeftLon,$scope.bottomRightLat,$scope.bottomRightLon);
-        newInput($scope.topLeftLat,$scope.topLeftLon,$scope.bottomRightLat,$scope.bottomRightLon);
+        //remove insignificant trailing zeros from lat/lon input
+        var topLeftLat,topLeftLon, bottomRightLat, bottomRightLon;
+        if($scope.topLeftLat == '');
+        else if ($scope.topLeftLat !== undefined) topLeftLat = Number($scope.topLeftLat).toString();
 
+        if($scope.topLeftLon == '');
+        else if($scope.topLeftLon !== undefined) topLeftLon = Number($scope.topLeftLon).toString();
+
+        if($scope.bottomRightLat == '');
+        else if ($scope.bottomRightLat !== undefined) bottomRightLat = Number($scope.bottomRightLat).toString();
+
+        if($scope.bottomRightLon == '');
+        else if ($scope.bottomRightLon !== undefined) bottomRightLon = Number($scope.bottomRightLon).toString();
+
+        //send to mapFunctions.newInput()
+        newInput(topLeftLat,topLeftLon,bottomRightLat,bottomRightLon);
     }
 }
 

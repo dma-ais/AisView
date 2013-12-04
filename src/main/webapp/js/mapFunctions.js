@@ -103,6 +103,8 @@ function endDrag(bbox) {
 function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
 
     console.log('inputfields: '+topLeftLat+ ',' + topLeftLon + ',' + bottomRightLat +','+ bottomRightLon);
+    console.log('test of type: ' +typeof "Hello World");
+
 
      if(!isNaN(topLeftLat)&&!isNaN(topLeftLon)&&!isNaN(bottomRightLat)&&!isNaN(bottomRightLon)   //no NaN inputs
         && topLeftLat!='' && topLeftLon!='' && bottomRightLat!='' && bottomRightLon!=''         //no empty strings
