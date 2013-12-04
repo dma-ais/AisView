@@ -8,17 +8,12 @@ function urlBuilder($scope,UrlService) {
 
     $scope.url = function(){
         var base = requestDomain;
-
-        console.log("test i url: "+UrlService.allInputValidService );
         if(UrlService.allInputValidService === true){
             requestString = base+
                 UrlService.fromDate+
                 UrlService.toDate+
-                UrlService.ids+
-                UrlService.bases+
-                UrlService.countries+
-                UrlService.types+
-                UrlService.regions+
+                UrlService.sourceFiltering+
+                UrlService.mmsi+
                 UrlService.area+
                 //UrlService.timeZone+
                 UrlService.tables+

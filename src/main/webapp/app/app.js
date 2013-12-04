@@ -25,11 +25,6 @@ app.directive('autoComplete', function($timeout) {
 
 app.factory('UrlService', function() {
     return {
-        ids:null,
-        bases:null,
-        countries: null,
-        types: null,
-        regions: null,
         area: null,
         fromDate: null,
         toDate: null,
@@ -38,33 +33,11 @@ app.factory('UrlService', function() {
         separator: null,
         header: null,
         samples: null,
+        sourceFiltering: null,
+        mmsi: null,
         allInputValidService: null,
         setArea: function(msg) {
             this.area = msg;
-        },
-        setIds: function(msg) {
-            this.ids = msg;
-        },
-        setBases: function(msg) {
-            this.bases = msg;
-        },
-        setCountries: function(msg){
-            this.countries = msg;
-        },
-        setTypes: function(msg){
-            this.types = msg;
-        },
-        setRegions: function(msg){
-            this.regions = msg;
-        },
-        setTables: function(msg){
-            this.tables = msg;
-        },
-        setSeparator: function(msg){
-            this.separator = msg;
-        },
-        setHeader: function(msg){
-            this.header = msg;
         },
         setFromDate: function(msg){
             this.fromDate = msg;
@@ -75,8 +48,23 @@ app.factory('UrlService', function() {
         setTimeZone: function(msg){
             this.timeZone = msg;
         },
+        setTables: function(msg){
+            this.tables = msg;
+        },
+        setSeparator: function(msg){
+            this.separator = msg;
+        },
+        setHeader: function(msg){
+            this.header = msg;
+        },
         setSamples: function(msg){
             this.samples = msg;
+        },
+        setSourceFiltering: function(msg){
+            this.sourceFiltering = msg;
+        },
+        setMmsi: function(msg){
+            this.mmsi = msg;
         },
         setAllInputValidService: function(msg){
             this.allInputValidService = msg;

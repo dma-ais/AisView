@@ -219,54 +219,6 @@ function sourceFilters($scope,UrlService,$http) {
         $scope.sourceTypes='any';
     }
 
-    //If sourceIds array are changed push to service
-    $scope.$watch('sourceIds', function() {
-        var ids = '';
-        //append all source IDs if All is not selected else no ids in query
-        if(_.first($scope.sourceIds).include==true) ids = '';
-        else {
-            ids='source=';
-            angular.forEach($scope.sourceIds, function(sourceId) {
-                if (sourceId.include) ids+=sourceId.value+',';
-            });
-        }
-        //delete , with & at end of string
-        ids=ids.replace(/^,|,$/g,'&');
-
-        //Send to service
-        UrlService.setIds(ids);
-    }, true); // <-- objectEquality
-
-    //If sourceBases array are changed push to service
-    $scope.$watch('sourceBases', function() {
-        //Send to service
-        UrlService.setBases(includeFromTextField($scope.sourceBases,'bs='));
-    }, true); // <-- objectEquality
-
-    //If sourceCountries array are changed push to service
-    $scope.$watch('sourceCountries', function() {
-
-        //Send to service
-        UrlService.setCountries(includeFromTextFieldWithDB($scope.sourceCountries,$scope.countryDatabase,'ctry='));
-    }, true); // <-- objectEquality
-
-    //If sourceTypes array are changed push to service
-    $scope.$watch('sourceTypes', function() {
-
-        var types = '';
-        if($scope.sourceTypes=='any') types='';
-        else types='type='+$scope.sourceTypes+'&'
-
-        //Send to service
-        UrlService.setTypes(types);
-    });
-
-    //If sourceRegions array are changed push to service
-    $scope.$watch('sourceRegions', function() {
-        //Send to service
-        UrlService.setRegions(includeFromTextField($scope.sourceRegions,'region='));
-    }, true); // <-- objectEquality
-
     //Include all text from custom number of dynamic text fields
     function includeFromTextField(array,baseString) {
         var returnString;
@@ -320,5 +272,76 @@ function sourceFilters($scope,UrlService,$http) {
         returnString=returnString.replace(/^,|,$/g,'&');
 
         return returnString;
+    }
+
+    //
+    //
+    //
+    var ids ='';
+    var bases ='';
+    var countries='';
+    var types='';
+    var regions='';
+
+
+    //If sourceIds array are changed push to service
+    $scope.$watch('sourceIds', function() {
+        //var ids = '';
+        //append all source IDs if All is not selected else no ids in query
+        if(_.first($scope.sourceIds).include==true) ids = '';
+        else {
+            ids='source=';
+            angular.forEach($scope.sourceIds, function(sourceId) {
+                if (sourceId.include) ids+=sourceId.value+',';
+            });
+        }
+        //delete , with & at end of string
+        ids=ids.replace(/^,|,$/g,'&');
+
+        //Send to service
+        pushToService();
+
+    }, true); // <-- objectEquality
+
+    //If sourceBases array are changed push to service
+    $scope.$watch('sourceBases', function() {
+        bases = includeFromTextField($scope.sourceBases,'bs=');
+        //Send to service
+        pushToService();
+    }, true); // <-- objectEquality
+
+    //If sourceCountries array are changed push to service
+    $scope.$watch('sourceCountries', function() {
+        countries=includeFromTextFieldWithDB($scope.sourceCountries,$scope.countryDatabase,'ctry=');
+        //Send to service
+        pushToService();
+    }, true); // <-- objectEquality
+
+    //If sourceTypes array are changed push to service
+    $scope.$watch('sourceTypes', function() {
+
+        //var types = '';
+        if($scope.sourceTypes=='any') types='';
+        else types='type='+$scope.sourceTypes+'&'
+        //Send to service
+        pushToService();
+    });
+
+    //If sourceRegions array are changed push to service
+    $scope.$watch('sourceRegions', function() {
+        regions=includeFromTextField($scope.sourceRegions,'region=');
+        //Send to service
+        pushToService();
+    }, true); // <-- objectEquality
+
+
+    function pushToService(){
+
+        var message = 'filter=' + ids + bases + countries + types + regions;
+        if(message === 'filter=') message='';
+
+        //Send to service
+        UrlService.setSourceFiltering(message);
+
     }
 }
