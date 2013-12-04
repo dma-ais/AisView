@@ -38,6 +38,7 @@ app.factory('UrlService', function() {
         separator: null,
         header: null,
         samples: null,
+        allInputValidService: null,
         setArea: function(msg) {
             this.area = msg;
         },
@@ -76,6 +77,9 @@ app.factory('UrlService', function() {
         },
         setSamples: function(msg){
             this.samples = msg;
+        },
+        setAllInputValidService: function(msg){
+            this.allInputValidService = msg;
         }
     }
 });
