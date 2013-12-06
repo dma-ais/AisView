@@ -1,5 +1,8 @@
 function areaSelection($scope,UrlService) {
 
+    var testVal = 0;
+    var urlVal=0;
+
     //Area variables
     $scope.topLeftLat;
     $scope.topLeftLon;
@@ -14,24 +17,17 @@ function areaSelection($scope,UrlService) {
 
     //validation if latitude is the same
     $scope.latitudeCheck = function(input){
-
-        validAreaInput();
-
         if((parseFloat(input) > 90) || (parseFloat(input) < -90)) return true;
         else return false;
     }
 
     //validation if longitude is the same
     $scope.longitudeCheck = function(input){
-
-        validAreaInput();
-
         if((parseFloat(input) > 180) || (parseFloat(input) < -180)) return true;
         else return false;
     }
 
     $scope.sameLatCheck = function(){
-        validAreaInput();
         if(Number($scope.topLeftLat).toString() == Number($scope.bottomRightLat).toString() &&
             !isNaN($scope.topLeftLat) && !isNaN($scope.bottomRightLat) &&
             $scope.topLeftLat!='' && $scope.bottomRightLat!='') {
@@ -43,47 +39,39 @@ function areaSelection($scope,UrlService) {
     }
 
     $scope.sameLonCheck = function(){
-        validAreaInput();
         if(Number($scope.topLeftLon).toString() == Number($scope.bottomRightLon).toString() &&
             !isNaN($scope.topLeftLon) && !isNaN($scope.bottomRightLon) &&
             $scope.topLeftLon!='' && $scope.bottomRightLon!='') return true;
         else return false;
     }
 
-    //validate if all inputted values in area-selection is ok (used for setting UrlService.allInputValidService)
+    //validate if all inputted values in area-selection is ok
+    //Used for setting UrlService.areaValidService
     function validAreaInput(){
-        //wrong lat input?
         var latVal, lonVal, latSameVal, lonSameVal;
 
-        if( (parseFloat($scope.topLeftLat) > 90) || (parseFloat($scope.topLeftLat) < -90) ||
-            (parseFloat($scope.bottomRightLat) > 90) || (parseFloat($scope.bottomRightLat) < -90)) {
-            latVal=false;
-        }
+        //wrong lat input?
+        if($scope.latitudeCheck($scope.topLeftLat) || $scope.latitudeCheck($scope.bottomRightLat))latVal=false;
         else latVal=true;
 
         //wrong lon input?
-        if((parseFloat($scope.topLeftLon) > 180) || (parseFloat($scope.topLeftLon) < -180) ||
-            (parseFloat($scope.bottomRightLon) > 180) || (parseFloat($scope.bottomRightLon) < -180)) {
-            console.log("lat ikke ok");
-            lonVal=false;
-        }
+        if($scope.longitudeCheck($scope.topLeftLon) || $scope.longitudeCheck($scope.bottomRightLon))lonVal=false;
         else lonVal=true;
 
-        //both lat the same
-        if(Number($scope.topLeftLat).toString() == Number($scope.bottomRightLat).toString() &&
-            !isNaN($scope.topLeftLat) && !isNaN($scope.bottomRightLat) &&
-            $scope.topLeftLat!='' && $scope.bottomRightLat!='') latSameVal=false;
+        //two lat the same?
+        if($scope.sameLatCheck())latSameVal=false;
         else latSameVal=true;
 
-        //both lon the same
-        if(Number($scope.topLeftLon).toString() == Number($scope.bottomRightLon).toString() &&
-            !isNaN($scope.topLeftLon) && !isNaN($scope.bottomRightLon) &&
-            $scope.topLeftLon!='' && $scope.bottomRightLon!='') lonSameVal=false;
+        //two lon the same?
+        if($scope.sameLonCheck())lonSameVal=false;
         else lonSameVal=true;
 
         //final test
-        if  (latVal === true && lonVal === true && latSameVal === true && lonSameVal === true  ) UrlService.setAllInputValidService(true);
-        else  UrlService.setAllInputValidService(false);
+        if  (latVal === true &&
+            lonVal === true &&
+            latSameVal === true &&
+            lonSameVal === true  ) UrlService.setAreaValidService(true);
+        else  UrlService.setAreaValidService(false);
     }
 
     $scope.$watch('topLeftLat', updateURL);
@@ -93,6 +81,8 @@ function areaSelection($scope,UrlService) {
 
     //
     function updateURL() {
+        //called to set UrlService.areaValidService
+        validAreaInput();
 
         if ($scope.topLeftLat && $scope.topLeftLon && $scope.bottomRightLat && $scope.bottomRightLon) {
             area=area_restService+$scope.topLeftLat+','+$scope.topLeftLon+','+$scope.bottomRightLat+','+$scope.bottomRightLon+'&';

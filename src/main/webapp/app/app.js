@@ -35,7 +35,8 @@ app.factory('UrlService', function() {
         samples: null,
         sourceFiltering: null,
         mmsi: null,
-        allInputValidService: null,
+        areaValidService: null,
+        timeValidService: null,
         setArea: function(msg) {
             this.area = msg;
         },
@@ -66,8 +67,11 @@ app.factory('UrlService', function() {
         setMmsi: function(msg){
             this.mmsi = msg;
         },
-        setAllInputValidService: function(msg){
-            this.allInputValidService = msg;
+        setAreaValidService: function(msg){
+            this.areaValidService = msg;
+        },
+        setTimeValidService: function(msg){
+            this.timeValidService = msg;
         }
     }
 });

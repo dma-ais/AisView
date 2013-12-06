@@ -1,8 +1,10 @@
 function timeSelection($scope,UrlService) {
 
+    var testcounter=0;
+
     $scope.timeZones = timeZones;
 
-    //Datepicker directive
+    //Getting initial values from data.ja
     $scope.startDatepicker = startDatepicker;
     $scope.endDatepicker = endDatepicker;
 
@@ -10,10 +12,6 @@ function timeSelection($scope,UrlService) {
     $scope.endTimepicker = endTimepicker;
 
     $scope.timeZone = timeZone;
-
-    //$scope.datepicker = {date: new Date("2012-09-01T00:00:00.000Z"), setStartDate: new Date('2012-08-01T00:00:00.000Z')};
-
-    $scope.invalidDateObject = false;
 
     //Watch for updates
     $scope.$watch('startDatepicker', updateStartTime, true);
@@ -24,6 +22,9 @@ function timeSelection($scope,UrlService) {
 
     //Build startTime string and send to service
     function updateStartTime(){
+        //called to set UrlService.areaValidService
+        validTimeInput();
+
         var fromDate = '';
 
         //making from= string  http://en.wikipedia.org/wiki/ISO_8601
@@ -55,6 +56,9 @@ function timeSelection($scope,UrlService) {
 
     //Build endTime string and send to service
     function updateEndTime(){
+        //called to set UrlService.areaValidService
+        validTimeInput();
+
         var toDate = '';
         //making to= string http://en.wikipedia.org/wiki/ISO_8601
         if($scope.endDatepicker.date != '' &&
@@ -163,6 +167,38 @@ function timeSelection($scope,UrlService) {
             return false;
         }
 
+    }
+
+    //validate if all inputted values in time-selection is ok
+    //Used for setting UrlService.areaValidService
+    function validTimeInput(){
+        var futureVal, afterStartVal, afterStartTimeVal, formatVal;
+
+        //checj if future dates
+        if($scope.checkIfFutureDate($scope.startDatepicker.date) || $scope.checkIfFutureDate($scope.endDatepicker.date)) futureVal=false;
+        else futureVal=true;
+
+        //check if startDate is past endDate
+        if($scope.afterStartDate()) afterStartVal=false;
+        else afterStartVal=true;
+
+        ////check if startTime is past endTime
+        if($scope.afterStartTime()) afterStartTimeVal=false;
+        else afterStartTimeVal=true;
+
+        //Invalid input
+        if($scope.validDate($scope.startDatepicker.date) || $scope.validDate($scope.endDatepicker.date)) formatVal=false;
+        else formatVal=true;
+
+
+        //final test
+        if  (futureVal === true &&
+            afterStartVal === true &&
+            afterStartTimeVal === true &&
+            formatVal === true ) UrlService.setTimeValidService(true);
+        else{
+            UrlService.setTimeValidService(false);
+        }
     }
 
     //sending back the date of today

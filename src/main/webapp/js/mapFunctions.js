@@ -11,8 +11,7 @@ var boxDraggedOnce = false;
 var boxDrawnOnce = false;
 
 function init() {
-    //console.log('init()');
-    map = new OpenLayers.Map('mapdiv', {
+   map = new OpenLayers.Map('mapdiv', {
         controls: [
             new OpenLayers.Control.Navigation(),
             new OpenLayers.Control.PanZoomBar(),
@@ -75,26 +74,20 @@ function init() {
 function endDrag(bbox) {
     var bounds = bbox.getBounds();
 
-
-
     bounds.transform(
         new OpenLayers.Projection("EPSG:900913"),   // transform from WGS 1984
         new OpenLayers.Projection("EPSG:4326")      // to Spherical Mercator
     );
-    console.log('endDrag() Bounds degrees:'+bounds);
 
     bounds.transform(
         new OpenLayers.Projection("EPSG:4326"),     //  transform from Spherical Mercator
         new OpenLayers.Projection("EPSG:900913")    //  to WGS 1984
     );
 
-    console.log('endDrag() Bounds WGS-1984:'+bounds);
-
     setBounds(bounds);
     drawBox(bounds);
     box.deactivate();
 
-    //document.getElementById("bbox_drag_instruction").style.display = 'none';
     document.getElementById("bbox_adjust_instruction").style.display = 'block';
 
     boxDraggedOnce = true;
@@ -110,7 +103,6 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
         ){
 
         if(!boxDrawnOnce) {
-            console.log('getting ready to do some action');
 
             //same as if endDrag()
             var latLonArray = new Array();
@@ -121,7 +113,6 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
             bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
             b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-            console.log('newInput() Bounds:'+b);
 
             drawBox(b);
 
@@ -147,20 +138,17 @@ function newInput(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) {
             bounds.extend(new OpenLayers.LonLat(latLonArray[3],latLonArray[2]));
 
             b = bounds.clone().transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-            console.log('newInput() Bounds:'+b);
 
             drawBox(b);
-
             box.deactivate();
 
             //document.getElementById("bbox_drag_instruction").style.display = 'none';
             document.getElementById("bbox_adjust_instruction").style.display = 'block';
         }
-    }else console.log('do nothing yet - big control');
+    }//else console.log('do nothing yet - big control');
 }
 
 function dragNewBox() {
-    //console.log('dragNewBox()');
     box.activate();
 
     //We need to destroy the transform-feature 'transform' and make it again
@@ -188,11 +176,10 @@ function dragNewBox() {
 
 function boxResize(event) {
     setBounds(event.feature.geometry.bounds);
-    console.log('Bounds boxResize():'+event.feature.geometry.bounds);
+
 }
 
 function drawBox(bounds) {
-    //console.log('drawBox()');
     var feature = new OpenLayers.Feature.Vector(bounds.toGeometry());
 
     vectors.addFeatures(feature);
@@ -200,7 +187,6 @@ function drawBox(bounds) {
 }
 
 function setBounds(bounds) {
-    //console.log('setBounds()');
     if (bounds == null) {
         var scope = angular.element('#bbox_result').scope();
 
@@ -247,9 +233,7 @@ function handleDateLine(topLeftLat, topLeftLon, bottomRightLat, bottomRightLon) 
         //console.log('not crossing date line');
 
     }
-
     returnArray=[topLeftLat, topLeftLon, bottomRightLat, bottomRightLon];
-    console.log('returnArray: '+returnArray);
     return returnArray;
 }
 

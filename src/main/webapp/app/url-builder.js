@@ -1,14 +1,14 @@
 function urlBuilder($scope,UrlService) {
 
     //control to check if all input on side is valid
-    UrlService.setAllInputValidService(true);
+    UrlService.setAreaValidService(true);
     //$scope.allInputValid = true;
 
     var requestString;
 
     $scope.url = function(){
         var base = requestDomain;
-        if(UrlService.allInputValidService === true){
+        if(UrlService.areaValidService === true && UrlService.timeValidService === true){
             requestString = base+
                 UrlService.fromDate+
                 UrlService.toDate+
@@ -24,7 +24,7 @@ function urlBuilder($scope,UrlService) {
         }
         else {
 
-            requestString='Error in one or more input field';
+            requestString='Error in one or more input fields';
         }
 
         if (requestString.slice(-1)=='&') requestString=requestString.slice(0,-1);
