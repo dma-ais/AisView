@@ -10,14 +10,15 @@ var requestDomain = 'http://10.0.0.121:8090/store/query?';
 //Rest-service query parameters
 //
 
-//Time selection
+var source_restService = 'filter=';         //used in source-filters.js
+var mmsi_restService = 'mmsi=';             //used in mmsi-filters.js
+var area_restService = 'box=';              //used in area-selection.js
 var time_restService = 'interval=';         //used in time-selection.js
 var output_restService = 'output=table&';   //used in output-format-ctrl.js
 var columns_restService = 'columns=';       //used in output-format-ctrl.js
 var separator_restService = 'separator=';   //used in output-format-ctrl.js
-var noHeader_restService = 'noHeader&';    //used in output-format-ctrl.js
-var area_restService = 'box=';              //used in area-selection.js
-
+var noHeader_restService = 'noHeader&';     //used in output-format-ctrl.js
+var samples_restService = '&limit=';         //used in url-builder.js
 
 
 //
@@ -86,10 +87,10 @@ var tableSeparator = {sep: ';'};
 //value-, queryName-, ex-values can be changed
 //category values can NOT be changed for now TODO: make category values changeable eg in output-format-dir line 47
 var notIncluded = [
-    { 'id': 0,	value: "Longitude",     queryName: "lon",     ex: "12.369",       category: "all,xyz"},
-    { 'id': 1, 	value: "Latitude",		queryName: "lat",      ex: "55.634",       category: "all,xyz"},
+    { 'id': 0,	value: "Longitude",     queryName: "lon",           ex: "12.369",       category: "all,xyz"},
+    { 'id': 1, 	value: "Latitude",		queryName: "lat",           ex: "55.634",       category: "all,xyz"},
     { 'id': 2, 	value: "Height",		queryName: "height",        ex: "22.12",        category: "all,xyz"},
-    { 'id': 3, 	value: "Timeformat1",	queryName: "utc",   ex: "YYYY-MM-DD",   category: "all,time"},
+    { 'id': 3, 	value: "Timeformat1",	queryName: "utc",           ex: "YYYY-MM-DD",   category: "all,time"},
     { 'id': 4, 	value: "Timeformat2",	queryName: "timeformat2",   ex: "YYYYMMDD",     category: "all,time"},
     { 'id': 5, 	value: "Timeformat3",	queryName: "timeformat3",   ex: "DD-MM-YYYY",   category: "all,time"},
     { 'id': 6, 	value: "Signal1",		queryName: "signal1",       ex: "alpha",        category: "all,signal"},

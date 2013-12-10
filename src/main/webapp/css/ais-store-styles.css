@@ -139,13 +139,13 @@ body {
 
 /* Space things out */
 .bs-docs-section + .bs-docs-section {
-  padding-top: 40px;
+    padding-top: 40px;
 }
 
 /* Janky fix for preventing navbar from overlapping */
 h1[id] {
-  padding-top: 80px;
-  margin-top: -45px;
+    padding-top: 80px;
+    margin-top: -45px;
 }
 
  /*
@@ -191,9 +191,18 @@ footer {
 }
 
 /*
+ * No padding on navbar-forms (used in Download section)
+ */
+
+.navbar-form {
+    padding: 0px 0px;
+}
+
+/*
 * Misc
 */
 .outputlist-headlines {
     display: block;
     text-align: center;
 }
+

@@ -28,22 +28,23 @@ function mmsiFilters($scope,UrlService,$http) {
     //If mmsi array are changed push to service
     $scope.$watch('mmsis', function() {
         //Send to service
-        UrlService.setMmsi(includeFromTextField($scope.mmsis,'mmsi='));
+        UrlService.setMmsi(includeFromTextField($scope.mmsis,mmsi_restService));
 
     }, true); // <-- objectEquality
 
     //Include all text from custom number of dynamic text fields
     function includeFromTextField(array,baseString) {
-        var returnString;
+        var returnString ='';
         var someInput = false;
         //append all source bases
         angular.forEach(array, function(item) {
             if(item.input.length>0) someInput=true;
         });
         if(someInput) {
-            returnString=baseString;
+            //returnString=baseString;
+
             angular.forEach(array, function(item) {
-                if(item.input.length>0) returnString+=item.input+',';
+                if(item.input.length>0) returnString+=baseString+item.input+'&';
             });
         }else returnString='';
 

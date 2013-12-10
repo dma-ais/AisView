@@ -6,6 +6,20 @@ function urlBuilder($scope,UrlService) {
 
     var requestString;
 
+    //Control of number of samples
+    $scope.samples = '';
+
+    $scope.$watch('samples', function(){
+
+        var samples = '';
+        //build string of samples
+        if($scope.samples=='') samples='';
+        else samples=samples_restService+$scope.samples+'&';
+
+        //Send to service
+        UrlService.setSamples(samples);
+    });
+
     $scope.url = function(){
         var base = requestDomain;
         if(UrlService.areaValidService === true && UrlService.timeValidService === true){
@@ -18,8 +32,8 @@ function urlBuilder($scope,UrlService) {
                 //UrlService.timeZone+
                 UrlService.tables+
                 UrlService.separator+
-                UrlService.header+
-                UrlService.samples;
+                UrlService.header;
+                //UrlService.samples;
 
         }
         else {
@@ -35,6 +49,16 @@ function urlBuilder($scope,UrlService) {
         var urlString = $scope.url();
         window.open(urlString);
     }
+
+    $scope.openRequestCallLimit = function(){
+        var urlString ='';
+
+        if($scope.samples=='') urlString =$scope.url();
+        else urlString =$scope.url()+samples_restService+$scope.samples;
+
+        window.open(urlString);
+    }
+
     $scope.download = function()
     {
         var urlString = $scope.url();

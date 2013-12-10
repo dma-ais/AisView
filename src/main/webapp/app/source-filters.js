@@ -290,7 +290,7 @@ function sourceFilters($scope,UrlService,$http) {
         //append all source IDs if All is not selected else no ids in query
         if(_.first($scope.sourceIds).include==true) ids = '';
         else {
-            ids='source=';
+            ids='id=';
             angular.forEach($scope.sourceIds, function(sourceId) {
                 if (sourceId.include) ids+=sourceId.value+',';
             });
@@ -312,7 +312,7 @@ function sourceFilters($scope,UrlService,$http) {
 
     //If sourceCountries array are changed push to service
     $scope.$watch('sourceCountries', function() {
-        countries=includeFromTextFieldWithDB($scope.sourceCountries,$scope.countryDatabase,'ctry=');
+        countries=includeFromTextFieldWithDB($scope.sourceCountries,$scope.countryDatabase,'country=');
         //Send to service
         pushToService();
     }, true); // <-- objectEquality
@@ -337,8 +337,8 @@ function sourceFilters($scope,UrlService,$http) {
 
     function pushToService(){
 
-        var message = 'filter=' + ids + bases + countries + types + regions;
-        if(message === 'filter=') message='';
+        var message = source_restService + ids + bases + countries + types + regions;
+        if(message === source_restService) message='';
 
         //Send to service
         UrlService.setSourceFiltering(message);
