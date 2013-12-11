@@ -21,7 +21,7 @@ function urlBuilder($scope,UrlService) {
     });
 
     $scope.url = function(){
-        var base = requestDomain;
+        var base = requestDomain+queryEndpoint;
         if(UrlService.areaValidService === true && UrlService.timeValidService === true){
             requestString = base+
                 UrlService.fromDate+

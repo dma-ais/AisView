@@ -2,8 +2,15 @@
 // Data for url-builder
 //
 
-//Domain for request url
-var requestDomain = 'http://10.0.0.121:8090/store/query?';
+//Root domain for request url
+var requestDomain = 'http://placeholder';
+
+//query endpoint
+var queryEndpoint = '/store/query?';
+
+//get source IDs from endpoint /store/sourceIDs
+var sourcecIdEndpoint = '/store/sourceIDs';
+
 
 
 //
@@ -11,6 +18,13 @@ var requestDomain = 'http://10.0.0.121:8090/store/query?';
 //
 
 var source_restService = 'filter=';         //used in source-filters.js
+
+//var source_id_restService = 'id=';
+//var source_base_restService = 'bs=';
+//var source_country_restService = 'country=';
+//var source_type_restService = 'type=';
+//var source_region_restService = 'region=';
+
 var mmsi_restService = 'mmsi=';             //used in mmsi-filters.js
 var area_restService = 'box=';              //used in area-selection.js
 var time_restService = 'interval=';         //used in time-selection.js
@@ -38,6 +52,34 @@ var tabHeadings=['Source ID','Source Base Station','Source Country','Source Type
     {text:'Source5', value: 'src5', include:false},
     {text:'Source6', value: 'src6', include:false}];
 */
+
+//Ships types
+var shipTypes = [
+    {index:1 ,text:'All',            value: 'all&',          include:true},
+    {index:2 ,text:'Undefined',      value: 'UNDEFINED',     include:false},
+    {index:3 ,text:'Wig',            value: 'WIG',           include:false},
+    {index:4 ,text:'Pilot',          value: 'PILOT',         include:false},
+    {index:5 ,text:'Sar',            value: 'SAR',           include:false},
+    {index:6 ,text:'Tug',            value: 'TUG',           include:false},
+    {index:7 ,text:'Port Tender',    value: 'PORT_TENDER',   include:false},
+    {index:8 ,text:'Anti Pollution', value: 'ANTI_POLLUTION',include:false},
+    {index:9 ,text:'Law Enforcement',value: 'LAW_ENFORCEMENT', include:false},
+    {index:10 ,text:'Medical',        value: 'MEDICAL',       include:false},
+    {index:11 ,text:'Fishing',        value: 'FISHING',       include:false},
+    {index:12 ,text:'Towing',         value: 'TOWING',        include:false},
+    {index:13 ,text:'Towing Long Wide', value: 'TOWING_LONG_WIDE', include:false},
+    {index:14 ,text:'Dredging',       value: 'DREDGING',      include:false},
+    {index:15 ,text:'Diving',         value: 'DIVING',        include:false},
+    {index:16 ,text:'Military',       value: 'MILITARY',      include:false},
+    {index:17 ,text:'Sailing',        value: 'SAILING',       include:false},
+    {index:18 ,text:'Pleasure',       value: 'PLEASURE',      include:false},
+    {index:19 ,text:'Hsc',            value: 'HSC',           include:false},
+    {index:20 ,text:'Passenger',      value: 'PASSENGER',     include:false},
+    {index:21 ,text:'Cargo',          value: 'CARGO',         include:false},
+    {index:22 ,text:'Tanker',         value: 'TANKER',        include:false},
+    {index:23 ,text:'Ships According to RR', value: 'SHIPS_ACCORDING_TO_RR', include:false},
+    {index:24 ,text:'Unknown',        value: 'UNKNOWN',       include:false}
+];
 
 //Source Bases
 var sourceBases = [{text:1+'.', input:'', counter: 1}];

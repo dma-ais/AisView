@@ -129,7 +129,7 @@
                     </div>
                     <br>
                     <button class="btn btn-danger" ng-click="clearSources()" >Clear All MMSI Filters</button>
-                </div><!-- /#area_selection_body -->
+                </div><!-- /#mmsi_filters_body -->
 
                 <!-- Area Selection-->
                 <div class="page-header">
@@ -193,13 +193,43 @@
 
                 </div><!-- /#area_selection_body -->
 
-                <!-- Ship Types -->
+                <!-- Ship Types Selection -->
                 <div class="page-header">
                     <h1 id="ship_types">Ship types</h1>
                 </div>
-                <div id="ship_types_body">
-                    <p> 15 typer med overkategorier: markeres med checkboxes</p>
+                <div id="ship_types_body" ng-controller='shipSelection'>
+                    <div class="well">
+                        <div class="row">
+                            <div class="col-lg-3" >
+                                <div ng-repeat="shipType in shipTypes" ng-show="(shipType.index)%4==1">
+                                    <input type="checkbox" ng-model="shipType.include" ng-click="shipTypesSelect(shipType)">
+                                    <span>{{shipType.text}}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3" >
+                                <div ng-repeat="shipType in shipTypes" ng-show="(shipType.index)%4==2">
+                                    <input type="checkbox" ng-model="shipType.include" ng-click="shipTypesSelect(shipType)">
+                                    <span>{{shipType.text}}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3" >
+                                <div ng-repeat="shipType in shipTypes" ng-show="(shipType.index)%4==3">
+                                    <input type="checkbox" ng-model="shipType.include" ng-click="shipTypesSelect(shipType)">
+                                    <span>{{shipType.text}}</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3" >
+                                <div ng-repeat="shipType in shipTypes" ng-show="(shipType.index)%4==0">
+                                    <input type="checkbox" ng-model="shipType.include" ng-click="shipTypesSelect(shipType)">
+                                    <span>{{shipType.text}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p> Shiptype is not send to request url</p>
                 </div><!-- /#ship_types_body -->
+
+
                 <!-- Time Selection-->
                 <div class="page-header">
                     <h1 id="time_selection">Time selection</h1>
@@ -366,11 +396,11 @@
                     <h1 id="download">Download</h1>
                 </div>
 
-                <div id="download_body" ng-controller="download">
-                    <div ng-controller="urlBuilder" >
+                <div id="download_body" ng-controller="urlBuilder">
+                    <div >
                         <textarea rows="3" style="width: 100%;" readonly>{{url()}}</textarea>
                     </div>
-                    <div class="navbar" ng-controller="urlBuilder">
+                    <div class="navbar" >
                         <form class="navbar-form pull-left">
                             <input type="text" class="form-control" ng-model="samples" style="width: 100px;" placeholder="#samples">
                             <button type="submit" ng-click="openRequestCallLimit()" class="btn btn-default">Show Sample</button>
@@ -423,22 +453,12 @@
     <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>-->
 
 
-
-
-
     <!-- AngularStrap -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-strap/0.7.4/angular-strap.min.js"></script>
     <!--<script src="https://mgcrea.github.com/angular-strap/js/angular-strap.js"></script>-->
 
     <script src="js/bootstrap-datepicker.js"></script>
     <script src="js/bootstrap-timepicker.js"></script>
-
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.0.0/moment.min.js"></script>  -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/0.6.0/fastclick.min.js"></script>     -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.js"></script>    -->
-
-    <!-- Optionally enable responsive features in IE8 -->
-    <script src="js/respond.js"></script>
 
     <!-- Open Layer Custom funtions -->
     <script src="js/mapFunctions.js"></script>
@@ -448,11 +468,12 @@
     <script src="app/output-format-dir.js" type="text/javascript"></script>
     <script src="app/output-format-ctrl.js" type="text/javascript"></script>
     <script src="app/area-selection.js"></script>
+    <script src="app/ship-selection.js"></script>
     <script src="app/mmsi-filters.js"></script>
     <script src="app/source-filters.js"></script>
     <script src="app/url-builder.js"></script>
     <script src="app/time-selection.js"></script>
-    <script src="app/download.js"></script>
+    <!--<script src="app/download.js"></script>-->
 
     <script src="js/application.js"></script>
 

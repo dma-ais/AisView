@@ -109,6 +109,12 @@ body {
   font-size: 90%;
 }
 
+/*force screen to be wider*/
+@media (min-width: 1200px) {
+    .bs-docs-container{
+        max-width: 1400px;
+    }
+}
 
 @media screen and (min-width: 1200px) {
     /* Widen the fixed sidebar again */
@@ -129,7 +135,12 @@ body {
         margin-top: 0;
         margin-bottom: 0;
     }
+    .contrainer{
+        max-width: 1400px;
+    }
 }
+
+
 
 /*
  * Docs sections
@@ -205,4 +216,6 @@ footer {
     display: block;
     text-align: center;
 }
+
+
 

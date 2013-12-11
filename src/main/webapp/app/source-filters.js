@@ -23,12 +23,15 @@ function sourceFilters($scope,UrlService,$http) {
     $scope.sourceTypeTabHeader = tabHeadings[3];
     $scope.sourceRegionTabHeader = tabHeadings[4];
 
-    //
+    //Source ID variables fetched from: source /store/sourceIDs
     $scope.tempIds = [];
     var sourceIds = [];
     sourceIds[0]= {text:'All', value: 'all&', include:true};
-    //Source ID variables: source /store/sourceIDs
-    $http({method: 'GET', url: 'http://10.0.0.121:8090/store/sourceIDs'}).success(function(data){
+
+
+    //building sourceID request
+    var sourceIdsRequest = requestDomain + sourcecIdEndpoint;
+    $http({method: 'GET', url: sourceIdsRequest}).success(function(data){
         $scope.tempIds = data.sourceIDs; // response data
 
         //building the sourceIDs array
