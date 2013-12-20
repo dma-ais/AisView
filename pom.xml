@@ -1,89 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>dk.dma</groupId>
-    <artifactId>dma-root-pom</artifactId>
-    <version>11</version>
-  </parent>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>dk.dma</groupId>
+		<artifactId>dma-root-pom</artifactId>
+		<version>11</version>
+	</parent>
 
-  <groupId>dk.dma.ais.view</groupId>
-  <artifactId>ais-view</artifactId>
-  <version>0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <name>AisView</name>
-  <description>AisViewer</description>
+	<groupId>dk.dma.ais.view</groupId>
+	<artifactId>ais-view</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>AisView</name>
+	<description>AisViewer</description>
 
-  <scm>
-    <connection>scm:git:git@github.com:dma-dk/AisView.git</connection>
-    <developerConnection>scm:git:git@github.com:dma-dk/AisView.git</developerConnection>
-    <url>https://github.com/dma-dk/AisView</url>
-  </scm>
+	<scm>
+		<connection>scm:git:git@github.com:dma-dk/AisView.git</connection>
+		<developerConnection>scm:git:git@github.com:dma-dk/AisView.git</developerConnection>
+		<url>https://github.com/dma-dk/AisView</url>
+	</scm>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>dk.dma.ais.view.Main</mainClass>
-                </transformer>
-              </transformers>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  <dependencies>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${dependencies.jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${dependencies.jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dma.web</groupId>
-      <artifactId>dma-web-rest</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>dk.dma.ais.view.AisViewDaemon</mainClass>
+								</transformer>
+							</transformers>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${dependencies.jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>${dependencies.jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>dk.dma.web</groupId>
+			<artifactId>dma-web-rest</artifactId>
+			<version>0.1-SNAPSHOT</version>
+		</dependency>
 
-    <dependency>
-      <groupId>dk.dma.ais.store</groupId>
-      <artifactId>ais-store-common</artifactId>
-      <version>0.1-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
+		<dependency>
+			<groupId>dk.dma.ais.store</groupId>
+			<artifactId>ais-store-common</artifactId>
+			<version>0.1-SNAPSHOT</version>
+		</dependency>
 
-  <repositories>
-    <repository>
-      <id>dma-releases</id>
-      <name>Dma Release Repository</name>
-      <url>http://repository-dma.forge.cloudbees.com/release/</url>
-    </repository>
-  </repositories>
+
+	</dependencies>
+
+
+
+	<repositories>
+		<repository>
+			<id>dma-releases</id>
+			<name>Dma Release Repository</name>
+			<url>http://repository-dma.forge.cloudbees.com/release/</url>
+		</repository>
+	</repositories>
 </project>

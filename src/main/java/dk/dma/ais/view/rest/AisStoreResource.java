@@ -22,6 +22,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
@@ -47,6 +48,12 @@ import dk.dma.db.cassandra.CassandraConnection;
  */
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
+    @GET
+    @Path("/ping")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String ping(@Context UriInfo info) {
+        return "pong";
+    }
 
     /**
      * Returns a list of source IDs in the source. This one is hard coded for now
