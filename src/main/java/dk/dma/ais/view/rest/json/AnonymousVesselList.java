@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -65,8 +65,9 @@ public class AnonymousVesselList extends BaseVesselList {
 
         // Round cog to nearest 10
         long cogL = Math.round(cog / 10.0) * 10;
-        if (cogL == 360)
+        if (cogL == 360) {
             cogL = 0;
+        }
 
         ArrayList<String> list = new ArrayList<String>();
 

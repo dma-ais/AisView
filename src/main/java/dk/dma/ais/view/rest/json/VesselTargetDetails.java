@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -68,7 +68,9 @@ public class VesselTargetDetails {
 
     public VesselTargetDetails(AisVesselTarget target, TargetSourceData sourceData, int anonId, IPastTrack pastTrack) {        
         AisVesselPosition pos = target.getVesselPosition();
-        if (pos == null || pos.getPos() == null) return;
+        if (pos == null || pos.getPos() == null) {
+            return;
+        }
         AisClassAPosition classAPos = null;
         if (pos instanceof AisClassAPosition) {
             classAPos = (AisClassAPosition)pos;
@@ -119,7 +121,7 @@ public class VesselTargetDetails {
         
         // Class A position
         if (classAPos != null) {
-        	//TODO fix changed method.
+            //TODO fix changed method.
             NavigationalStatus navigationalStatus = NavigationalStatus.get(classAPos.getNavStatus());
             this.navStatus = navigationalStatus.prettyStatus();
             this.moored = (classAPos.getNavStatus() == 1 || classAPos.getNavStatus() == 5);
@@ -136,7 +138,9 @@ public class VesselTargetDetails {
         
         
         AisVesselStatic statics = target.getVesselStatic();
-        if (statics == null) return;
+        if (statics == null) {
+            return;
+        }
         AisClassAStatic classAStatics = null;
         if (statics instanceof AisClassAStatic) {
             classAStatics = (AisClassAStatic)statics;

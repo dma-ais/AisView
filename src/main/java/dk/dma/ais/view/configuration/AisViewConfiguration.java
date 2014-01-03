@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -38,8 +38,8 @@ public class AisViewConfiguration {
 
     private AisBusConfiguration aisbusConfiguration;
     private WebServerConfiguration serverConfiguration;
-    private boolean anonymous = false;
-    private boolean recordPastTrack = false;
+    private boolean anonymous;
+    private boolean recordPastTrack;
     private int liveTargetTtl = 1200; // 20 min
     private int satTargetTtl = 172800; // 48 hours
     private int pastTrackMinDist = 100; // 100 meters

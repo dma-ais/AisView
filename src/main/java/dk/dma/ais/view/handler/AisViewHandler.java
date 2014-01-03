@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -183,8 +183,9 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
         for (AisTargetEntry targetEntry : targetsMap.values()) {
             AisVesselTarget vesselTarget = getFilteredAisVessel(targetEntry, filter);
             if (vesselTarget == null || vesselTarget.getVesselPosition() == null
-                    || vesselTarget.getVesselPosition().getPos() == null)
+                    || vesselTarget.getVesselPosition().getPos() == null) {
                 continue;
+            }
 
             inWorld++;
 
@@ -244,8 +245,9 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
         Set<String> country = filterMap.get("country");
         if (country != null) {
             Country mc = target.getCountry();
-            if (mc == null)
+            if (mc == null) {
                 return null;
+            }
             if (!country.contains(mc.getThreeLetter())) {
                 return null;
             }
@@ -301,7 +303,7 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
         }
         Set<String> staticReport = filterMap.get("staticReport");
         if (staticReport != null) {
-            boolean hasStatic = (vesselTarget.getVesselStatic() != null);
+            boolean hasStatic = vesselTarget.getVesselStatic() != null;
             if (staticReport.contains("yes") && !hasStatic) {
                 return null;
             }

@@ -39,6 +39,8 @@ import dk.dma.db.cassandra.CassandraConnection;
 /**
  * 
  * @author Kasper Nielsen
+ * 
+ * @deprecated in favor off  AisViewDaemon
  */
 @Deprecated
 public class Main extends AbstractDaemon {

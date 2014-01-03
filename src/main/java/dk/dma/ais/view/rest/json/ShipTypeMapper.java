@@ -9,7 +9,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,7 +26,7 @@ import dk.dma.ais.message.ShipTypeCargo.ShipType;
 /**
  * Class to map between colors and ship types
  */
-public class ShipTypeMapper {
+public final class ShipTypeMapper {
 
     /**
      * Differentiating colors used
@@ -45,7 +45,7 @@ public class ShipTypeMapper {
      */
     private Map<ShipTypeColor, List<ShipType>> colorToShipTypeMap = new HashMap<ShipTypeMapper.ShipTypeColor, List<ShipType>>();
 
-    private static ShipTypeMapper instance = null;
+    private static ShipTypeMapper instance;
 
     private ShipTypeMapper() {
         shipTypeToColorMap.put(ShipType.PASSENGER, ShipTypeColor.BLUE);
