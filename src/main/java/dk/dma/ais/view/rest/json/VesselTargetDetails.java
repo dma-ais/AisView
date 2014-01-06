@@ -124,7 +124,7 @@ public class VesselTargetDetails {
             //TODO fix changed method.
             NavigationalStatus navigationalStatus = NavigationalStatus.get(classAPos.getNavStatus());
             this.navStatus = navigationalStatus.prettyStatus();
-            this.moored = (classAPos.getNavStatus() == 1 || classAPos.getNavStatus() == 5);
+            this.moored = classAPos.getNavStatus() == 1 || classAPos.getNavStatus() == 5;
             this.rot = formatDouble(classAPos.getRot(), 1);
         }
                 

@@ -65,7 +65,7 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
     private Map<Integer, IPastTrack> pastTrackMap = new HashMap<>();
 
     // Time of last cleanup
-    private long lastCleanup = 0;
+    private long lastCleanup; //= 0;
 
     public AisViewHandler(AisViewConfiguration conf) {
         this.conf = conf;
@@ -222,7 +222,7 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
         // Determine TTL
         boolean lastIsSatData = sourceData.isSatData();
         Set<String> sourceType = filterMap.get("sourceType");
-        int ttl = (lastIsSatData) ? conf.getSatTargetTtl() : conf.getLiveTargetTtl();
+        int ttl = lastIsSatData ? conf.getSatTargetTtl() : conf.getLiveTargetTtl();
 
         // If quering for SAT the ttl will be forced to sat ttl
         if (sourceType != null && sourceType.contains("SAT")) {
@@ -489,7 +489,7 @@ public class AisViewHandler extends Thread implements Consumer<AisPacket> {
             // Determine TTL (could come from configuration)
             TargetSourceData sourceData = targetEntry.getSourceData();
             boolean satData = sourceData.isSatData();
-            int ttl = (satData) ? conf.getSatTargetTtl() : conf.getLiveTargetTtl();
+            int ttl = satData ? conf.getSatTargetTtl() : conf.getLiveTargetTtl();
 
             // Is it alive
             if (!target.isAlive(ttl)) {

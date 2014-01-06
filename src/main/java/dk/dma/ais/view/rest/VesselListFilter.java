@@ -25,7 +25,7 @@ import dk.dma.ais.view.common.web.QueryParams;
 
 public class VesselListFilter {
 
-    private static final String[] filterNames = { "vesselClass", "country", "sourceType", "sourceCountry", "sourceRegion",
+    private final String[] filterNames = { "vesselClass", "country", "sourceType", "sourceCountry", "sourceRegion",
             "sourceBs", "sourceSystem", "staticReport" };
 
     private Map<String, HashSet<String>> filterMap = new HashMap<String, HashSet<String>>();

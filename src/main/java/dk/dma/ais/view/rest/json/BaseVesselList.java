@@ -24,8 +24,8 @@ public abstract class BaseVesselList {
     
     protected HashMap<Integer, ArrayList<String>> vessels = new HashMap<Integer, ArrayList<String>>();
     protected long currentTime;
-    protected int vesselCount = 0;
-    protected int inWorldCount = 0;
+    protected int vesselCount;
+    protected int inWorldCount;
     
     protected static ShipTypeMapper shipTypeMapper = ShipTypeMapper.getInstance();
     

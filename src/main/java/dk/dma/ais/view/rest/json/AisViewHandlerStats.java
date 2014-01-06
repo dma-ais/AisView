@@ -27,10 +27,10 @@ public class AisViewHandlerStats implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private int totalTargets = 0;
-    private int pastTrackTargets = 0;
-    private int vesselTargets = 0;
-    private int pastTrackPoints = 0;
+    private int totalTargets;
+    private int pastTrackTargets;
+    private int vesselTargets;
+    private int pastTrackPoints;
 
     public AisViewHandlerStats(Collection<AisTargetEntry> targets, Collection<IPastTrack> pastTracks) {
         totalTargets = targets.size();
