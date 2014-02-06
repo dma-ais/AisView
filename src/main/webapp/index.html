@@ -326,11 +326,17 @@
                     <ul class="nav nav-tabs">
                         <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="changeOutput('raw')">Raw</a></li>
                         <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="changeOutput('table')">Table select</a></li>
+                        <li><a href="#prefixedPane" data-toggle="tab" ng-model="format" ng-click="changeOutput('prefixed_sentences')">Prefixed Data</a></li>
                     </ul>
 
                     <div class="tab-content">
                         <div id="rawPane" class="tab-pane fade in active">
                             <h4>Raw data is chosen</h4>
+                        </div>
+                        <div id="prefixedPane" class="tab-pane fade">
+                            <h4>PREFIXED Raw data is chosen</h4>
+                            <h4>Example:</h4>
+                            <pre>01-08-2013 20:36:54,!AIVDM,1,1,,B,13I6Re?OhhPHD5bHhth@q@vF00S4,0*0E</pre>
                         </div>
                         <div id="tablePane" style="margin-top:4mm;" class="tab-pane fade">
                             <div id="tableContainer" class="container" >

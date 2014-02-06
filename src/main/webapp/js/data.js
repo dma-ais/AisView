@@ -28,8 +28,8 @@ var source_restService = 'filter=';         //used in source-filters.js
 var mmsi_restService = 'mmsi=';             //used in mmsi-filters.js
 var area_restService = 'box=';              //used in area-selection.js
 var time_restService = 'interval=';         //used in time-selection.js
-var output_restService = 'output=table&';   //used in output-format-ctrl.js
-var columns_restService = 'columns=';       //used in output-format-ctrl.js
+var output_restService = 'output=';   //used in output-format-ctrl.js
+var columns_restService = 'table&columns=';       //used in output-format-ctrl.js
 var separator_restService = 'separator=';   //used in output-format-ctrl.js
 var noHeader_restService = 'noHeader&';     //used in output-format-ctrl.js
 var samples_restService = '&limit=';         //used in url-builder.js
