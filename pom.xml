@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>dk.dma</groupId>
 		<artifactId>dma-root-pom</artifactId>
-		<version>11</version>
+		<version>12</version>
 	</parent>
 
 	<groupId>dk.dma.ais.view</groupId>
@@ -57,16 +57,37 @@
 		</plugins>
 	</build>
 	<dependencies>
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>${dependencies.jetty.version}</version>
+			<version>9.1.3.v20140225</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>${dependencies.jetty.version}</version>
+			<version>9.1.3.v20140225</version>
 		</dependency>
+
+ 		<!-- Overwrite Jersey JAX-RS -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-simple-http</artifactId>
+            <version>2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-moxy</artifactId>
+            <version>2.7</version>
+        </dependency>
+
 		<dependency>
 			<groupId>dk.dma.web</groupId>
 			<artifactId>dma-web-rest</artifactId>
@@ -79,6 +100,17 @@
 			<version>0.1-SNAPSHOT</version>
 		</dependency>
 
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.6</version>
+		</dependency>
 
 	</dependencies>
 
