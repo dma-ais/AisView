@@ -17,6 +17,8 @@ package dk.dma.ais.view.rest;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.GET;
@@ -31,6 +33,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.binary.SixbitException;
+import dk.dma.ais.data.AisTarget;
 import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
@@ -48,8 +51,6 @@ import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.handler.AisViewHandler;
 import dk.dma.ais.view.handler.TargetSourceData;
-import dk.dma.ais.view.rest.json.AnonymousVesselList;
-import dk.dma.ais.view.rest.json.BaseVesselList;
 import dk.dma.ais.view.rest.json.VesselClusterJsonRepsonse;
 import dk.dma.ais.view.rest.json.VesselList;
 import dk.dma.ais.view.rest.json.VesselListJsonResponse;
@@ -57,7 +58,10 @@ import dk.dma.ais.view.rest.json.VesselTargetDetails;
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.db.cassandra.CassandraConnection;
+import dk.dma.enav.model.geometry.BoundingBox;
+import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
+import dk.dma.enav.util.function.Predicate;
 
 /**
  * 
@@ -142,7 +146,7 @@ public class LiveDataResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public VesselListJsonResponse anonVesselList(@Context UriInfo uriInfo) {
         QueryParams queryParams = new QueryParams(uriInfo.getQueryParameters());
-        return vesselList(queryParams, true);
+        return vesselList(queryParams, false);
     }
 
     @GET
@@ -150,7 +154,7 @@ public class LiveDataResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public VesselListJsonResponse vesselList(@Context UriInfo uriInfo) {
         QueryParams queryParams = new QueryParams(uriInfo.getQueryParameters());
-        return vesselList(queryParams, handler.getConf().isAnonymous());
+        return vesselList(queryParams, false);
     }
 
     @GET
@@ -209,7 +213,7 @@ public class LiveDataResource extends AbstractResource {
             Iterable<AisPacket> iter = con.execute(AisStoreQueryBuilder
                     .forMmsi(mmsi)
                     .setInterval(lastPacketTime - timeBack, lastPacketTime)
-                    .setFetchSize(1000000));
+                    .setFetchSize(10000));
 
             for (AisPacket p : iter) {
                 AisMessage m = p.tryGetAisMessage();
@@ -241,38 +245,58 @@ public class LiveDataResource extends AbstractResource {
     private VesselListJsonResponse vesselList(QueryParams request,
             boolean anonymous) {
         VesselListFilter filter = new VesselListFilter(request);
+        VesselList list = new VesselList();
+        TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
+      
         // Get corners
         Double topLat = request.getDouble("topLat");
         Double topLon = request.getDouble("topLon");
         Double botLat = request.getDouble("botLat");
         Double botLon = request.getDouble("botLon");
-
+    
         // Extract requested area
         Position pointA = null;
         Position pointB = null;
 
-        if (topLat != null && topLon != null && botLat != null
-                && botLon != null) {
+        Predicate<? super TargetInfo> targetPredicate = Predicate.TRUE;
+        if (topLat != null && topLon != null && botLat != null && botLon != null) {
             pointA = Position.create(topLat, topLon);
             pointB = Position.create(botLat, botLon);
+            final BoundingBox bbox = BoundingBox.create(pointA, pointB, CoordinateSystem.GEODETIC);
+            targetPredicate = new Predicate<TargetInfo>() {
+                @Override
+                public boolean test(TargetInfo arg0) {
+                    return bbox.contains(arg0.getPositionPacket().tryGetAisMessage().getValidPosition());
+                }
+            };
         }
-
-        // Get response from AisViewHandler and return it
-        BaseVesselList list;
-        if (anonymous) {
-            list = new AnonymousVesselList();
-        } else {
-            list = new VesselList();
+        
+        Map<Integer, TargetInfo> targets = tt.findTargets(Predicate.TRUE, targetPredicate);
+        
+        int targetCount = tt.countNumberOfTargets(Predicate.TRUE, Predicate.TRUE);
+        list.setInWorldCount(targetCount);
+        
+        for (Entry<Integer, TargetInfo> e: targets.entrySet()) {
+            try {
+                AisTarget avt = AisTarget.createTarget(e.getValue().getPositionPacket().tryGetAisMessage());
+                for (AisPacket p : e.getValue().getStaticPackets()) {
+                    avt.update(p.tryGetAisMessage());
+                }
+            
+                list.addTarget((AisVesselTarget)avt, e.getKey());
+            } catch (ClassCastException | NullPointerException | IllegalArgumentException exc) {
+                //pass
+            }
+            
         }
-
+        
         // Get request id
         Integer requestId = request.getInt("requestId");
         if (requestId == null) {
             requestId = -1;
         }
-
-        return new VesselListJsonResponse(requestId, handler.getVesselList(
-                list, filter, pointA, pointB));
+        
+        return new VesselListJsonResponse(requestId, list);
     }
 
     private VesselClusterJsonRepsonse cluster(QueryParams request) {
