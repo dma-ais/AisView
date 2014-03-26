@@ -19,10 +19,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.GET;
@@ -35,6 +38,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
@@ -88,7 +94,17 @@ public class LiveDataResource extends AbstractResource {
 
         this.handler = new AisViewHelper(new AisViewConfiguration());
     }
-    
+
+    final static Comparator<AisPacket> compateTimestamp = new Comparator<AisPacket>() {
+
+        @Override
+        public int compare(AisPacket o1, AisPacket o2) {
+            // TODO Auto-generated method stub
+            return Long.compare(o1.getBestTimestamp(), o2.getBestTimestamp());
+        }
+
+    };
+
     @GET
     @Path("/ping")
     @Produces(MediaType.TEXT_PLAIN)
@@ -179,7 +195,7 @@ public class LiveDataResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public VesselTargetDetails vesselTargetDetails(@Context UriInfo uriInfo) {
         QueryParams queryParams = new QueryParams(uriInfo.getQueryParameters());
-        //Integer id = queryParams.getInt("id");
+        // Integer id = queryParams.getInt("id");
         Integer mmsi = queryParams.getInt("mmsi");
         boolean pastTrack = queryParams.containsKey("past_track");
 
@@ -188,11 +204,11 @@ public class LiveDataResource extends AbstractResource {
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
         TargetInfo ti = tt.getNewest(mmsi);
 
-        //AisPacketSource aps = AisPacketSource.create(ti.getPositionPacket());
+        // AisPacketSource aps = AisPacketSource.create(ti.getPositionPacket());
         AisVesselTarget aisVesselTarget;
 
-        
-        aisVesselTarget = (AisVesselTarget) AisVesselTarget.createTarget(ti.getPositionPacket().tryGetAisMessage());
+        aisVesselTarget = (AisVesselTarget) AisVesselTarget.createTarget(ti
+                .getPositionPacket().tryGetAisMessage());
 
         TargetSourceData sourceData = new TargetSourceData();
         sourceData.update(ti.getPositionPacket());
@@ -237,22 +253,24 @@ public class LiveDataResource extends AbstractResource {
         if (handler.getConf().isAnonymous()) {
             throw new WebApplicationException(Response.Status.FORBIDDEN);
         }
-        
+
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(Predicate.TRUE, Predicate.TRUE);
-        
+        Map<Integer, TargetInfo> targets = tt.findTargets(Predicate.TRUE,
+                Predicate.TRUE);
+
         LinkedList<AisTarget> aisTargets = new LinkedList<>();
-        
-        for (Entry<Integer, TargetInfo> e: targets.entrySet()) {
-            AisTarget aisTarget = AisTarget.createTarget(e.getValue().getPositionPacket().tryGetAisMessage());
-            
-            for (AisPacket packet: e.getValue().getStaticPackets()) {
+
+        for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
+            AisTarget aisTarget = AisTarget.createTarget(e.getValue()
+                    .getPositionPacket().tryGetAisMessage());
+
+            for (AisPacket packet : e.getValue().getStaticPackets()) {
                 aisTarget.update(packet.tryGetAisMessage());
                 aisTargets.add(aisTarget);
             }
         }
-        
+
         // Get response from AisViewHandler and return it
         return handler.searchTargets(argument, aisTargets);
     }
@@ -260,7 +278,7 @@ public class LiveDataResource extends AbstractResource {
     private VesselListJsonResponse vesselList(QueryParams request,
             boolean anonymous) {
         final VesselListFilter filter = new VesselListFilter(request);
-        
+
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
 
         BoundingBox bbox = tryGetBbox(request);
@@ -268,21 +286,22 @@ public class LiveDataResource extends AbstractResource {
         if (bbox != null) {
             targetPredicate = filterOnBoundingBox(bbox);
         }
-        
-        //filter both on source and target
-        Map<Integer, TargetInfo> targets = tt.findTargets(getSourcePredicates(filter), targetPredicate);
+
+        // filter both on source and target
+        Map<Integer, TargetInfo> targets = tt.findTargets(
+                getSourcePredicates(filter), targetPredicate);
         VesselList list = getVesselList(targets, filter);
-        
-        int targetCount = tt.countNumberOfTargets(getSourcePredicates(filter), targetPredicate);
+
+        int targetCount = tt.countNumberOfTargets(getSourcePredicates(filter),
+                targetPredicate);
         list.setInWorldCount(targetCount);
-        
-        
+
         // Get request id
         Integer requestId = request.getInt("requestId");
         if (requestId == null) {
             requestId = -1;
         }
-        
+
         return new VesselListJsonResponse(requestId, list);
     }
 
@@ -290,50 +309,59 @@ public class LiveDataResource extends AbstractResource {
             VesselListFilter filter) {
 
         VesselList list = new VesselList();
-        for (Entry<Integer, TargetInfo> e: targets.entrySet()) {
+        for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
             try {
-                AisTarget avt = AisVesselTarget.createTarget(e.getValue().getPositionPacket().tryGetAisMessage());
-                for (AisPacket p : e.getValue().getStaticPackets()) {
-                    try {
-                        avt.update(p.tryGetAisMessage());
-                    } catch (IllegalArgumentException e2) {
-                        //pass
-                    }
-                }
-            
-                list.addTarget(handler.getFilteredAisVessel(avt, filter), e.getKey());
-            } catch (ClassCastException | NullPointerException exc) {
-                //pass
+                AisTarget aisTarget = createAisTargetInOrder(e.getValue());
+                list.addTarget(handler.getFilteredAisVessel(aisTarget, filter),
+                        e.getKey());
+            } catch (NullPointerException exc) {
+                // pass
             }
-            
         }
-        
-        
         return list;
-        
+
     }
-    
-    private Collection<AisTarget> getAisTargetList(Map<Integer, TargetInfo> targets, VesselListFilter filter) {
+
+    private AisTarget createAisTargetInOrder(TargetInfo ti) {
+        TreeSet<AisPacket> messages = new TreeSet<>();
+
+        messages.add(ti.getPositionPacket());
+
+        for (AisPacket p : ti.getStaticPackets()) {
+            try {
+                messages.add(p);
+            } catch (Exception exc) {
+                // pass
+            }
+        }
+
+        AisTarget aisTarget = AisTarget.createTarget(messages.pollFirst()
+                .tryGetAisMessage());
+        for (AisPacket p : messages) {
+            try {
+                aisTarget.update(p.tryGetAisMessage());
+            } catch (IllegalArgumentException e) {
+                // pass
+            }
+        }
+
+        return aisTarget;
+    }
+
+    private Collection<AisTarget> getAisTargetList(
+            Map<Integer, TargetInfo> targets, VesselListFilter filter) {
 
         ArrayList<AisTarget> list = new ArrayList<>();
-        for (Entry<Integer, TargetInfo> e: targets.entrySet()) {
+        for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
             try {
-                AisTarget avt = AisVesselTarget.createTarget(e.getValue().getPositionPacket().tryGetAisMessage());
-                for (AisPacket p : e.getValue().getStaticPackets()) {
-                    try {
-                        avt.update(p.tryGetAisMessage());
-                    } catch (IllegalArgumentException e2) {
-                        //pass
-                    }
-                }
-            
-                list.add(handler.getFilteredAisVessel(avt, filter));
-            } catch (ClassCastException | NullPointerException e1 ) {
-                //pass
+                AisTarget aisTarget = createAisTargetInOrder(e.getValue());
+                list.add(handler.getFilteredAisVessel(aisTarget, filter));
+            } catch (NullPointerException e1) {
+                // pass
             }
-            
+
         }
-        
+
         return list;
     }
 
@@ -351,124 +379,132 @@ public class LiveDataResource extends AbstractResource {
         if (size == null) {
             size = 4.0;
         }
-        
+
         BoundingBox bbox = tryGetBbox(request);
         Predicate<? super TargetInfo> targetPredicate = Predicate.TRUE;
         if (bbox != null) {
             targetPredicate = filterOnBoundingBox(bbox);
         }
-        
-        Position pointA = Position.create(request.getDouble("topLat"), request.getDouble("topLon"));
-        Position pointB = Position.create(request.getDouble("botLat"), request.getDouble("botLon"));
-        
+
+        Position pointA = Position.create(request.getDouble("topLat"),
+                request.getDouble("topLon"));
+        Position pointB = Position.create(request.getDouble("botLat"),
+                request.getDouble("botLon"));
+
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
-        Map<Integer, TargetInfo> targets = tt.findTargets(getSourcePredicates(filter), targetPredicate);
+        Map<Integer, TargetInfo> targets = tt.findTargets(
+                getSourcePredicates(filter), targetPredicate);
 
         Collection<AisTarget> aisTargets = getAisTargetList(targets, filter);
-        
+
         // Get request id
         Integer requestId = request.getInt("requestId");
         if (requestId == null) {
             requestId = -1;
         }
 
-        return handler.getClusterResponse(aisTargets, requestId, filter, limit, size, pointA, pointB);
+        return handler.getClusterResponse(aisTargets, requestId, filter, limit,
+                size, pointA, pointB);
     }
-    
+
     /**
-     * get a Predicate based filter
-     * TODO: Throw this whole system away once we update web clients
+     * get a Predicate based filter TODO: Throw this whole system away once we
+     * update web clients
      * 
      * @param key
      * @return
      */
-    private Predicate<? super AisPacketSource> getSourcePredicate(VesselListFilter filter, String key) {
-        Map<String, HashSet<String >>filters = filter.getFilterMap(); 
-        
+    private Predicate<? super AisPacketSource> getSourcePredicate(
+            VesselListFilter filter, String key) {
+        Map<String, HashSet<String>> filters = filter.getFilterMap();
+
         if (filters.containsKey(key)) {
-            String[] values = filters.get(key).toArray(new String[0]); 
-            
+            String[] values = filters.get(key).toArray(new String[0]);
+
             switch (key) {
             case "sourceCountry":
-                return AisPacketSourceFilters.filterOnSourceCountry(
-                        Country.findAllByCode(values).toArray(new Country[0]));
+                return AisPacketSourceFilters.filterOnSourceCountry(Country
+                        .findAllByCode(values).toArray(new Country[0]));
             case "sourceRegion":
                 return AisPacketSourceFilters.filterOnSourceRegion(values);
             case "sourceBs":
                 return AisPacketSourceFilters.filterOnSourceBaseStation(values);
             case "sourceType":
-                return AisPacketSourceFilters.filterOnSourceType(SourceType.fromString(values[0]));
+                return AisPacketSourceFilters.filterOnSourceType(SourceType
+                        .fromString(values[0]));
             case "sourceSystem":
                 return AisPacketSourceFilters.filterOnSourceId(values);
             }
         }
-        
-        
+
         return Predicate.TRUE;
     }
-    
+
     private Predicate<TargetInfo> filterOnBoundingBox(final BoundingBox bbox) {
         return new Predicate<TargetInfo>() {
             @Override
             public boolean test(TargetInfo arg0) {
                 try {
-                    return bbox.contains(arg0.getPositionPacket().getAisMessage().getValidPosition());
-                } catch (AisMessageException | SixbitException | NullPointerException e) {
+                    return bbox.contains(arg0.getPositionPacket()
+                            .getAisMessage().getValidPosition());
+                } catch (AisMessageException | SixbitException
+                        | NullPointerException e) {
                     return false;
                 }
             }
         };
     }
-    
+
     @SuppressWarnings("unused")
-    private Predicate<TargetInfo> filterOnBoundingBox(final Position pointA, final Position pointB) { 
-        return filterOnBoundingBox(BoundingBox.create(pointA, pointB, CoordinateSystem.GEODETIC));
+    private Predicate<TargetInfo> filterOnBoundingBox(final Position pointA,
+            final Position pointB) {
+        return filterOnBoundingBox(BoundingBox.create(pointA, pointB,
+                CoordinateSystem.GEODETIC));
     }
-    
+
     /**
      * get all predicates that relate to source from VesselListFilter
      * 
      * @param filter
      * @return
      */
-    private Predicate<? super AisPacketSource> getSourcePredicates(final VesselListFilter filter) {
+    private Predicate<? super AisPacketSource> getSourcePredicates(
+            final VesselListFilter filter) {
         return new Predicate<AisPacketSource>() {
 
             @Override
             public boolean test(AisPacketSource arg0) {
-                for (String key: filter.getFilterMap().keySet()) {
+                for (String key : filter.getFilterMap().keySet()) {
                     if (!getSourcePredicate(filter, key).test(arg0)) {
                         return false;
                     }
 
                 }
-                
+
                 return true;
             }
-            
+
         };
     }
-    
+
     private BoundingBox getBbox(QueryParams request) {
         // Get corners
         Double topLat = request.getDouble("topLat");
         Double topLon = request.getDouble("topLon");
         Double botLat = request.getDouble("botLat");
         Double botLon = request.getDouble("botLon");
-        
+
         Position pointA = Position.create(topLat, topLon);
         Position pointB = Position.create(botLat, botLon);
         return BoundingBox.create(pointA, pointB, CoordinateSystem.GEODETIC);
     }
-    
+
     private BoundingBox tryGetBbox(QueryParams request) {
         try {
             return getBbox(request);
         } catch (NullPointerException e) {
             return null;
-        }         
+        }
     }
-    
-    
-    
+
 }
