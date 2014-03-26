@@ -28,9 +28,14 @@ import dk.dma.ais.proprietary.GatehouseSourceTag;
 import dk.dma.ais.proprietary.IProprietaryTag;
 import dk.dma.enav.model.Country;
 
+
 /**
  * Class to data about the source of an AIS target
- */
+ * 
+ * @deprecated Using new TargetTracker+TargetInfo semantics
+ */ 
+ 
+@Deprecated
 public class TargetSourceData implements Serializable {
 
     private static final long serialVersionUID = 1L;
