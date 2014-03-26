@@ -29,7 +29,7 @@ import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.message.NavigationalStatus;
-import dk.dma.ais.view.handler.TargetSourceData;
+import dk.dma.ais.packet.AisPacketSource;
 
 public class VesselTargetDetails {    
     
@@ -66,8 +66,9 @@ public class VesselTargetDetails {
     protected String pos;
     protected IPastTrack pastTrack;
 
-    public VesselTargetDetails(AisVesselTarget target, TargetSourceData sourceData, int anonId, IPastTrack pastTrack) {        
+    public VesselTargetDetails(AisVesselTarget target, AisPacketSource aisSource, int anonId, IPastTrack pastTrack) {        
         AisVesselPosition pos = target.getVesselPosition();
+        
         if (pos == null || pos.getPos() == null) {
             return;
         }
@@ -97,24 +98,25 @@ public class VesselTargetDetails {
         }
         
         
-        this.sourceType = sourceData.getSourceType();
+        this.sourceType = (aisSource.getSourceType() == null) ? "N/A" : aisSource.getSourceType().toString();
         
-        this.sourceSystem = sourceData.getTagging().getSourceId();
+        this.sourceSystem = aisSource.getSourceId();
         if (this.sourceSystem == null) {
             this.sourceSystem = "N/A";
         }
-        this.sourceRegion = sourceData.getSourceRegion();
+        this.sourceRegion = aisSource.getSourceRegion();
         if (this.sourceRegion == null) {
             this.sourceRegion = "N/A";
         }
-        if (sourceData.getTagging().getSourceBs() != null) {
-            this.sourceBs = Integer.toString(sourceData.getTagging().getSourceBs());
+        
+        if (aisSource.getSourceBaseStation() >= 1) {
+            this.sourceBs = Integer.toString(aisSource.getSourceBaseStation());
         } else {
             this.sourceBs = "N/A";
         }
         
-        if (sourceData.getTagging().getSourceCountry() != null) {
-            this.sourceCountry = sourceData.getTagging().getSourceCountry().getName();
+        if (aisSource.getSourceCountry() != null) {
+            this.sourceCountry = aisSource.getSourceCountry().getName();
         } else {
             this.sourceCountry = "N/A";
         }

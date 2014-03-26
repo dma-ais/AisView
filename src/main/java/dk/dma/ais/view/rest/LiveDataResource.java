@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
@@ -38,9 +37,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
 
 import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
@@ -64,7 +60,6 @@ import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.handler.AisViewHelper;
-import dk.dma.ais.view.handler.TargetSourceData;
 import dk.dma.ais.view.rest.json.VesselClusterJsonRepsonse;
 import dk.dma.ais.view.rest.json.VesselList;
 import dk.dma.ais.view.rest.json.VesselListJsonResponse;
@@ -95,7 +90,7 @@ public class LiveDataResource extends AbstractResource {
         this.handler = new AisViewHelper(new AisViewConfiguration());
     }
 
-    final static Comparator<AisPacket> compateTimestamp = new Comparator<AisPacket>() {
+    static final Comparator<AisPacket> COMPARE_TIMESTAMP = new Comparator<AisPacket>() {
 
         @Override
         public int compare(AisPacket o1, AisPacket o2) {
@@ -202,46 +197,64 @@ public class LiveDataResource extends AbstractResource {
         // VesselTargetDetails details = handler.getVesselTargetDetails(id,
         // mmsi, pastTrack);
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
-        TargetInfo ti = tt.getNewest(mmsi);
+        Entry<AisPacketSource, TargetInfo> entry = tt.getNewestEntry(mmsi);
+        TargetInfo ti = entry.getValue();
 
-        // AisPacketSource aps = AisPacketSource.create(ti.getPositionPacket());
-        AisVesselTarget aisVesselTarget;
-
-        aisVesselTarget = (AisVesselTarget) AisVesselTarget.createTarget(ti
-                .getPositionPacket().tryGetAisMessage());
-
-        TargetSourceData sourceData = new TargetSourceData();
-        sourceData.update(ti.getPositionPacket());
-        for (AisPacket p : ti.getStaticPackets()) {
-            sourceData.update(p);
-        }
+        AisVesselTarget aisTarget = (AisVesselTarget) createAisTargetInOrder(ti);
+        AisVesselTarget aisTarget2 = null;
 
         IPastTrack pt = new PastTrackSortedSet();
         if (pastTrack) {
             CassandraConnection con = LiveDataResource.this
                     .get(CassandraConnection.class);
 
-            final long timeBack = 1000 * 60 * 60 * 12;
+            final long timeBack = 1000 * 60 * 60 * 24;
             final long lastPacketTime = ti.getPositionPacket()
                     .getBestTimestamp();
 
             Iterable<AisPacket> iter = con.execute(AisStoreQueryBuilder
                     .forMmsi(mmsi)
                     .setInterval(lastPacketTime - timeBack, lastPacketTime)
-                    .setFetchSize(10000));
+                    .setFetchSize(5000000));
 
             for (AisPacket p : iter) {
                 AisMessage m = p.tryGetAisMessage();
-                if (m instanceof IVesselPositionMessage) {
-                    AisVesselPosition avp = new AisVesselPosition();
-                    avp.update(m);
-                    pt.addPosition(avp, 10);
+                
+                if (aisTarget2 == null) {
+                    try {
+                        aisTarget2 = (AisVesselTarget) AisTarget.createTarget(m); 
+                    } catch (Exception e) {
+                        
+                    }
                 }
+                
+                try {
+                    aisTarget2.update(m);
+                    if (m instanceof IVesselPositionMessage) {
+                        pt.addPosition(aisTarget2.getVesselPosition(), 100);
+                    }
+                } catch (Exception e) {
+                    
+                }
+                
+                
+
             }
         }
+        
+        
+        aisTarget2.update(ti.getPositionPacket().tryGetAisMessage());
+        for (AisPacket p : ti.getStaticPackets()) {
+            try {
+                aisTarget2.update(p.tryGetAisMessage());
+            } catch (Exception e) {
+                
+            }
+        }
+        
 
-        VesselTargetDetails details = new VesselTargetDetails(aisVesselTarget,
-                sourceData, 0, pt);
+        VesselTargetDetails details = new VesselTargetDetails(aisTarget2,
+                entry.getKey(), mmsi, pt);
 
         return details;
     }
@@ -323,7 +336,7 @@ public class LiveDataResource extends AbstractResource {
     }
 
     private AisTarget createAisTargetInOrder(TargetInfo ti) {
-        TreeSet<AisPacket> messages = new TreeSet<>();
+        TreeSet<AisPacket> messages = new TreeSet<>(COMPARE_TIMESTAMP);
 
         messages.add(ti.getPositionPacket());
 
@@ -407,6 +420,28 @@ public class LiveDataResource extends AbstractResource {
                 size, pointA, pointB);
     }
 
+    private Predicate<TargetInfo> filterOnBoundingBox(final BoundingBox bbox) {
+        return new Predicate<TargetInfo>() {
+            @Override
+            public boolean test(TargetInfo arg0) {
+                try {
+                    return bbox.contains(arg0.getPositionPacket()
+                            .getAisMessage().getValidPosition());
+                } catch (AisMessageException | SixbitException
+                        | NullPointerException e) {
+                    return false;
+                }
+            }
+        };
+    }
+
+    @SuppressWarnings("unused")
+    private Predicate<TargetInfo> filterOnBoundingBox(final Position pointA,
+            final Position pointB) {
+        return filterOnBoundingBox(BoundingBox.create(pointA, pointB,
+                CoordinateSystem.GEODETIC));
+    }
+
     /**
      * get a Predicate based filter TODO: Throw this whole system away once we
      * update web clients
@@ -438,28 +473,6 @@ public class LiveDataResource extends AbstractResource {
         }
 
         return Predicate.TRUE;
-    }
-
-    private Predicate<TargetInfo> filterOnBoundingBox(final BoundingBox bbox) {
-        return new Predicate<TargetInfo>() {
-            @Override
-            public boolean test(TargetInfo arg0) {
-                try {
-                    return bbox.contains(arg0.getPositionPacket()
-                            .getAisMessage().getValidPosition());
-                } catch (AisMessageException | SixbitException
-                        | NullPointerException e) {
-                    return false;
-                }
-            }
-        };
-    }
-
-    @SuppressWarnings("unused")
-    private Predicate<TargetInfo> filterOnBoundingBox(final Position pointA,
-            final Position pointB) {
-        return filterOnBoundingBox(BoundingBox.create(pointA, pointB,
-                CoordinateSystem.GEODETIC));
     }
 
     /**
