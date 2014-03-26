@@ -10,7 +10,7 @@
 
 	<groupId>dk.dma.ais.view</groupId>
 	<artifactId>ais-view</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>AisView</name>
 	<description>AisViewer</description>
@@ -99,9 +99,15 @@
 		<dependency>
 			<groupId>dk.dma.web</groupId>
 			<artifactId>dma-web-rest</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
-
+        
+        <dependency>
+            <groupId>dk.dma.ais.lib</groupId>
+            <artifactId>ais-lib-communication</artifactId>
+            <version>2.1-SNAPSHOT</version>
+        </dependency>
+        
 		<dependency>
 			<groupId>dk.dma.ais.store</groupId>
 			<artifactId>ais-store-common</artifactId>
