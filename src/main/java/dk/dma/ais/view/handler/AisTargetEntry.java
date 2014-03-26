@@ -24,6 +24,13 @@ import dk.dma.ais.message.AisMessage;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 
+/**
+ * 
+ * @author unknown
+ *
+ * @deprecated Use TargetTracker/TargetInfo semantics instead
+ */
+@Deprecated
 public class AisTargetEntry {
     
     private static int anonymousCounter;
