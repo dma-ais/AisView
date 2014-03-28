@@ -292,9 +292,7 @@ public class LiveDataResource extends AbstractResource {
                 getSourcePredicates(filter), targetPredicate);
         VesselList list = getVesselList(targets, filter);
 
-        int targetCount = tt.countNumberOfTargets(getSourcePredicates(filter),
-                targetPredicate);
-        list.setInWorldCount(targetCount);
+        list.setInWorldCount(targets.values().size());
 
         // Get request id
         Integer requestId = request.getInt("requestId");
