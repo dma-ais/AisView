@@ -42,7 +42,7 @@ public class AisViewConfiguration {
     private boolean recordPastTrack;
     private int liveTargetTtl = 1200; // 20 min
     private int satTargetTtl = 172800; // 48 hours
-    private int pastTrackMinDist = 100; // 100 meters
+    private int pastTrackMinDist = 200; // 200 meters
     private int pastTrackLiveTtl = 3600; // 1 hour
     private int pastTrackSatTtl = 3600; // 1 hour
     private int cleanupInterval = 600; // 10 minutes
