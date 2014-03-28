@@ -51,9 +51,10 @@ public class AisViewHelper {
     public AisViewHelper(AisViewConfiguration conf) {
         this.conf = conf;
     }
-    
+
     /**
-     * Returns a casted AisVesselTarget of the given AisTarget if it is an instance of AisVesselTarget.
+     * Returns a casted AisVesselTarget of the given AisTarget if it is an
+     * instance of AisVesselTarget.
      * 
      * TODO: implement using TargetInfo/TargetTracker
      * 
@@ -61,15 +62,16 @@ public class AisViewHelper {
      * @param filter
      * @return
      */
-    public synchronized AisVesselTarget getFilteredAisVessel(AisTarget target, VesselListFilter filter) {
-        
+    public synchronized AisVesselTarget getFilteredAisVessel(AisTarget target,
+            VesselListFilter filter) {
+
         if (!(target instanceof AisVesselTarget)) {
             return null;
         }
         AisVesselTarget vesselTarget = (AisVesselTarget) target;
-        
-        
+
         Map<String, HashSet<String>> filterMap = filter.getFilterMap();
+        
 
         // Maybe filtered away
         Set<String> vesselClass = filterMap.get("vesselClass");
@@ -105,7 +107,9 @@ public class AisViewHelper {
     }
 
     /**
-     * Returns false if target is out of specified area. Nothing will be rejected if the area is not specified.
+     * Returns false if target is out of specified area. Nothing will be
+     * rejected if the area is not specified.
+     * 
      * 
      * @param target
      *            The target to test
@@ -113,9 +117,13 @@ public class AisViewHelper {
      *            Upper left corner of area.
      * @param pointB
      *            Bottom right corner of area.
+     * 
+     * 
+     * 
      * @return false if target is out of specified area, else true.
      */
-    private static boolean rejectedByPosition(AisVesselTarget target, Position pointA, Position pointB) {
+    private static boolean rejectedByPosition(AisVesselTarget target,
+            Position pointA, Position pointB) {
 
         // Check if requested area is null
         if (pointA == null || pointB == null) {
@@ -123,17 +131,21 @@ public class AisViewHelper {
         }
 
         // Check if vessel has a position
-        if (target.getVesselPosition() == null || target.getVesselPosition().getPos() == null) {
+        if (target.getVesselPosition() == null
+                || target.getVesselPosition().getPos() == null) {
             return true;
         }
 
         // Latitude check - Reject targets not between A and B
-        if (target.getVesselPosition().getPos().getLatitude() <= pointA.getLatitude()
-                && target.getVesselPosition().getPos().getLatitude() >= pointB.getLatitude()) {
+        if (target.getVesselPosition().getPos().getLatitude() <= pointA
+                .getLatitude()
+                && target.getVesselPosition().getPos().getLatitude() >= pointB
+                        .getLatitude()) {
 
             // Longitude check - Accept targets between A and B
             if (pointB.getLongitude() <= pointA.getLongitude()
-                    && (target.getVesselPosition().getPos().getLongitude() >= pointA.getLongitude() || target.getVesselPosition()
+                    && (target.getVesselPosition().getPos().getLongitude() >= pointA
+                            .getLongitude() || target.getVesselPosition()
                             .getPos().getLongitude() <= pointB.getLongitude())) {
 
                 return false;
@@ -141,7 +153,8 @@ public class AisViewHelper {
 
             // Longitude - Reject targets between B and A - Accept others
             if (pointA.getLongitude() <= pointB.getLongitude()
-                    && (target.getVesselPosition().getPos().getLongitude() >= pointB.getLongitude() || target.getVesselPosition()
+                    && (target.getVesselPosition().getPos().getLongitude() >= pointB
+                            .getLongitude() || target.getVesselPosition()
                             .getPos().getLongitude() <= pointA.getLongitude())) {
                 return true;
 
@@ -153,14 +166,18 @@ public class AisViewHelper {
     }
 
     /**
-     * Returns a list of vessel clusters based on a filtering. The returned list does only contain clusters with vessels.
+     * Returns a list of vessel clusters based on a filtering. The returned list
+     * does only contain clusters with vessels.
      * 
      * @param filter
      * @param size
      * @param limit
      * @return
      */
-    public synchronized VesselClusterJsonRepsonse getClusterResponse(Collection<AisTarget> targets,int requestId, VesselListFilter filter, int limit, double size, Position pointA, Position pointB) {
+    public synchronized VesselClusterJsonRepsonse getClusterResponse(
+            Collection<AisTarget> targets, int requestId,
+            VesselListFilter filter, int limit, double size, Position pointA,
+            Position pointB) {
 
         Grid grid = GridFactory.getInstance().getGrid(size);
 
@@ -171,7 +188,8 @@ public class AisViewHelper {
         int inWorld = 0;
         for (AisTarget target : targets) {
             AisVesselTarget vesselTarget = getFilteredAisVessel(target, filter);
-            if (vesselTarget == null || vesselTarget.getVesselPosition() == null
+            if (vesselTarget == null
+                    || vesselTarget.getVesselPosition() == null
                     || vesselTarget.getVesselPosition().getPos() == null) {
                 continue;
             }
@@ -184,7 +202,8 @@ public class AisViewHelper {
             }
 
             Position vesselPosition = vesselTarget.getVesselPosition().getPos();
-            long cellId = grid.getCellId(vesselPosition.getLatitude(), vesselPosition.getLongitude());
+            long cellId = grid.getCellId(vesselPosition.getLatitude(),
+                    vesselPosition.getLongitude());
 
             // Only create vessel cluster if new
             if (map.containsKey(cellId)) {
@@ -192,32 +211,41 @@ public class AisViewHelper {
                 map.get(cellId).incrementCount();
 
                 if (map.get(cellId).getCount() < limit) {
-                    map.get(cellId).getVessels().addTarget(vesselTarget, target.getMmsi());
+                    map.get(cellId).getVessels()
+                            .addTarget(vesselTarget, target.getMmsi());
                 }
 
             } else {
 
                 Position from = grid.getGeoPosOfCellId(cellId);
 
-                double toLon = from.getLongitude() + grid.getCellSizeInDegrees();
+                double toLon = from.getLongitude()
+                        + grid.getCellSizeInDegrees();
                 double toLat = from.getLatitude() + grid.getCellSizeInDegrees();
                 Position to = Position.create(toLat, toLon);
 
-                VesselCluster cluster = new VesselCluster(from, to, 1, new VesselList());
+                VesselCluster cluster = new VesselCluster(from, to, 1,
+                        new VesselList());
                 map.put(cellId, cluster);
-                map.get(cellId).getVessels().addTarget(vesselTarget, target.getMmsi());
+                map.get(cellId).getVessels()
+                        .addTarget(vesselTarget, target.getMmsi());
 
             }
         }
 
         // Calculate density
-        ArrayList<VesselCluster> clusters = new ArrayList<VesselCluster>(map.values());
+        ArrayList<VesselCluster> clusters = new ArrayList<VesselCluster>(
+                map.values());
         for (VesselCluster c : clusters) {
 
-            Position from = Position.create(c.getFrom().getLatitude(), c.getFrom().getLongitude());
-            Position to = Position.create(c.getTo().getLatitude(), c.getTo().getLongitude());
-            Position topRight = Position.create(from.getLatitude(), to.getLongitude());
-            Position botLeft = Position.create(to.getLatitude(), from.getLongitude());
+            Position from = Position.create(c.getFrom().getLatitude(), c
+                    .getFrom().getLongitude());
+            Position to = Position.create(c.getTo().getLatitude(), c.getTo()
+                    .getLongitude());
+            Position topRight = Position.create(from.getLatitude(),
+                    to.getLongitude());
+            Position botLeft = Position.create(to.getLatitude(),
+                    from.getLongitude());
             double width = from.geodesicDistanceTo(topRight) / 1000;
             double height = from.geodesicDistanceTo(botLeft) / 1000;
             double areaSize = width * height;
@@ -228,15 +256,16 @@ public class AisViewHelper {
         return new VesselClusterJsonRepsonse(requestId, clusters, inWorld);
     }
 
-
     /**
      * Get simple list of anonymous targets that matches the search criteria.
      * 
      * @param searchCriteria
-     *            A string that will be matched to all vessel names, IMOs and MMSIs.
+     *            A string that will be matched to all vessel names, IMOs and
+     *            MMSIs.
      * @return A list of targets.
      */
-    public synchronized VesselList searchTargets(String searchCriteria, List<AisTarget> targets) {
+    public synchronized VesselList searchTargets(String searchCriteria,
+            List<AisTarget> targets) {
 
         VesselList response = new VesselList();
 
@@ -246,10 +275,10 @@ public class AisViewHelper {
                 continue;
             }
 
-            //TODO: implement sat ttl vs live ttl
+            // TODO: implement sat ttl vs live ttl
             // Determine TTL (could come from configuration)
-            //TargetSourceData sourceData = targetEntry.getSourceData();
-            //boolean satData = sourceData.isSatData();
+            // TargetSourceData sourceData = targetEntry.getSourceData();
+            // boolean satData = sourceData.isSatData();
             int ttl = conf.getSatTargetTtl();
 
             // Is it alive
@@ -269,14 +298,16 @@ public class AisViewHelper {
     }
 
     /**
-     * Returns false if target matches a given searchCriteria. This method only matches on the targets name, mmsi and imo.
+     * Returns false if target matches a given searchCriteria. This method only
+     * matches on the targets name, mmsi and imo.
      * 
      * @param target
      * @param searchCriteria
      * @return false if the target matches the search criteria.
      * @throws JsonApiException
      */
-    private static boolean rejectedBySearchCriteria(AisTarget target, String searchCriteria) {
+    private static boolean rejectedBySearchCriteria(AisTarget target,
+            String searchCriteria) {
 
         if (!(target instanceof AisVesselTarget)) {
             return true;
@@ -292,23 +323,29 @@ public class AisViewHelper {
 
         // Check mmsi
         String mmsiString = Long.toString(mmsi);
-        if (mmsiString.length() >= searchLength && mmsiString.substring(0, searchLength).equals(searchCriteria)) {
+        if (mmsiString.length() >= searchLength
+                && mmsiString.substring(0, searchLength).equals(searchCriteria)) {
             return false;
         }
 
         // Check name
-        if (vessel.getVesselStatic() != null && vessel.getVesselStatic().getName() != null) {
+        if (vessel.getVesselStatic() != null
+                && vessel.getVesselStatic().getName() != null) {
             String name = vessel.getVesselStatic().getName().toUpperCase();
 
             // Check entire name
-            if (name.length() >= searchLength && name.substring(0, searchLength).equals(searchCriteria.toUpperCase())) {
+            if (name.length() >= searchLength
+                    && name.substring(0, searchLength).equals(
+                            searchCriteria.toUpperCase())) {
                 return false;
             }
 
             // Check each word
             String[] words = name.split(" ");
             for (String w : words) {
-                if (w.length() >= searchLength && w.substring(0, searchLength).equals(searchCriteria.toUpperCase())) {
+                if (w.length() >= searchLength
+                        && w.substring(0, searchLength).equals(
+                                searchCriteria.toUpperCase())) {
                     return false;
                 }
             }
@@ -317,10 +354,13 @@ public class AisViewHelper {
         // Check imo - if Class A
         if (vessel instanceof AisClassATarget) {
             AisClassATarget classAVessel = (AisClassATarget) vessel;
-            if (classAVessel.getClassAStatic() != null && classAVessel.getClassAStatic().getImoNo() != null) {
+            if (classAVessel.getClassAStatic() != null
+                    && classAVessel.getClassAStatic().getImoNo() != null) {
                 int imo = classAVessel.getClassAStatic().getImoNo();
                 String imoString = Integer.toString(imo);
-                if (imoString.length() >= searchLength && imoString.substring(0, searchLength).equals(searchCriteria)) {
+                if (imoString.length() >= searchLength
+                        && imoString.substring(0, searchLength).equals(
+                                searchCriteria)) {
                     return false;
                 }
             }
@@ -330,8 +370,9 @@ public class AisViewHelper {
     }
 
     public synchronized AisViewHandlerStats getStat() {
-        //AisViewHandlerStats stats = new AisViewHandlerStats(targetsMap.values(), getAllPastTracks());
-        //return stats;
+        // AisViewHandlerStats stats = new
+        // AisViewHandlerStats(targetsMap.values(), getAllPastTracks());
+        // return stats;
         return null;
     }
 

@@ -30,6 +30,7 @@ import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.message.NavigationalStatus;
 import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.packet.AisPacketTags.SourceType;
 
 public class VesselTargetDetails {    
     
@@ -97,8 +98,7 @@ public class VesselTargetDetails {
             this.country ="N/A";
         }
         
-        
-        this.sourceType = (aisSource.getSourceType() == null) ? "N/A" : aisSource.getSourceType().toString();
+        this.sourceType = (aisSource.getSourceType() == null) ? "N/A" : aisSource.getSourceType().encode();
         
         this.sourceSystem = aisSource.getSourceId();
         if (this.sourceSystem == null) {
@@ -172,14 +172,19 @@ public class VesselTargetDetails {
         }        
 
     }
-    
+    /**
+     * Anonymize is no longer supported
+     */
     public void anonymize() {
+        throw new UnsupportedOperationException();
+        /*
         this.name = "N/A";
         this.callsign = "N/A";
         this.imoNo = "N/A";
         this.destination = "N/A";
         this.mmsi = 0;
         this.eta = "N/A";
+        */
     }
     
     public static String getISO8620(Date date) {

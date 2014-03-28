@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,6 @@ import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
-import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.data.PastTrackSortedSet;
@@ -188,73 +188,60 @@ public class LiveDataResource extends AbstractResource {
     @GET
     @Path("vessel_target_details")
     @Produces(MediaType.APPLICATION_JSON)
-    public VesselTargetDetails vesselTargetDetails(@Context UriInfo uriInfo) {
+    public VesselTargetDetails vesselTargetDetails(@Context UriInfo uriInfo) throws Exception {
         QueryParams queryParams = new QueryParams(uriInfo.getQueryParameters());
-        // Integer id = queryParams.getInt("id");
-        Integer mmsi = queryParams.getInt("mmsi");
+        Integer mmsi = Objects
+                .requireNonNull(queryParams.getInt("mmsi") != null ? queryParams
+                        .getInt("mmsi") : queryParams.getInt("id"));
         boolean pastTrack = queryParams.containsKey("past_track");
 
         // VesselTargetDetails details = handler.getVesselTargetDetails(id,
         // mmsi, pastTrack);
-        TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
-        Entry<AisPacketSource, TargetInfo> entry = tt.getNewestEntry(mmsi);
+        TargetTracker tt = Objects.requireNonNull(LiveDataResource.this
+                .get(TargetTracker.class));
+        Objects.requireNonNull(tt.getNewest(mmsi));
+        Entry<AisPacketSource, TargetInfo> entry = Objects.requireNonNull(tt
+                .getNewestEntry(mmsi));
         TargetInfo ti = entry.getValue();
 
-        AisVesselTarget aisTarget = (AisVesselTarget) createAisTargetInOrder(ti);
-        AisVesselTarget aisTarget2 = null;
+        
 
         IPastTrack pt = new PastTrackSortedSet();
+        AisVesselTarget aisTarget = null;
         if (pastTrack) {
             CassandraConnection con = LiveDataResource.this
                     .get(CassandraConnection.class);
 
-            final long timeBack = 1000 * 60 * 60 * 24;
-            final long lastPacketTime = ti.getPositionPacket()
-                    .getBestTimestamp();
+            final long timeBack = 1000 * 60 * 60 * 24 * 5;
+            final long lastPacketTime = entry.getValue().getPositionPacket().getBestTimestamp();
 
             Iterable<AisPacket> iter = con.execute(AisStoreQueryBuilder
                     .forMmsi(mmsi)
-                    .setInterval(lastPacketTime - timeBack, lastPacketTime)
-                    .setFetchSize(5000000));
+                    .setInterval(lastPacketTime - timeBack, lastPacketTime).setFetchSize(10000));
 
             for (AisPacket p : iter) {
                 AisMessage m = p.tryGetAisMessage();
-                
-                if (aisTarget2 == null) {
-                    try {
-                        aisTarget2 = (AisVesselTarget) AisTarget.createTarget(m); 
-                    } catch (Exception e) {
-                        
-                    }
-                }
-                
-                try {
-                    aisTarget2.update(m);
-                    if (m instanceof IVesselPositionMessage) {
-                        pt.addPosition(aisTarget2.getVesselPosition(), 100);
-                    }
-                } catch (Exception e) {
-                    
-                }
-                
-                
 
+                if (aisTarget == null) {
+                    aisTarget = (AisVesselTarget) AisTarget.createTarget(m);
+                } else {
+                    aisTarget.update(m);
+                }
+
+                if (m instanceof IVesselPositionMessage) {
+                    pt.addPosition(aisTarget.getVesselPosition(), handler.getConf().getPastTrackMinDist());
+                }
             }
         }
         
-        
-        aisTarget2.update(ti.getPositionPacket().tryGetAisMessage());
-        for (AisPacket p : ti.getStaticPackets()) {
-            try {
-                aisTarget2.update(p.tryGetAisMessage());
-            } catch (Exception e) {
-                
-            }
+        if (aisTarget != null) {
+            updateAisTarget(aisTarget, ti);
+        } else {
+            aisTarget = (AisVesselTarget) generateAisTarget(ti);
         }
-        
+         
 
-        VesselTargetDetails details = new VesselTargetDetails(aisTarget2,
-                entry.getKey(), mmsi, pt);
+        VesselTargetDetails details = new VesselTargetDetails(aisTarget,entry.getKey(), mmsi, pt);
 
         return details;
     }
@@ -324,7 +311,7 @@ public class LiveDataResource extends AbstractResource {
         VesselList list = new VesselList();
         for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
             try {
-                AisTarget aisTarget = createAisTargetInOrder(e.getValue());
+                AisTarget aisTarget = generateAisTarget(e.getValue());
                 list.addTarget(handler.getFilteredAisVessel(aisTarget, filter),
                         e.getKey());
             } catch (NullPointerException exc) {
@@ -334,31 +321,63 @@ public class LiveDataResource extends AbstractResource {
         return list;
 
     }
-
-    private AisTarget createAisTargetInOrder(TargetInfo ti) {
+    
+    private TreeSet<AisPacket> getPacketsInOrder(TargetInfo ti) {
         TreeSet<AisPacket> messages = new TreeSet<>(COMPARE_TIMESTAMP);
 
-        messages.add(ti.getPositionPacket());
 
         for (AisPacket p : ti.getStaticPackets()) {
             try {
-                messages.add(p);
+                messages.add(Objects.requireNonNull(p));
             } catch (Exception exc) {
                 // pass
             }
         }
-
-        AisTarget aisTarget = AisTarget.createTarget(messages.pollFirst()
-                .tryGetAisMessage());
+        
+        if (ti.hasPositionInfo()) {
+            messages.add(ti.getPositionPacket());
+        }
+                
+        return messages;
+    }
+    
+    /*
+    private AisTarget generateAisTarget(TreeSet<AisPacket> messages) {
+        return null
+    }*/
+    
+    private AisTarget generateAisTarget(TargetInfo ti) {
+        AisTarget aisTarget = null;
+        switch (ti.getStaticCount()) {
+        case 1:
+            aisTarget = AisTarget.createTarget(ti.getStaticPackets()[0].tryGetAisMessage());
+            break;
+        case 2:
+            aisTarget = AisTarget.createTarget(ti.getStaticPackets()[0].tryGetAisMessage());
+            aisTarget.update(ti.getStaticPackets()[1].tryGetAisMessage());
+            break;
+        }
+        
+        if (ti.hasPositionInfo()) {
+            aisTarget.update(ti.getPositionPacket().tryGetAisMessage());
+        }
+        //return generateAisTarget(getPacketsInOrder(ti));
+        return aisTarget;
+    }
+    
+    private AisTarget updateAisTarget(AisTarget aisTarget, TreeSet<AisPacket> messages) {
         for (AisPacket p : messages) {
             try {
-                aisTarget.update(p.tryGetAisMessage());
-            } catch (IllegalArgumentException e) {
+                aisTarget.update(p.getAisMessage());
+            } catch (IllegalArgumentException | AisMessageException | SixbitException | NullPointerException e) {
                 // pass
             }
         }
-
         return aisTarget;
+    }
+    
+    private AisTarget updateAisTarget(AisTarget aisTarget, TargetInfo ti) {
+        return updateAisTarget(aisTarget, getPacketsInOrder(ti));
     }
 
     private Collection<AisTarget> getAisTargetList(
@@ -367,7 +386,7 @@ public class LiveDataResource extends AbstractResource {
         ArrayList<AisTarget> list = new ArrayList<>();
         for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
             try {
-                AisTarget aisTarget = createAisTargetInOrder(e.getValue());
+                AisTarget aisTarget = generateAisTarget(e.getValue());
                 list.add(handler.getFilteredAisVessel(aisTarget, filter));
             } catch (NullPointerException e1) {
                 // pass
@@ -443,8 +462,10 @@ public class LiveDataResource extends AbstractResource {
     }
 
     /**
-     * get a Predicate based filter TODO: Throw this whole system away once we
-     * update web clients
+     * Get a Predicate based filter using VesselListFilter
+     * 
+     * TODO: Replace this with expression parser from QueryParameterHehlper once
+     * clients have been updated.
      * 
      * @param key
      * @return
@@ -466,7 +487,7 @@ public class LiveDataResource extends AbstractResource {
                 return AisPacketSourceFilters.filterOnSourceBaseStation(values);
             case "sourceType":
                 return AisPacketSourceFilters.filterOnSourceType(SourceType
-                        .fromString(values[0]));
+                        .fromString(filters.get(key).iterator().next()));
             case "sourceSystem":
                 return AisPacketSourceFilters.filterOnSourceId(values);
             }
@@ -476,7 +497,10 @@ public class LiveDataResource extends AbstractResource {
     }
 
     /**
-     * get all predicates that relate to source from VesselListFilter
+     * Get all predicates that relate to source from VesselListFilter.
+     * 
+     * TODO: Replace this with expression parser from QueryParameterHelper once
+     * clients have been updated.
      * 
      * @param filter
      * @return
