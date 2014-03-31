@@ -18,10 +18,13 @@ package dk.dma.ais.view.rest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -39,9 +42,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-
 import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
 import dk.dma.ais.data.AisVesselTarget;
@@ -58,6 +58,7 @@ import dk.dma.ais.packet.AisPacketStream.Subscription;
 import dk.dma.ais.packet.AisPacketTags.SourceType;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.store.AisStoreQueryBuilder;
+import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.web.QueryParams;
@@ -75,8 +76,6 @@ import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.Predicate;
-import dk.dma.web.jersey.repacked.com.google.common.collect.Collections2;
-import dk.dma.web.jersey.repacked.com.google.common.primitives.Ints;
 
 /**
  * 
@@ -104,6 +103,8 @@ public class LiveDataResource extends AbstractResource {
         }
 
     };
+    private static final long ONE_DAY = 1000 * 60 * 60 * 24;
+    private static final long TEN_MINUTE_BLOCK = 1000 * 60 * 10;
 
     @GET
     @Path("/ping")
@@ -193,7 +194,8 @@ public class LiveDataResource extends AbstractResource {
     @GET
     @Path("vessel_target_details")
     @Produces(MediaType.APPLICATION_JSON)
-    public VesselTargetDetails vesselTargetDetails(@Context UriInfo uriInfo) throws Exception {
+    public VesselTargetDetails vesselTargetDetails(@Context UriInfo uriInfo)
+            throws Exception {
         QueryParams queryParams = new QueryParams(uriInfo.getQueryParameters());
         Integer mmsi = Objects
                 .requireNonNull(queryParams.getInt("mmsi") != null ? queryParams
@@ -209,46 +211,93 @@ public class LiveDataResource extends AbstractResource {
                 .getNewestEntry(mmsi));
         TargetInfo ti = entry.getValue();
 
-        
-
         IPastTrack pt = new PastTrackSortedSet();
         AisVesselTarget aisTarget = null;
         if (pastTrack) {
             CassandraConnection con = LiveDataResource.this
                     .get(CassandraConnection.class);
 
-            final long timeBack = 1000 * 60 * 60 * 24 * 5;
-            final long lastPacketTime = entry.getValue().getPositionPacket().getBestTimestamp();
+            final long timeBack = 1000 * 60 * 60 * 24 * 14;
+            final long lastPacketTime = entry.getValue().getPositionPacket()
+                    .getBestTimestamp();
 
-            Iterable<AisPacket> iter = con.execute(AisStoreQueryBuilder
-                    .forMmsi(mmsi)
-                    .setInterval(lastPacketTime - timeBack, lastPacketTime).setFetchSize(10000));
+            /*
+             * Experimental sampling 
+             * 
+             * List<AisStoreQueryBuilder> queries =
+             * sampledPastTrack(lastPacketTime - timeBack, lastPacketTime,
+             * mmsi);
+             */
 
-            for (AisPacket p : iter) {
-                AisMessage m = p.tryGetAisMessage();
+            //just one query
+            List<AisStoreQueryBuilder> queries = Arrays
+                    .asList(AisStoreQueryBuilder.forMmsi(mmsi).setInterval(
+                            lastPacketTime - timeBack, lastPacketTime));
+            
+            for (AisStoreQueryBuilder query : queries) {
+                AisStoreQueryResult result = con.execute(query);
+                Iterator<AisPacket> it = result.iterator();
+                while (it.hasNext() && !result.isCancelled()) {
+                    AisPacket p = it.next();
+                    AisMessage m = p.tryGetAisMessage();
 
-                if (aisTarget == null) {
-                    aisTarget = (AisVesselTarget) AisTarget.createTarget(m);
-                } else {
-                    aisTarget.update(m);
-                }
+                    if (aisTarget == null) {
+                        aisTarget = (AisVesselTarget) AisTarget.createTarget(m);
+                    } else {
+                        aisTarget.update(m);
+                    }
 
-                if (m instanceof IVesselPositionMessage) {
-                    pt.addPosition(aisTarget.getVesselPosition(), handler.getConf().getPastTrackMinDist());
+                    if (m instanceof IVesselPositionMessage) {
+                        pt.addPosition(aisTarget.getVesselPosition(), handler
+                                .getConf().getPastTrackMinDist() * 2);
+
+                        result.cancel(true);
+
+                    }
                 }
             }
         }
-        
+
         if (aisTarget != null) {
             updateAisTarget(aisTarget, ti);
         } else {
             aisTarget = (AisVesselTarget) generateAisTarget(ti);
         }
-         
 
-        VesselTargetDetails details = new VesselTargetDetails(aisTarget,entry.getKey(), mmsi, pt);
+        VesselTargetDetails details = new VesselTargetDetails(aisTarget,
+                entry.getKey(), mmsi, pt);
 
         return details;
+    }
+
+    /**
+     * Experimental sampled database access
+     * 
+     * @param start
+     * @param stop
+     * @param mmsi
+     * @return
+     */
+    private List<AisStoreQueryBuilder> sampledPastTrack(Long start, Long stop,
+            int mmsi) {
+        if ((stop - start) < TEN_MINUTE_BLOCK) {
+            AisStoreQueryBuilder query = AisStoreQueryBuilder.forMmsi(mmsi)
+                    .setInterval(start, stop);
+            return Arrays.asList(query);
+        }
+
+        int startBlock = (int) (start / TEN_MINUTE_BLOCK);
+        int numberOfBlocks = (int) ((stop - start) / TEN_MINUTE_BLOCK);
+
+        ArrayList<AisStoreQueryBuilder> list = new ArrayList<>(numberOfBlocks);
+        for (int i = 0; i < numberOfBlocks; i++) {
+            long sta = (startBlock + i) * TEN_MINUTE_BLOCK;
+            long sto = (startBlock + (i + 1)) * TEN_MINUTE_BLOCK;
+            list.add(AisStoreQueryBuilder.forMmsi(mmsi)
+                    .setInterval(sta, sto - 1).setFetchSize(1000));
+        }
+        return list;
+
     }
 
     @GET
@@ -324,10 +373,9 @@ public class LiveDataResource extends AbstractResource {
         return list;
 
     }
-    
+
     private TreeSet<AisPacket> getPacketsInOrder(TargetInfo ti) {
         TreeSet<AisPacket> messages = new TreeSet<>(COMPARE_TIMESTAMP);
-
 
         for (AisPacket p : ti.getStaticPackets()) {
             try {
@@ -336,49 +384,70 @@ public class LiveDataResource extends AbstractResource {
                 // pass
             }
         }
-        
+
         if (ti.hasPositionInfo()) {
             messages.add(ti.getPositionPacket());
         }
-                
+
         return messages;
     }
-    
-    /*
-    private AisTarget generateAisTarget(TreeSet<AisPacket> messages) {
-        return null
-    }*/
-    
-    private AisTarget generateAisTarget(TargetInfo ti) {
-        AisTarget aisTarget = null;
-        switch (ti.getStaticCount()) {
-        case 1:
-            aisTarget = AisTarget.createTarget(ti.getStaticPackets()[0].tryGetAisMessage());
-            break;
-        case 2:
-            aisTarget = AisTarget.createTarget(ti.getStaticPackets()[0].tryGetAisMessage());
-            aisTarget.update(ti.getStaticPackets()[1].tryGetAisMessage());
-            break;
-        }
-        
-        if (ti.hasPositionInfo()) {
-            aisTarget.update(ti.getPositionPacket().tryGetAisMessage());
-        }
-        //return generateAisTarget(getPacketsInOrder(ti));
-        return aisTarget;
+
+    /**
+     * Generate AisTarget with first packet being p
+     * 
+     * @param p
+     *            ais packet
+     * @param messages
+     *            ordered ais packets
+     * @return AisTarget
+     */
+    private AisTarget generateAisTarget(AisPacket p, TreeSet<AisPacket> messages) {
+        AisTarget aisTarget = AisTarget.createTarget(p.tryGetAisMessage());
+        return updateAisTarget(aisTarget, messages);
     }
-    
-    private AisTarget updateAisTarget(AisTarget aisTarget, TreeSet<AisPacket> messages) {
-        for (AisPacket p : messages) {
+
+    private AisTarget generateAisTarget(TreeSet<AisPacket> messages) {
+        AisTarget aisTarget = null;
+        for (AisPacket packet : messages.descendingSet()) {
+            aisTarget = AisTarget.createTarget(packet.tryGetAisMessage());
+
+            if (aisTarget != null) {
+                break;
+            }
+        }
+
+        return updateAisTarget(aisTarget, messages);
+    }
+
+    private AisTarget generateAisTarget(TargetInfo ti) {
+        return generateAisTarget(getPacketsInOrder(ti));
+    }
+
+    /**
+     * Update aisTarget with messages (note that if the packets are of different
+     * class type,
+     * 
+     * @param aisTarget
+     * @param messages
+     * @return
+     */
+    private AisTarget updateAisTarget(AisTarget aisTarget,
+            TreeSet<AisPacket> messages) {
+        for (AisPacket p : messages.descendingSet()) {
             try {
                 aisTarget.update(p.getAisMessage());
-            } catch (IllegalArgumentException | AisMessageException | SixbitException | NullPointerException e) {
+            } catch (AisMessageException | SixbitException
+                    | NullPointerException e) {
                 // pass
+            } catch (IllegalArgumentException exc) {
+                // happens when we try to update ClassA with ClassB and visa
+                // versa
+                // the youngest (newest report) takes president
             }
         }
         return aisTarget;
     }
-    
+
     private AisTarget updateAisTarget(AisTarget aisTarget, TargetInfo ti) {
         return updateAisTarget(aisTarget, getPacketsInOrder(ti));
     }
@@ -489,11 +558,12 @@ public class LiveDataResource extends AbstractResource {
             case "sourceBs":
                 ArrayList<Integer> ints = new ArrayList<>(values.length);
                 for (String string : values) {
-                   ints.add(Integer.getInteger(string));
+                    ints.add(Integer.getInteger(string));
                 }
                 Integer[] integers = (Integer[]) ints.toArray();
-                return AisPacketSourceFilters.filterOnSourceBasestation(integers);
-                
+                return AisPacketSourceFilters
+                        .filterOnSourceBasestation(integers);
+
             case "sourceType":
                 return AisPacketSourceFilters.filterOnSourceType(SourceType
                         .fromString(filters.get(key).iterator().next()));
