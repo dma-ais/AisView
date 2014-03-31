@@ -30,7 +30,6 @@ import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.message.NavigationalStatus;
 import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.packet.AisPacketTags.SourceType;
 
 public class VesselTargetDetails {    
     
