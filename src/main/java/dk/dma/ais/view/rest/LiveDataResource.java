@@ -39,6 +39,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+
 import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
 import dk.dma.ais.data.AisVesselTarget;
@@ -72,6 +75,8 @@ import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.Predicate;
+import dk.dma.web.jersey.repacked.com.google.common.collect.Collections2;
+import dk.dma.web.jersey.repacked.com.google.common.primitives.Ints;
 
 /**
  * 
@@ -482,7 +487,13 @@ public class LiveDataResource extends AbstractResource {
             case "sourceRegion":
                 return AisPacketSourceFilters.filterOnSourceRegion(values);
             case "sourceBs":
-                return AisPacketSourceFilters.filterOnSourceBaseStation(values);
+                ArrayList<Integer> ints = new ArrayList<>(values.length);
+                for (String string : values) {
+                   ints.add(Integer.getInteger(string));
+                }
+                Integer[] integers = (Integer[]) ints.toArray();
+                return AisPacketSourceFilters.filterOnSourceBasestation(integers);
+                
             case "sourceType":
                 return AisPacketSourceFilters.filterOnSourceType(SourceType
                         .fromString(filters.get(key).iterator().next()));
