@@ -1,9 +1,12 @@
 /bin
 target
-.idea
 .settings
 .project
 .classpath
 *.tokens
 *~
 aisviewbackup
+.idea
+*.iml
+.DS_Store
+
