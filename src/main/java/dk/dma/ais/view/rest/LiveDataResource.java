@@ -61,6 +61,7 @@ import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
+import dk.dma.ais.view.common.util.PastTrackSimplifier;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.handler.AisViewHelper;
@@ -211,6 +212,8 @@ public class LiveDataResource extends AbstractResource {
                 .getNewestEntry(mmsi));
         TargetInfo ti = entry.getValue();
 
+        
+        PastTrackSimplifier pts = new PastTrackSimplifier();
         IPastTrack pt = new PastTrackSortedSet();
         AisVesselTarget aisTarget = null;
         if (pastTrack) {
@@ -248,14 +251,12 @@ public class LiveDataResource extends AbstractResource {
                     }
 
                     if (m instanceof IVesselPositionMessage) {
-                        pt.addPosition(aisTarget.getVesselPosition(), handler
-                                .getConf().getPastTrackMinDist() * 2);
-
-                        result.cancel(true);
-
+                        pt.addPosition(aisTarget.getVesselPosition(), 35);
                     }
                 }
             }
+            
+            pt = pts.simplifyPastTrack(pt,200);
         }
 
         if (aisTarget != null) {
@@ -263,6 +264,9 @@ public class LiveDataResource extends AbstractResource {
         } else {
             aisTarget = (AisVesselTarget) generateAisTarget(ti);
         }
+        
+        
+        
 
         VesselTargetDetails details = new VesselTargetDetails(aisTarget,
                 entry.getKey(), mmsi, pt);
@@ -278,6 +282,7 @@ public class LiveDataResource extends AbstractResource {
      * @param mmsi
      * @return
      */
+    @SuppressWarnings("unused")
     private List<AisStoreQueryBuilder> sampledPastTrack(Long start, Long stop,
             int mmsi) {
         if ((stop - start) < TEN_MINUTE_BLOCK) {
