@@ -306,7 +306,7 @@ public class AisViewHelper {
      * @return false if the target matches the search criteria.
      * @throws JsonApiException
      */
-    private static boolean rejectedBySearchCriteria(AisTarget target,
+    public boolean rejectedBySearchCriteria(AisTarget target,
             String searchCriteria) {
 
         if (!(target instanceof AisVesselTarget)) {

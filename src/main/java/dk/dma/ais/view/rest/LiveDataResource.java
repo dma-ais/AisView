@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.GET;
@@ -51,6 +52,7 @@ import dk.dma.ais.message.AisMessage;
 import dk.dma.ais.message.AisMessageException;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketSourceFilters;
 import dk.dma.ais.packet.AisPacketStream;
@@ -207,7 +209,7 @@ public class LiveDataResource extends AbstractResource {
         // mmsi, pastTrack);
         TargetTracker tt = Objects.requireNonNull(LiveDataResource.this
                 .get(TargetTracker.class));
-        Objects.requireNonNull(tt.getNewest(mmsi));
+        
         Entry<AisPacketSource, TargetInfo> entry = Objects.requireNonNull(tt
                 .getNewestEntry(mmsi));
         TargetInfo ti = entry.getValue();
@@ -314,20 +316,14 @@ public class LiveDataResource extends AbstractResource {
         }
 
         TargetTracker tt = LiveDataResource.this.get(TargetTracker.class);
+        final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument); 
 
         Map<Integer, TargetInfo> targets = tt.findTargets(Predicate.TRUE,
-                Predicate.TRUE);
+                searchPredicate);
 
-        LinkedList<AisTarget> aisTargets = new LinkedList<>();
-
+        LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
         for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
-            AisTarget aisTarget = AisTarget.createTarget(e.getValue()
-                    .getPositionPacket().tryGetAisMessage());
-
-            for (AisPacket packet : e.getValue().getStaticPackets()) {
-                aisTarget.update(packet.tryGetAisMessage());
-                aisTargets.add(aisTarget);
-            }
+            aisTargets.add(generateAisTarget(e.getValue()));
         }
 
         // Get response from AisViewHandler and return it
@@ -606,6 +602,15 @@ public class LiveDataResource extends AbstractResource {
             }
 
         };
+    }
+    
+    private Predicate<TargetInfo> getSearchPredicate(final String searchTerm) {
+        return new Predicate<TargetInfo>() {
+            @Override
+            public boolean test(TargetInfo arg0) {
+                return !handler.rejectedBySearchCriteria(generateAisTarget(arg0), searchTerm);
+            }
+        };   
     }
 
     private BoundingBox getBbox(QueryParams request) {
