@@ -36,7 +36,7 @@ public final class PastTrackSimplifier {
         PastTrackPoint[] arr = points.toArray(new PastTrackPoint[points.size()]);
         
         SimplifyRhumbline simplify = new SimplifyRhumbline(new PastTrackPoint[0],pte);
-        PastTrackPoint[] arr2 = simplify.simplify(arr, tolerance, false);
+        PastTrackPoint[] arr2 = simplify.simplify(arr, tolerance, true);
         return new ImmutablePastTrack(Arrays.asList(arr2));
     }
     
@@ -50,10 +50,12 @@ public final class PastTrackSimplifier {
 
         @Override
         public void addPosition(AisVesselPosition vesselPosition, int minDist) {
+            throw new UnsupportedOperationException("This PastTrack is Immutable");
         }
 
         @Override
         public void cleanup(int ttl) {
+            throw new UnsupportedOperationException("This PastTrack is Immutable");
         }
 
         @Override
