@@ -16,27 +16,44 @@
 package dk.dma.ais.view.handler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
 import dk.dma.ais.data.AisClassATarget;
 import dk.dma.ais.data.AisTarget;
+import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselTarget;
+import dk.dma.ais.data.IPastTrack;
+import dk.dma.ais.data.PastTrackPoint;
+import dk.dma.ais.data.PastTrackSortedSet;
+import dk.dma.ais.message.AisMessage;
+import dk.dma.ais.message.IVesselPositionMessage;
+import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.store.AisStoreQueryBuilder;
+import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.view.common.grid.Grid;
 import dk.dma.ais.view.common.grid.GridFactory;
+import dk.dma.ais.view.common.util.PastTrackSimplifier;
+import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.rest.VesselListFilter;
 import dk.dma.ais.view.rest.json.AisViewHandlerStats;
 import dk.dma.ais.view.rest.json.VesselCluster;
 import dk.dma.ais.view.rest.json.VesselClusterJsonRepsonse;
 import dk.dma.ais.view.rest.json.VesselList;
+import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.Country;
+import dk.dma.enav.model.geometry.BoundingBox;
+import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 
 /**
@@ -104,6 +121,52 @@ public class AisViewHelper {
         }
 
         return vesselTarget;
+    }
+    
+    /**
+     * Generates an IPastTrack. Note this also has a sideeffect of updating the
+     * aisTarget TODO: find a way to remove sideeffect
+     * 
+     * @param aisTarget
+     * @param mmsi
+     * @param mostRecent
+     * @param timeBack
+     * @param tolerance
+     * @param minDist
+     * @return
+     */
+    public IPastTrack generatePastTrackFromAisStore(AisVesselTarget aisTarget,
+            int mmsi, long mostRecent, long timeBack, double tolerance,
+            int minDist, CassandraConnection con) {
+
+        PastTrackSimplifier pts = new PastTrackSimplifier();
+        IPastTrack pt = new PastTrackSortedSet();
+        // just one query
+        AisStoreQueryBuilder query = AisStoreQueryBuilder.forMmsi(mmsi)
+                .setInterval(mostRecent - timeBack, mostRecent);
+        AisStoreQueryResult result = con.execute(query);
+        Iterator<AisPacket> it = result.iterator();
+        while (it.hasNext() && !result.isCancelled()) {
+            AisPacket p = it.next();
+            AisMessage m = p.tryGetAisMessage();
+
+            if (aisTarget == null) {
+                AisTarget tmp = AisTarget.createTarget(m);
+                if (tmp instanceof AisVesselTarget) {
+                    aisTarget = (AisVesselTarget) tmp;
+                }
+            } else {
+                aisTarget.update(m);
+            }
+
+            if (m instanceof IVesselPositionMessage) {
+                pt.addPosition(aisTarget.getVesselPosition(), minDist);
+            }
+
+        }
+
+        pt = pts.simplifyPastTrack(pt, tolerance);
+        return pt;
     }
 
     /**
@@ -378,6 +441,72 @@ public class AisViewHelper {
 
     public AisViewConfiguration getConf() {
         return conf;
+    }
+    
+    public static BoundingBox getBbox(QueryParams request) {
+        // Get corners
+        Double topLat = request.getDouble("topLat");
+        Double topLon = request.getDouble("topLon");
+        Double botLat = request.getDouble("botLat");
+        Double botLon = request.getDouble("botLon");
+
+        Position pointA = Position.create(topLat, topLon);
+        Position pointB = Position.create(botLat, botLon);
+        return BoundingBox.create(pointA, pointB, CoordinateSystem.GEODETIC);
+    }
+
+    public BoundingBox tryGetBbox(QueryParams request) {
+        try {
+            return getBbox(request);
+        } catch (NullPointerException e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Combine two pastTracks (no regard for different pasttrack options or
+     * validation of points)
+     * 
+     * @param p1
+     * @param p2
+     * @return a new pastTrack
+     */
+    public IPastTrack combinePastTrack(final IPastTrack p1, final IPastTrack p2) {
+        final TreeSet<PastTrackPoint> points = new TreeSet<PastTrackPoint>();
+
+        if (p1 != null) {
+            points.addAll(p1.getPoints());
+        }
+
+        if (p2 != null) {
+            points.addAll(p2.getPoints());
+        }
+
+        points.addAll(p2.getPoints());
+
+        IPastTrack finalPastTrack = new IPastTrack() {
+            final TreeSet<PastTrackPoint> inner = points;
+
+            @Override
+            public List<PastTrackPoint> getPoints() {
+                return Arrays.asList(inner.toArray(new PastTrackPoint[0]));
+            }
+
+            @Override
+            public void cleanup(int ttl) {
+                throw new UnsupportedOperationException(
+                        "This Anonymous IPastTrack is immutable");
+            }
+
+            @Override
+            public void addPosition(AisVesselPosition vesselPosition,
+                    int minDist) {
+                throw new UnsupportedOperationException(
+                        "This Anonymous IPastTrack is immutable");
+            }
+        };
+
+        return finalPastTrack;
     }
 
 }
