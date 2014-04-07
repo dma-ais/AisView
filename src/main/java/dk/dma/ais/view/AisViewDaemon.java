@@ -19,19 +19,24 @@ import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
 import com.google.inject.Injector;
 
+import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.tracker.TargetTrackerFileBackupService;
+import dk.dma.ais.view.common.util.CacheManager;
 import dk.dma.ais.view.rest.WebServer;
 import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
@@ -59,38 +64,39 @@ public class AisViewDaemon extends AbstractDaemon {
     @Parameter(description = "A list of AIS sources (sourceName=host:port,host:port sourceName=host:port ...")
     List<String> sources;
 
-
     @Override
     protected void runDaemon(Injector injector) throws Exception {
         final TargetTracker targetTracker = new TargetTracker();
+        final CacheManager cacheManager = new CacheManager();
 
         // Setup the readers
-        AisReaderGroup g = AisReaders.createGroup("AisView", sources == null ? Collections.<String> emptyList()
-                : sources);
+        AisReaderGroup g = AisReaders.createGroup("AisView",
+                sources == null ? Collections.<String> emptyList() : sources);
         AisReaders.manageGroup(g);
 
         // A job manager that takes care of tracking ongoing jobs
         JobManager jobManager = new JobManager();
 
         // Setup the backup process
-        //Files.createDirectories(backup);
+        // Files.createDirectories(backup);
         Files.createParentDirs(backup);
-        
+
         start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
-        
-        //start tracking
+
+        // start tracking
         targetTracker.readFromStream(g.stream());
 
-        start(g.asService());        
+        start(g.asService());
 
         // Start Ais Store Connection
-        CassandraConnection con = cassandraSeeds.isEmpty() ? null : start(CassandraConnection.create("aisdata",
-                cassandraSeeds));
-        
-        
+        CassandraConnection con = cassandraSeeds.isEmpty() ? null
+                : start(CassandraConnection.create("aisdata", cassandraSeeds));
+
         WebServer ws = new WebServer(port);
-        ws.getContext().setAttribute(AbstractResource.CONFIG,
-                AbstractResource.create(g, con, targetTracker, jobManager));
+        ws.getContext().setAttribute(
+                AbstractResource.CONFIG,
+                AbstractResource.create(g, con, targetTracker, cacheManager,
+                        jobManager));
 
         ws.start();
         LOG.info("AisView started");
@@ -103,10 +109,13 @@ public class AisViewDaemon extends AbstractDaemon {
     }
 
     public static void main(String[] args) throws Exception {
-        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {            
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
-                LOG.error("Uncaught exception in thread " + t.getClass().getCanonicalName() + ": " + e.getMessage(), e);
+                LOG.error(
+                        "Uncaught exception in thread "
+                                + t.getClass().getCanonicalName() + ": "
+                                + e.getMessage(), e);
                 System.exit(-1);
             }
         });
