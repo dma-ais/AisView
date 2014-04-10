@@ -327,6 +327,8 @@
                         <li class="active"><a href="#rawPane" data-toggle="tab" ng-click="changeOutput('raw')">Raw</a></li>
                         <li><a href="#tablePane" data-toggle="tab" ng-model="format" ng-click="changeOutput('table')">Table select</a></li>
                         <li><a href="#prefixedPane" data-toggle="tab" ng-model="format" ng-click="changeOutput('prefixed_sentences')">Prefixed Data</a></li>
+                        <li><a href="#KMLpane" data-toggle="tab" ng-model="format" ng-click="changeOutput('OUTPUT_TO_KML')">KML</a></li>
+                        <li><a href="#HTMLpane" data-toggle="tab" ng-model="format" ng-click="changeOutput('OUTPUT_TO_HTML')">HTML</a></li>
                     </ul>
 
                     <div class="tab-content">
@@ -337,6 +339,12 @@
                             <h4>PREFIXED Raw data is chosen</h4>
                             <h4>Example:</h4>
                             <pre>01-08-2013 20:36:54,!AIVDM,1,1,,B,13I6Re?OhhPHD5bHhth@q@vF00S4,0*0E</pre>
+                        </div>
+                        <div id="KMLpane" class="tab-pane fade">
+                            <h4>KML output example:</h4>
+                        </div>
+                        <div id="HTMLpane" class="tab-pane fade">
+                            <h4>HTML output example:</h4>
                         </div>
                         <div id="tablePane" style="margin-top:4mm;" class="tab-pane fade">
                             <div id="tableContainer" class="container" >
