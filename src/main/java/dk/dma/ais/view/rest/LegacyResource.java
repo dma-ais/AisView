@@ -144,8 +144,8 @@ public class LegacyResource extends AbstractResource {
         IPastTrack pt = new PastTrackSortedSet();
         final AisVesselTarget aisTarget = (AisVesselTarget) generateAisTarget(ti);
 
-        final double tolerance = 200;
-        final int minDist = 20;
+        final double tolerance = 1000;
+        final int minDist = 500;
 
         if (pastTrack) {
             final CassandraConnection con = LegacyResource.this
