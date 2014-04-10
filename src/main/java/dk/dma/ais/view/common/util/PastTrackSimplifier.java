@@ -36,7 +36,7 @@ public final class PastTrackSimplifier {
         PastTrackPoint[] arr = points.toArray(new PastTrackPoint[points.size()]);
         
         SimplifyRhumbline simplify = new SimplifyRhumbline(new PastTrackPoint[0],pte);
-        PastTrackPoint[] arr2 = simplify.simplify(arr, tolerance, true);
+        PastTrackPoint[] arr2 = simplify.simplify(arr, tolerance, false);
         return new ImmutablePastTrack(Arrays.asList(arr2));
     }
     
