@@ -474,16 +474,15 @@ public class AisViewHelper {
     public IPastTrack combinePastTrack(final IPastTrack p1, final IPastTrack p2) {
         final TreeSet<PastTrackPoint> points = new TreeSet<PastTrackPoint>();
 
-        if (p1 != null) {
-            points.addAll(p1.getPoints());
+        for (IPastTrack p: Arrays.asList(p1,p2)) {
+            if (p != null) {
+                List<PastTrackPoint> pps = p.getPoints();
+                if (pps != null) {
+                    points.addAll(pps);
+                }
+            }
         }
-
-        if (p2 != null) {
-            points.addAll(p2.getPoints());
-        }
-
-        points.addAll(p2.getPoints());
-
+        
         IPastTrack finalPastTrack = new IPastTrack() {
             final TreeSet<PastTrackPoint> inner = points;
 
