@@ -35,6 +35,7 @@ function dndCtrl($scope,UrlService) {
 
         if(str=='raw') $scope.format = '';
         if(str=='table') $scope.format = 'tables';
+        else $scope.format = str;
 
     }
 
@@ -79,14 +80,14 @@ function dndCtrl($scope,UrlService) {
         var header = '';
 
         //append all tables if format is 'table' else no tables
+                //append all tables if format is 'table' else no tables
         if($scope.format=='') {
             tables = '';
             separator = '';
-        }
-        else {
+        } else if($scope.format=='tables') {
             //only append if included tables list is not empty
             if($scope.included.length!=0){
-                tables=output_restService+columns_restService;
+                tables=output_restService+'table&'+columns_restService;
                 angular.forEach($scope.included, function(includedItem) {
                     tables+=includedItem.queryName+';';
                 });
@@ -97,6 +98,8 @@ function dndCtrl($scope,UrlService) {
                 if($scope.tableSeparator.sep!=';') separator=separator_restService+$scope.tableSeparator.sep+'&';
                 else separator='';
             }
+        } else {
+             tables=output_restService+$scope.format;
         }
 
         //header control

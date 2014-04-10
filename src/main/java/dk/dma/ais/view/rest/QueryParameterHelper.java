@@ -203,6 +203,7 @@ class QueryParameterHelper {
         return DateTimeUtil.toInterval(interval);
     }
 
+    @SuppressWarnings("unchecked")
     private static OutputStreamSink<AisPacket> getOutputSink(UriInfo info) {
         String output = getParameter(info, "output", "raw").toLowerCase();
         switch (output) {
@@ -213,7 +214,18 @@ class QueryParameterHelper {
                     "A query parameter (columns), must be present when using table output");
             return AisPacketOutputSinks.newTableSink(columns, !info.getQueryParameters().containsKey("noHeader"),
                     getParameter(info, "separator", ";"));
+        case "prefixed_sentences": 
+            return AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES;
+        default:
+            try {
+                return (OutputStreamSink<AisPacket>) AisPacketOutputSinks.class.getField(output.toUpperCase()).get(null);
+            } catch (IllegalArgumentException | IllegalAccessException
+                    | NoSuchFieldException | SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
+        
 
         throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                 .entity("Unknown output format [output=" + output + "]\n").type(MediaType.TEXT_PLAIN).build());
