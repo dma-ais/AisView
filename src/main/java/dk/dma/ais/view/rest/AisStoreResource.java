@@ -15,16 +15,20 @@
  */
 package dk.dma.ais.view.rest;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import org.apache.commons.lang.ArrayUtils;
 
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
@@ -120,8 +124,45 @@ public class AisStoreResource extends AbstractResource {
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
     public StreamingOutput pastTrack(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
+        Iterable<AisPacket> query = getPastTrack(info, mmsi);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
+    }
+    
+    @GET
+    @Path("/track")
+    @Produces("text/plain")
+    public StreamingOutput pastTrack(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
+    }
+    
+    @GET
+    @Path("/track/html")
+    @Produces("text/html")
+    public StreamingOutput pastTrackHtml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_HTML);
+    }
+    
+    @GET
+    @Path("/track/kml/{mmsi : \\d+}")
+    @Produces("text/plain")
+    public StreamingOutput pastTrackKml(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
+        Iterable<AisPacket> query = getPastTrack(info, mmsi);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
+    }
+    
+    @GET
+    @Path("/track/kml")
+    @Produces("text/plain")
+    public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
+    }
+    
+    private Iterable<AisPacket> getPastTrack(UriInfo info, int... mmsi) {
         QueryParameterHelper p = new QueryParameterHelper(info);
-
+        
         // Execute the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
         b.setInterval(p.getInterval());
@@ -134,7 +175,7 @@ public class AisStoreResource extends AbstractResource {
         query = p.applySourceFilter(query);
         query = p.applyPositionSampler(query); // WARNING: Must be the second last filter
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
+        return query;
     }
 
 }
