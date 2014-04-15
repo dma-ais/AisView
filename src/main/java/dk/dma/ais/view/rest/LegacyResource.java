@@ -53,6 +53,7 @@ import dk.dma.ais.packet.AisPacketTags.SourceType;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.util.CacheManager;
+import dk.dma.ais.view.common.util.TargetInfoToAisTarget;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.handler.AisViewHelper;
@@ -143,7 +144,7 @@ public class LegacyResource extends AbstractResource {
         TargetInfo ti = entry.getValue();
 
         IPastTrack pt = new PastTrackSortedSet();
-        final AisVesselTarget aisTarget = (AisVesselTarget) generateAisTarget(ti);
+        final AisVesselTarget aisTarget = (AisVesselTarget) TargetInfoToAisTarget.generateAisTarget(ti);
 
         final double tolerance = 1000;
         final int minDist = 500;
@@ -203,7 +204,7 @@ public class LegacyResource extends AbstractResource {
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
         for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
-            aisTargets.add(generateAisTarget(e.getValue()));
+            aisTargets.add(TargetInfoToAisTarget.generateAisTarget(e.getValue()));
         }
 
         // Get response from AisViewHandler and return it
@@ -252,27 +253,6 @@ public class LegacyResource extends AbstractResource {
         return list;
     }
 
-    private TreeSet<AisPacket> getPacketsInOrder(TargetInfo ti) {
-        TreeSet<AisPacket> messages = new TreeSet<>();
-
-        for (AisPacket p : ti.getStaticPackets()) {
-            try {
-                messages.add(Objects.requireNonNull(p));
-            } catch (NullPointerException exc) {
-                // pass
-            }
-        }
-
-        if (ti.hasPositionInfo()) {
-            messages.add(ti.getPositionPacket());
-        }
-
-        return messages;
-    }
-
-    private AisTarget generateAisTarget(TargetInfo ti) {
-        return generateAisTarget(getPacketsInOrder(ti));
-    }
 
     /**
      * Update aisTarget with messages (note that if the packets are of different
@@ -282,7 +262,7 @@ public class LegacyResource extends AbstractResource {
      * @param messages
      * @return
      */
-    private AisTarget updateAisTarget(AisTarget aisTarget,
+    static AisTarget updateAisTarget(AisTarget aisTarget,
             TreeSet<AisPacket> messages) {
         for (AisPacket p : messages.descendingSet()) {
             try {
@@ -299,10 +279,6 @@ public class LegacyResource extends AbstractResource {
         return aisTarget;
     }
 
-    @SuppressWarnings("unused")
-    private AisTarget updateAisTarget(AisTarget aisTarget, TargetInfo ti) {
-        return updateAisTarget(aisTarget, getPacketsInOrder(ti));
-    }
 
     private Collection<AisVesselTarget> getAisVesselTargetsList(
             ConcurrentHashMapV8<Integer, TargetInfo> targets,
@@ -314,11 +290,12 @@ public class LegacyResource extends AbstractResource {
 
             @Override
             public void apply(TargetInfo arg0) {
-                // AisVesselTarget avt =
-                // handler.getFilteredAisVessel(generateAisTarget(arg0),
-                // filter);
-                AisVesselTarget avt = handler.getFilteredAisVessel(
-                        arg0.getAisTarget(), filter);
+                AisVesselTarget avt =
+                 handler.getFilteredAisVessel(TargetInfoToAisTarget.generateAisTarget(arg0),
+                 filter);
+                //if TargetInfo has cached AisTarget, we can use that.
+                //AisVesselTarget avt = handler.getFilteredAisVessel(
+                //        arg0.getAisTarget(), filter);
                 if (avt != null) {
                     avts.put(avt.getMmsi(), avt);
                 }
@@ -329,34 +306,7 @@ public class LegacyResource extends AbstractResource {
 
     }
 
-    /**
-     * Generate AisTarget with first packet being p
-     * 
-     * @param p
-     *            ais packet
-     * @param messages
-     *            ordered ais packets
-     * @return AisTarget
-     */
-    @SuppressWarnings("unused")
-    private AisTarget generateAisTarget(final AisPacket p,
-            final TreeSet<AisPacket> messages) {
-        AisTarget aisTarget = AisTarget.createTarget(p.tryGetAisMessage());
-        return updateAisTarget(aisTarget, messages);
-    }
 
-    private AisTarget generateAisTarget(TreeSet<AisPacket> messages) {
-        AisTarget aisTarget = null;
-        for (AisPacket packet : messages.descendingSet()) {
-            aisTarget = AisTarget.createTarget(packet.tryGetAisMessage());
-
-            if (aisTarget != null) {
-                break;
-            }
-        }
-
-        return updateAisTarget(aisTarget, messages);
-    }
 
     private VesselClusterJsonRepsonse cluster(QueryParams request) {
         VesselListFilter filter = new VesselListFilter(request);
@@ -426,7 +376,7 @@ public class LegacyResource extends AbstractResource {
 
             @Override
             public boolean test(TargetInfo arg0) {
-                return arg0.getAisTarget().isAlive(ttl);
+                return TargetInfoToAisTarget.generateAisTarget(arg0).isAlive(ttl);
             }
 
         };
@@ -527,7 +477,7 @@ public class LegacyResource extends AbstractResource {
             @Override
             public boolean test(TargetInfo arg0) {
                 return !handler.rejectedBySearchCriteria(
-                        generateAisTarget(arg0), searchTerm);
+                        TargetInfoToAisTarget.generateAisTarget(arg0), searchTerm);
             }
         };
     }
