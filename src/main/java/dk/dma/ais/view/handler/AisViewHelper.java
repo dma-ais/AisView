@@ -238,7 +238,7 @@ public class AisViewHelper {
      * @return
      */
     public synchronized VesselClusterJsonRepsonse getClusterResponse(
-            Collection<AisTarget> targets, int requestId,
+            Collection<AisVesselTarget> aisTargets, int requestId,
             VesselListFilter filter, int limit, double size, Position pointA,
             Position pointB) {
 
@@ -249,7 +249,7 @@ public class AisViewHelper {
 
         // Iterate over targets
         int inWorld = 0;
-        for (AisTarget target : targets) {
+        for (AisTarget target : aisTargets) {
             AisVesselTarget vesselTarget = getFilteredAisVessel(target, filter);
             if (vesselTarget == null
                     || vesselTarget.getVesselPosition() == null
