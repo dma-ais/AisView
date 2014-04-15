@@ -130,11 +130,12 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track")
-    @Produces("text/plain")
+    @Produces("application/octet-stream")
     public StreamingOutput pastTrack(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
+   
     
     @GET
     @Path("/track/html")
@@ -146,7 +147,7 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track/kml/{mmsi : \\d+}")
-    @Produces("text/plain")
+    @Produces("application/octet-stream")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
@@ -154,13 +155,13 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track/kml")
-    @Produces("text/plain")
+    @Produces("application/octet-stream")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
     }
     
-    private Iterable<AisPacket> getPastTrack(UriInfo info, int... mmsi) {
+    private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
         QueryParameterHelper p = new QueryParameterHelper(info);
         
         // Execute the query
