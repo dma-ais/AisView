@@ -19,18 +19,14 @@ import java.io.File;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
 import com.google.inject.Injector;
 
-import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
