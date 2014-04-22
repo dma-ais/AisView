@@ -7,7 +7,7 @@ AisView allows aggregation and publishing of data from both real time and histor
 AisView has 3 main functionalities:
 * __Realtime Streaming__ : Streaming of incoming AIS data with easy-to-use filtering
 * __Realtime Monitoring__: Reporting of latest static and positional data from vessels
-* __Historical Qurying__  : Historic querying of AIS data via [AisStore](https://github.com/dma-ais/AisStore "AisStore")
+* __Historical Querying__  : Historic querying of AIS data via [AisStore](https://github.com/dma-ais/AisStore "AisStore")
 
 Getting started
 =======
@@ -36,11 +36,11 @@ The stream can be filtered in a number of ways
 Realtime Monitoring
 =======
 
-Historical Qurying
+Historical Querying
 =======
 
 ### Area ###
-An rectangular area can be specified: (top left latitude, top left longitude, buttom right latitude, buttom left latitude)
+An rectangular area can be specified: (top left latitude, top left longitude, bottom right latitude, buttom left latitude)
 ?box=1,1,4,5 
 
 ### Interval ###
