@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
@@ -175,6 +176,7 @@ public class AisStoreResource extends AbstractResource {
      *
      * TODO: Constrain scenario by MMSI.
      * TODO: Support requester-supplied title and description in KML output.
+     * TODO: Support safety-ellipses
      *
      * Example URLs:
      * - http://localhost:8090/store/scenario?box=56.12,11.10,56.13,11.09&interval=2014-04-23
@@ -182,7 +184,7 @@ public class AisStoreResource extends AbstractResource {
     @GET
     @Path("/scenario")
     @Produces("application/vnd.google-earth.kml+xml")
-    public StreamingOutput scenarioKml(@Context UriInfo info) {
+    public Response scenarioKml(@Context UriInfo info) {
         QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
 
@@ -197,7 +199,11 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
         filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterOnMessagePositionWithin(p.getArea()));
 
-        return StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink());
+        if (! filteredQueryResult.iterator().hasNext()) {
+            return Response.status(Response.Status.NO_CONTENT).entity("No AIS data matching criteria.").build();
+        }
+
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink()), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
