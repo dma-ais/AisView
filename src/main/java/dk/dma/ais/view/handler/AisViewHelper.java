@@ -73,8 +73,6 @@ public class AisViewHelper {
      * Returns a casted AisVesselTarget of the given AisTarget if it is an
      * instance of AisVesselTarget.
      * 
-     * TODO: implement using TargetInfo/TargetTracker
-     * 
      * @param target
      * @param filter
      * @return
