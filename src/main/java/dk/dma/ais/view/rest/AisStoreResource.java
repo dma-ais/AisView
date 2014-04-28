@@ -45,6 +45,9 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 
+import static dk.dma.ais.packet.AisPacketOutputSinks.newKmlSink;
+import static java.util.Objects.requireNonNull;
+
 /**
  * Resources that query AisStore.
  * 
@@ -120,6 +123,7 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
     }
 
+    /* Example URL: http://localhost:8090/store/track/219014434?interval=2014-04-23 */
     @GET
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
@@ -127,7 +131,8 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
-    
+
+    /* Example URL: http://localhost:8090/store/track?mmsi=219014434&mmsi=219872000&interval=2014-04-23 */
     @GET
     @Path("/track")
     @Produces("application/octet-stream")
@@ -136,7 +141,6 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
    
-    
     @GET
     @Path("/track/html")
     @Produces("text/html")
@@ -147,7 +151,7 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track/kml/{mmsi : \\d+}")
-    @Produces("application/octet-stream")
+    @Produces("application/vnd.google-earth.kml+xml")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
@@ -155,15 +159,50 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track/kml")
-    @Produces("application/octet-stream")
+    @Produces("application/vnd.google-earth.kml+xml")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
     }
-    
+
+    /**
+     * Extract a scenario from AisStore and return it in KML format. Intended for scenario replay sessions using
+     * Google Earth.
+     *
+     * A scenario is a set of vessels and movements constrained by geographical bounding box, time interval, and
+     * optionally mmsi no.s. It is possible to include custom data in the generated KML; e.g. scenario title and
+     * description.
+     *
+     * TODO: Constrain scenario by MMSI.
+     * TODO: Support requester-supplied title and description in KML output.
+     *
+     * Example URLs:
+     * - http://localhost:8090/store/scenario?box=56.12,11.10,56.13,11.09&interval=2014-04-23
+     */
+    @GET
+    @Path("/scenario")
+    @Produces("application/vnd.google-earth.kml+xml")
+    public StreamingOutput scenarioKml(@Context UriInfo info) {
+        QueryParameterHelper p = new QueryParameterHelper(info);
+        requireNonNull(p.getArea(), "Missing box parameter.");
+
+        // Create the query
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forArea(p.getArea());
+        b.setInterval(p.getInterval());
+
+        // Execute the query
+        AisStoreQueryResult queryResult = get(CassandraConnection.class).execute(b);
+
+        // Apply filters from the user
+        Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
+        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterOnMessagePositionWithin(p.getArea()));
+
+        return StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink());
+    }
+
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
         QueryParameterHelper p = new QueryParameterHelper(info);
-        
+
         // Execute the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
         b.setInterval(p.getInterval());
