@@ -155,23 +155,22 @@ public class LegacyResource extends AbstractResource {
 
             final long mostRecent = ti.getPositionPacket().getBestTimestamp();
             pt = cache.get(mmsi, new Callable<IPastTrack>() {
-
                 @Override
                 public IPastTrack call() throws Exception {
-                    // TODO Auto-generated method stub
                     return handler.generatePastTrackFromAisStore(aisTarget,
                             mmsi, mostRecent, ONE_DAY * 14, tolerance, minDist,
                             con);
                 }
-
             });
 
+            //recentMissing is the missing pasttrack timeframe that is not in the cache
             long recentMissing = mostRecent
                     - pt.getPoints().get(pt.getPoints().size() - 1).getTime();
 
+            // potentially we would need to get missing passtrack from the past
             // long pastMissing = mostRecent - pt.getPoints().get(0).getTime();
 
-            // 2 minutes need to have passed before we update passtracks
+            // 2 minutes need to have passed before we update pastracks
             if (recentMissing > (1000 * 60 * 2)) {
                 IPastTrack pt2 = handler.generatePastTrackFromAisStore(
                         aisTarget, mmsi, mostRecent, recentMissing, tolerance,
@@ -255,8 +254,7 @@ public class LegacyResource extends AbstractResource {
 
 
     /**
-     * Update aisTarget with messages (note that if the packets are of different
-     * class type,
+     * Update aisTarget with messages 
      * 
      * @param aisTarget
      * @param messages
@@ -269,7 +267,7 @@ public class LegacyResource extends AbstractResource {
                 aisTarget.update(p.getAisMessage());
             } catch (AisMessageException | SixbitException
                     | NullPointerException e) {
-                // pass
+                // pass, there was an error in the packet/stream that made the packet unparsable
             } catch (IllegalArgumentException exc) {
                 // happens when we try to update ClassA with ClassB and visa
                 // versa
@@ -279,7 +277,13 @@ public class LegacyResource extends AbstractResource {
         return aisTarget;
     }
 
-
+    /**
+     * This method extracts Collectins of AisVesselTarget from targettracker. 
+     * These collections are used in the older web interface
+     * @param targets
+     * @param filter
+     * @return
+     */
     private Collection<AisVesselTarget> getAisVesselTargetsList(
             ConcurrentHashMapV8<Integer, TargetInfo> targets,
             final VesselListFilter filter) {
@@ -293,7 +297,7 @@ public class LegacyResource extends AbstractResource {
                 AisVesselTarget avt =
                  handler.getFilteredAisVessel(TargetInfoToAisTarget.generateAisTarget(arg0),
                  filter);
-                //if TargetInfo has cached AisTarget, we can use that.
+                //if TargetInfo has cached AisTarget, we can use that to improve performance drastically
                 //AisVesselTarget avt = handler.getFilteredAisVessel(
                 //        arg0.getAisTarget(), filter);
                 if (avt != null) {
@@ -303,7 +307,6 @@ public class LegacyResource extends AbstractResource {
         });
 
         return avts.values();
-
     }
 
 
@@ -337,12 +340,13 @@ public class LegacyResource extends AbstractResource {
 
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
-        Long start = System.currentTimeMillis();
+        //Long start = System.currentTimeMillis();
         ConcurrentHashMapV8<Integer, TargetInfo> targets = (ConcurrentHashMapV8<Integer, TargetInfo>) tt
                 .findTargets(getSourcePredicates(filter), targetPredicate);
-        Long end = System.currentTimeMillis();
+        //Long end = System.currentTimeMillis();
 
-        System.out.println("tt.findTargets: " + (end - start) + " ms");
+        //debug
+        //System.out.println("tt.findTargets: " + (end - start) + " ms");
 
         Collection<AisVesselTarget> aisTargets = getAisVesselTargetsList(
                 targets, filter);
@@ -357,7 +361,13 @@ public class LegacyResource extends AbstractResource {
                 size, pointA, pointB);
     }
 
-    static final Predicate<? super TargetInfo> filterOnBoundingBox(
+    /**
+     * TargetInfo predicate for boundingbox filtering
+     * TODO: maybe move to aislib
+     * @param bbox
+     * @return
+     */
+    private Predicate<? super TargetInfo> filterOnBoundingBox(
             final BoundingBox bbox) {
         return new Predicate<TargetInfo>() {
             @Override
@@ -370,9 +380,14 @@ public class LegacyResource extends AbstractResource {
         };
     }
 
-    static final Predicate<TargetInfo> filterOnTTL(final int ttl) {
+    /**
+     * Filter on TTL using AisTarget 
+     * This is not generic enough to be moved to aislib. It uses AisTarget generation
+     * @param ttl
+     * @return
+     */
+    private Predicate<TargetInfo> filterOnTTL(final int ttl) {
         return new Predicate<TargetInfo>() {
-
             @Override
             public boolean test(TargetInfo arg0) {
                 return TargetInfoToAisTarget.generateAisTarget(arg0).isAlive(ttl);
@@ -381,7 +396,14 @@ public class LegacyResource extends AbstractResource {
         };
     }
 
-    static final Predicate<? super TargetInfo> filterOnBoundingBox(
+    /**
+     * Overloaded bounding box filtering using points
+     * @param pointA
+     * @param pointB
+     * @return
+     */
+    @SuppressWarnings("unused")
+    private Predicate<? super TargetInfo> filterOnBoundingBox(
             final Position pointA, final Position pointB) {
         return filterOnBoundingBox(BoundingBox.create(pointA, pointB,
                 CoordinateSystem.GEODETIC));
@@ -458,6 +480,7 @@ public class LegacyResource extends AbstractResource {
 
         }
 
+        //pick the finalpredicate if it's not null or create an equivalent one to Predicate.TRUE
         finalPredicate = (finalPredicate == null) ? new Predicate<AisPacketSource>() {
 
             @Override
@@ -468,9 +491,14 @@ public class LegacyResource extends AbstractResource {
                 : finalPredicate;
 
         return finalPredicate;
-
     }
 
+    /**
+     * Use code from AisViewHelper and AisTarget + reflection to filter on a vague search term
+     * The search term will match name, mmsi and other fields.
+     * @param searchTerm
+     * @return
+     */
     private Predicate<TargetInfo> getSearchPredicate(final String searchTerm) {
         return new Predicate<TargetInfo>() {
             @Override
