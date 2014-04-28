@@ -62,7 +62,10 @@ public class AisViewDaemon extends AbstractDaemon {
 
     @Override
     protected void runDaemon(Injector injector) throws Exception {
+        // Tracking of live data
         final TargetTracker targetTracker = new TargetTracker();
+        
+        // A cache manager where caches can be held and retrieved
         final CacheManager cacheManager = new CacheManager();
 
         // Setup the readers
