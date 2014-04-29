@@ -156,7 +156,7 @@ public class AisStoreResource extends AbstractResource {
     @Produces("application/vnd.google-earth.kml+xml")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
     }
     
     @GET
@@ -164,7 +164,7 @@ public class AisStoreResource extends AbstractResource {
     @Produces("application/vnd.google-earth.kml+xml")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_KML);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
     }
 
     /**
