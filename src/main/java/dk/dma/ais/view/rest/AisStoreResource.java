@@ -190,15 +190,15 @@ public class AisStoreResource extends AbstractResource {
         requireNonNull(p.getArea(), "Missing box parameter.");
 
         // Create the query
-        AisStoreQueryBuilder b = AisStoreQueryBuilder.forArea(p.getArea());
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use getArea because this removes all type 5
         b.setInterval(p.getInterval());
 
         // Execute the query
         AisStoreQueryResult queryResult = get(CassandraConnection.class).execute(b);
 
-        // Apply filters from the user
-        Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
-        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterOnMessagePositionWithin(p.getArea()));
+        // Apply filters
+        Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageId(1, 2, 3, 5, 18, 19, 24));
+        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterRelaxedOnMessagePositionWithin(p.getArea()));
 
         if (! filteredQueryResult.iterator().hasNext()) {
             return Response.status(Response.Status.NO_CONTENT).entity("No AIS data matching criteria.").build();
