@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import dk.dma.enav.util.function.Predicate;
 import org.apache.commons.lang.ArrayUtils;
 
 import dk.dma.ais.message.IVesselPositionMessage;
@@ -185,7 +186,7 @@ public class AisStoreResource extends AbstractResource {
     @Path("/scenario")
     @Produces("application/vnd.google-earth.kml+xml")
     public Response scenarioKml(@Context UriInfo info) {
-        QueryParameterHelper p = new QueryParameterHelper(info);
+        final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
 
         // Create the query
@@ -203,7 +204,21 @@ public class AisStoreResource extends AbstractResource {
             return Response.status(Response.Status.NO_CONTENT).entity("No AIS data matching criteria.").build();
         }
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink()), "application/vnd.google-earth.kml+xml").build();
+        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (p.primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+            @Override
+            public boolean test(AisPacket aisPacket) {
+                return aisPacket.tryGetAisMessage().getUserId() == p.primaryMmsi;
+            }
+        });
+
+        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (p.secondaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+            @Override
+            public boolean test(AisPacket aisPacket) {
+                return aisPacket.tryGetAisMessage().getUserId() == p.secondaryMmsi;
+            }
+        });
+
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE)), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {

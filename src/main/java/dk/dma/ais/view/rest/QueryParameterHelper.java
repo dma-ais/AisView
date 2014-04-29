@@ -72,6 +72,10 @@ class QueryParameterHelper {
 
     final Long minDuration;
 
+    final Integer primaryMmsi;
+
+    final Integer secondaryMmsi;
+
     final long timeToRun = -1;
 
     final int[] mmsis;
@@ -97,6 +101,8 @@ class QueryParameterHelper {
 
         minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null, Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
+        primaryMmsi = findPrimaryMmsi(uriInfo);
+        secondaryMmsi = findSecondaryMmsi(uriInfo);
         outputSink = getOutputSink(uriInfo);
         jobId = QueryParameterValidators.getParameter(uriInfo, "jobId", null);
     }
@@ -173,6 +179,16 @@ class QueryParameterHelper {
     private static Long findMinimumDurationMS(UriInfo info) {
         String dur = QueryParameterValidators.getParameter(info, "minDuration", null);
         return dur == null ? null : Period.parse(dur).toStandardSeconds().getSeconds() * 1000L;
+    }
+
+    private static Integer findPrimaryMmsi(UriInfo info) {
+        String primaryMmsi = QueryParameterValidators.getParameter(info, "primaryMmsi", null);
+        return primaryMmsi == null ? null : Integer.parseInt(primaryMmsi);
+    }
+
+    private static Integer findSecondaryMmsi(UriInfo info) {
+        String secondaryMmsi = QueryParameterValidators.getParameter(info, "secondaryMmsi", null);
+        return secondaryMmsi == null ? null : Integer.parseInt(secondaryMmsi);
     }
 
     private static Area findArea(UriInfo info) {
