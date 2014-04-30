@@ -220,7 +220,7 @@ public class AisStoreResource extends AbstractResource {
 
         Predicate<? super AisPacket> generateSnapshot = (Predicate<? super AisPacket>) (p.primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
             private final long snapshotAt = p.kmlSnapshotAt.getMillis();
-            private boolean snapshotGenerated = false;
+            private boolean snapshotGenerated;
 
             @Override
             public boolean test(AisPacket aisPacket) {
