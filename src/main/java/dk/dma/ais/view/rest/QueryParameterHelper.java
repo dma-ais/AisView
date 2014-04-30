@@ -30,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -66,6 +67,9 @@ class QueryParameterHelper {
     /** The interval for the query */
     final Interval interval;
 
+    /** The time for which to generate snapshot in KML queries */
+    final DateTime kmlSnapshotAt;
+
     final Integer limit;
 
     final Integer minDistance;
@@ -93,6 +97,7 @@ class QueryParameterHelper {
         this.uriInfo = requireNonNull(uriInfo);
         this.area = findArea(uriInfo);
         this.interval = findInterval(uriInfo);
+        this.kmlSnapshotAt = findAt(uriInfo);
         String limit = getParameter(uriInfo, "limit", null);
         this.limit = limit == null ? null : Integer.parseInt(limit);
         Set<Integer> mmsi = new HashSet<>(QueryParameterValidators.getParametersAsInt(uriInfo, "mmsi"));
@@ -214,9 +219,13 @@ class QueryParameterHelper {
         String interval = QueryParameterValidators.getParameter(info, "interval", null);
         if (interval == null) {
             return null;
-            // throw new IllegalArgumentException("Must define at least one interval");
+            // throw new IllegalArgumentException("Must define kmlSnapshotAt least one interval");
         }
         return DateTimeUtil.toInterval(interval);
+    }
+
+    private static DateTime findAt(UriInfo info) {
+        return DateTime.parse(QueryParameterValidators.getParameter(info, "at", null));
     }
 
     @SuppressWarnings("unchecked")

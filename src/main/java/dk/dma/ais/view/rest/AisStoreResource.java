@@ -218,7 +218,24 @@ public class AisStoreResource extends AbstractResource {
             }
         });
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE)), "application/vnd.google-earth.kml+xml").build();
+        Predicate<? super AisPacket> generateSnapshot = (Predicate<? super AisPacket>) (p.primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+            private final long snapshotAt = p.kmlSnapshotAt.getMillis();
+            private boolean snapshotGenerated = false;
+
+            @Override
+            public boolean test(AisPacket aisPacket) {
+                boolean generateSnapshot = false;
+                if (!snapshotGenerated) {
+                    if (aisPacket.getBestTimestamp() >= snapshotAt) {
+                        generateSnapshot = true;
+                        snapshotGenerated = true;
+                    }
+                }
+                return generateSnapshot;
+            }
+        });
+
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE, generateSnapshot)), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
