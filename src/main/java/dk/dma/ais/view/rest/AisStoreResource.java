@@ -144,7 +144,23 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
-   
+    
+    @GET
+    @Path("/track/raw/{mmsi : \\d+}")
+    @Produces("application/octet-stream")
+    public StreamingOutput pastTrackRaw(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
+        Iterable<AisPacket> query = getPastTrack(info, mmsi);
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
+    }
+    
+    @GET
+    @Path("/track/raw")
+    @Produces("application/octet-stream")
+    public StreamingOutput pastTrackRaw(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
+    }    
+    
     @GET
     @Path("/track/html")
     @Produces("text/html")
