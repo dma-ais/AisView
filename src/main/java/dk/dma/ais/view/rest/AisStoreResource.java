@@ -218,7 +218,7 @@ public class AisStoreResource extends AbstractResource {
             }
         });
 
-        Predicate<? super AisPacket> generateSnapshot = (Predicate<? super AisPacket>) (p.primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> generateSnapshot = new Predicate<AisPacket>() {
             private final long snapshotAt = p.kmlSnapshotAt.getMillis();
             private boolean snapshotGenerated;
 
@@ -233,7 +233,7 @@ public class AisStoreResource extends AbstractResource {
                 }
                 return generateSnapshot;
             }
-        });
+        };
 
         return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE, generateSnapshot)), "application/vnd.google-earth.kml+xml").build();
     }
