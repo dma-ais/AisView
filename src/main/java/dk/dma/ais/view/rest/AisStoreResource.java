@@ -30,6 +30,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import dk.dma.enav.util.function.Predicate;
+import dk.dma.enav.util.function.Supplier;
 import org.apache.commons.lang.ArrayUtils;
 
 import dk.dma.ais.message.IVesselPositionMessage;
@@ -235,7 +236,21 @@ public class AisStoreResource extends AbstractResource {
             }
         };
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE, generateSnapshot)), "application/vnd.google-earth.kml+xml").build();
+        Supplier<? extends String> supplyTitle = p.title != null ? new Supplier<String>() {
+            @Override
+            public String get() {
+                return p.title;
+            }
+        } : null;
+
+        Supplier<? extends String> supplyDescription = p.description != null ? new Supplier<String>() {
+            @Override
+            public String get() {
+                return p.description;
+            }
+        } : null;
+
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE, generateSnapshot, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {

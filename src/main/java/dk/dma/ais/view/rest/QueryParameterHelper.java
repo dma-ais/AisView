@@ -80,6 +80,10 @@ class QueryParameterHelper {
 
     final Integer secondaryMmsi;
 
+    final String title;
+
+    final String description;
+
     final long timeToRun = -1;
 
     final int[] mmsis;
@@ -108,6 +112,9 @@ class QueryParameterHelper {
         minDuration = findMinimumDurationMS(uriInfo);
         primaryMmsi = findPrimaryMmsi(uriInfo);
         secondaryMmsi = findSecondaryMmsi(uriInfo);
+        title = getParameter(uriInfo, "title", null);
+        description = getParameter(uriInfo, "description", null);
+
         outputSink = getOutputSink(uriInfo);
         jobId = QueryParameterValidators.getParameter(uriInfo, "jobId", null);
     }
