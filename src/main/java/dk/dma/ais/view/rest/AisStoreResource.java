@@ -15,24 +15,6 @@
  */
 package dk.dma.ais.view.rest;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import dk.dma.enav.util.function.Predicate;
-import dk.dma.enav.util.function.Supplier;
-import org.apache.commons.lang.ArrayUtils;
-
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
@@ -47,6 +29,25 @@ import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
+import dk.dma.enav.model.geometry.Area;
+import dk.dma.enav.util.function.Predicate;
+import dk.dma.enav.util.function.Supplier;
+import org.apache.commons.lang.ArrayUtils;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static dk.dma.ais.packet.AisPacketOutputSinks.newKmlSink;
 import static java.util.Objects.requireNonNull;
@@ -176,58 +177,69 @@ public class AisStoreResource extends AbstractResource {
      * optionally mmsi no.s. It is possible to include custom data in the generated KML; e.g. scenario title and
      * description.
      *
-     * TODO: Constrain scenario by MMSI.
-     * TODO: Support requester-supplied title and description in KML output.
-     * TODO: Support safety-ellipses
-     *
      * Example URLs:
      * - http://localhost:8090/store/scenario?box=56.12,11.10,56.13,11.09&interval=2014-04-23
      */
     @GET
     @Path("/scenario")
     @Produces("application/vnd.google-earth.kml+xml")
-    public Response scenarioKml(@Context UriInfo info) {
+    public Response scenarioKmlGet(@Context UriInfo info) {
         final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
+        return scenarioKml(p.area, p.interval, p.title, p.description, p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt, p.interpolationStepSecs);
+    }
 
+    /**
+     * Search data from AisStore and generate KML.
+     * @param area extract AisPackets from AisStore inside this area.
+     * @param interval extract AisPackets from AisStore inside this time interval.
+     * @param title Stamp this title into the generated KML (optional).
+     * @param description Stamp this description into the generated KML (optional).
+     * @param primaryMmsi Style this MMSI as the primary target in the scenario (optional).
+     * @param secondaryMmsi Style this MMSI as the secondary target in the scenario (optional).
+     * @param snapshotAt Generate a KML snapshot folder for exactly this point in time (optional).
+     * @param interpolationStepSecs Interpolate targets between AisPackets using this time step in seconds (optional).
+     * @return HTTP response carrying KML for Google Earth
+     */
+    private Response scenarioKml(final Area area, final Interval interval, final String title, final String description, final Integer primaryMmsi, final Integer secondaryMmsi, final DateTime snapshotAt, final Integer interpolationStepSecs) {
         // Create the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use getArea because this removes all type 5
-        b.setInterval(p.getInterval());
+        b.setInterval(interval);
 
         // Execute the query
         AisStoreQueryResult queryResult = get(CassandraConnection.class).execute(b);
 
         // Apply filters
         Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageId(1, 2, 3, 5, 18, 19, 24));
-        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterRelaxedOnMessagePositionWithin(p.getArea()));
+        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterRelaxedOnMessagePositionWithin(area));
 
         if (! filteredQueryResult.iterator().hasNext()) {
             return Response.status(Response.Status.NO_CONTENT).entity("No AIS data matching criteria.").build();
         }
 
-        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (p.primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
             @Override
             public boolean test(AisPacket aisPacket) {
-                return aisPacket.tryGetAisMessage().getUserId() == p.primaryMmsi;
+                return aisPacket.tryGetAisMessage().getUserId() == primaryMmsi.intValue();
             }
         });
 
-        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (p.secondaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (secondaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
             @Override
             public boolean test(AisPacket aisPacket) {
-                return aisPacket.tryGetAisMessage().getUserId() == p.secondaryMmsi;
+                return aisPacket.tryGetAisMessage().getUserId() == secondaryMmsi.intValue();
             }
         });
 
         Predicate<? super AisPacket> generateSnapshot = new Predicate<AisPacket>() {
-            private final long snapshotAt = p.kmlSnapshotAt.getMillis();
+            private final long snapshotAtMillis = snapshotAt.getMillis();
             private boolean snapshotGenerated;
 
             @Override
             public boolean test(AisPacket aisPacket) {
                 boolean generateSnapshot = false;
                 if (!snapshotGenerated) {
-                    if (aisPacket.getBestTimestamp() >= snapshotAt) {
+                    if (aisPacket.getBestTimestamp() >= snapshotAtMillis) {
                         generateSnapshot = true;
                         snapshotGenerated = true;
                     }
@@ -236,21 +248,28 @@ public class AisStoreResource extends AbstractResource {
             }
         };
 
-        Supplier<? extends String> supplyTitle = p.title != null ? new Supplier<String>() {
+        Supplier<? extends String> supplyTitle = title != null ? new Supplier<String>() {
             @Override
             public String get() {
-                return p.title;
+                return title;
             }
         } : null;
 
-        Supplier<? extends String> supplyDescription = p.description != null ? new Supplier<String>() {
+        Supplier<? extends String> supplyDescription = description != null ? new Supplier<String>() {
             @Override
             public String get() {
-                return p.description;
+                return description;
             }
         } : null;
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, Predicate.FALSE, generateSnapshot, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
+        Supplier<? extends Integer> supplyInterpolationStep = interpolationStepSecs != null ? new Supplier<Integer>() {
+            @Override
+            public Integer get() {
+                return interpolationStepSecs;
+            }
+        } : null;
+
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, generateSnapshot, supplyInterpolationStep, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
