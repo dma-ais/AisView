@@ -171,7 +171,7 @@ public class AisStoreResource extends AbstractResource {
     
     @GET
     @Path("/track/prefixed")
-    @Produces("text/html")
+    @Produces("application/octet-stream")
     public StreamingOutput pastTrackPrefixed(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
