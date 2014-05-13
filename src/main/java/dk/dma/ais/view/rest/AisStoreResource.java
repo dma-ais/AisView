@@ -94,7 +94,7 @@ public class AisStoreResource extends AbstractResource {
     }
 
     @GET
-    @Produces("text/plain")
+    @Produces("application/octet-stream")
     @Path("/query")
     public StreamingOutput query(@Context UriInfo info) {
         QueryParameterHelper p = new QueryParameterHelper(info);
