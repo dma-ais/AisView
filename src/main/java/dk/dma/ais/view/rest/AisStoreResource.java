@@ -127,7 +127,7 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
     }
 
-    /* Example URL: http://localhost:8090/store/track/219014434?interval=2014-04-23 */
+    /* Example URL: http://localhost:8090/store/track/219014434?interval=2014-04-23&limit=2000000 */
     @GET
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
@@ -136,7 +136,7 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
     }
 
-    /* Example URL: http://localhost:8090/store/track?mmsi=219014434&mmsi=219872000&interval=2014-04-23 */
+    /* Example URL: http://localhost:8090/store/track?mmsi=219014434&mmsi=219872000&interval=2014-04-23&limit=200000 */
     @GET
     @Path("/track")
     @Produces("application/octet-stream")
@@ -167,6 +167,14 @@ public class AisStoreResource extends AbstractResource {
     public StreamingOutput pastTrackHtml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_HTML);
+    }
+    
+    @GET
+    @Path("/track/prefixed")
+    @Produces("text/html")
+    public StreamingOutput pastTrackPrefixed(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
     }
     
     @GET
