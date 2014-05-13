@@ -30,6 +30,7 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
+import dk.dma.enav.util.function.Function;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
 import org.apache.commons.lang.ArrayUtils;
@@ -231,7 +232,7 @@ public class AisStoreResource extends AbstractResource {
             }
         });
 
-        Predicate<? super AisPacket> generateSnapshot = new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> triggerSnapshot = new Predicate<AisPacket>() {
             private final long snapshotAtMillis = snapshotAt.getMillis();
             private boolean snapshotGenerated;
 
@@ -245,6 +246,13 @@ public class AisStoreResource extends AbstractResource {
                     }
                 }
                 return generateSnapshot;
+            }
+        };
+
+        Supplier<? extends String> supplySnapshotDescription = new Supplier<String>() {
+            @Override
+            public String get() {
+                return "<table width=\"300\"><tr><td><h1>"  +title + "</h1></td></tr><tr><td><p>"+ description + "</p></td></tr></table>";
             }
         };
 
@@ -269,7 +277,7 @@ public class AisStoreResource extends AbstractResource {
             }
         } : null;
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, generateSnapshot, supplyInterpolationStep, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
+        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
