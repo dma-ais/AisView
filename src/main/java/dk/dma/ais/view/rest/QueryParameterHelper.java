@@ -51,6 +51,7 @@ import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParamete
 import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
 import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * A small helper class to extract query information.
@@ -233,7 +234,8 @@ class QueryParameterHelper {
     }
 
     private static DateTime findAt(UriInfo info) {
-        return DateTime.parse(QueryParameterValidators.getParameter(info, "at", null));
+        String at = QueryParameterValidators.getParameter(info, "at", null);
+        return isBlank(at) ? null : DateTime.parse(at);
     }
 
     @SuppressWarnings("unchecked")

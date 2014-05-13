@@ -30,7 +30,6 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
-import dk.dma.enav.util.function.Function;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
 import org.apache.commons.lang.ArrayUtils;
@@ -232,7 +231,7 @@ public class AisStoreResource extends AbstractResource {
             }
         });
 
-        Predicate<? super AisPacket> triggerSnapshot = new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> triggerSnapshot = (Predicate<? super AisPacket>) (snapshotAt != null ? new Predicate<AisPacket>() {
             private final long snapshotAtMillis = snapshotAt.getMillis();
             private boolean snapshotGenerated;
 
@@ -247,7 +246,7 @@ public class AisStoreResource extends AbstractResource {
                 }
                 return generateSnapshot;
             }
-        };
+        } : Predicate.FALSE);
 
         Supplier<? extends String> supplySnapshotDescription = new Supplier<String>() {
             @Override
