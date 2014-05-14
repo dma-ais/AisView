@@ -209,7 +209,7 @@ public class AisStoreResource extends AbstractResource {
         return Response
                 .ok()
                 .entity(StreamingUtil.createZippedStreamingOutput(query,
-                        AisPacketOutputSinks.newKmlSink(), "track.kmz"))
+                        AisPacketOutputSinks.newKmlSink(), "track.kml"))
                 .type(MEDIA_TYPE_KMZ).build();
     }
 
@@ -280,7 +280,7 @@ public class AisStoreResource extends AbstractResource {
         return Response
                 .ok()
                 .entity(StreamingUtil.createZippedStreamingOutput(query,
-                        AisPacketOutputSinks.newKmlSink(), "history.kmz"))
+                        AisPacketOutputSinks.newKmlSink(), "history.kml"))
                 .type(MEDIA_TYPE_KMZ).build();
     }
 
