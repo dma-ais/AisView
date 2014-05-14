@@ -275,7 +275,7 @@ public class AisStoreResource extends AbstractResource {
         Supplier<? extends String> supplySnapshotDescription = new Supplier<String>() {
             @Override
             public String get() {
-                return "<table width=\"300\"><tr><td><h1>"  +title + "</h1></td></tr><tr><td><p>"+ description + "</p></td></tr></table>";
+                return "<table width=\"300\"><tr><td><h4>" + title + "</h4></td></tr><tr><td><p>"+ description + "</p></td></tr></table>";
             }
         };
 
