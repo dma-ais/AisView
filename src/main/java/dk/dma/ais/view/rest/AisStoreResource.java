@@ -214,7 +214,7 @@ public class AisStoreResource extends AbstractResource {
     @GET
     @Path("/history/kml")
     @Produces("application/vnd.google-earth.kml+xml")
-    public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+    public StreamingOutput historyKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
         Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
     }
