@@ -17,8 +17,10 @@ package dk.dma.ais.view.rest;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
+import dk.dma.ais.packet.AisPacketFiltersStateful;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
@@ -33,6 +35,7 @@ import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.BiPredicate;
 import dk.dma.enav.util.function.Predicate;
+
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -41,6 +44,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -123,6 +127,10 @@ class QueryParameterHelper {
 
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {
         return area == null ? i : Iterables.filter(i, AisPacketFilters.filterOnMessagePositionWithin(area));
+    }
+    
+    public Iterable<AisPacket> applyTargetFilterArea(Iterable<AisPacket> i, AisPacketFiltersStateful state) {
+        return area == null ? i : Iterables.filter(i, state.filterOnTargetPositionWithin(area));
     }
 
     public AisPacketStream applyLimitFilter(AisPacketStream s) {

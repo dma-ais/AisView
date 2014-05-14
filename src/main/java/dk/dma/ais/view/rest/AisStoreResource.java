@@ -18,6 +18,7 @@ package dk.dma.ais.view.rest;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
+import dk.dma.ais.packet.AisPacketFiltersStateful;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
@@ -32,6 +33,7 @@ import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -46,6 +48,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -178,18 +181,41 @@ public class AisStoreResource extends AbstractResource {
     }
     
     @GET
-    @Path("/track/kml/{mmsi : \\d+}")
-    @Produces("application/vnd.google-earth.kml+xml")
-    public StreamingOutput pastTrackKml(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
-        Iterable<AisPacket> query = getPastTrack(info, mmsi);
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
+    @Path("/history")
+    @Produces("application/octet-stream")
+    public StreamingOutput history(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        return historyRaw(info, mmsis);
     }
     
     @GET
-    @Path("/track/kml")
+    @Path("/history/raw")
+    @Produces("application/octet-stream")
+    public StreamingOutput historyRaw(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
+    }    
+    
+    @GET
+    @Path("/history/html")
+    @Produces("text/html")
+    public StreamingOutput historyHtml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_HTML);
+    }
+    
+    @GET
+    @Path("/history/prefixed")
+    @Produces("application/octet-stream")
+    public StreamingOutput historyPrefixed(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
+    }    
+    
+    @GET
+    @Path("/history/kml")
     @Produces("application/vnd.google-earth.kml+xml")
     public StreamingOutput pastTrackKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
         return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
     }
 
@@ -308,6 +334,12 @@ public class AisStoreResource extends AbstractResource {
             .build();
     }
 
+    /**
+     * getPastTrack will only work with position messages
+     * @param info
+     * @param mmsi
+     * @return
+     */
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
         QueryParameterHelper p = new QueryParameterHelper(info);
 
@@ -322,6 +354,31 @@ public class AisStoreResource extends AbstractResource {
         query = Iterables.filter(query, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
         query = p.applySourceFilter(query);
         query = p.applyPositionSampler(query); // WARNING: Must be the second last filter
+        query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
+        return query;
+    }
+    
+    /**
+     * getHistory takes all ais data with mmsis using stateful filters
+     * @param info
+     * @param mmsi
+     * @return
+     */
+    private Iterable<AisPacket> getHistory(@Context UriInfo info, int... mmsi) {
+        QueryParameterHelper p = new QueryParameterHelper(info);
+
+        // Execute the query
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forMmsi(mmsi);
+        b.setInterval(p.getInterval());
+
+        // Create the query
+        Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
+        
+        final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
+
+        // Apply filters from the user
+        query = p.applySourceFilter(query); //first because this potentially filters a lot of packets
+        query = p.applyTargetFilterArea(query, state);
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
         return query;
     }
