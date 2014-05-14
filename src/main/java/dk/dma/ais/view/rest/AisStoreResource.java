@@ -59,6 +59,8 @@ import static java.util.Objects.requireNonNull;
  * Resources that query AisStore.
  * 
  * @author Kasper Nielsen
+ * @author Thomas Salling
+ * @author Jens Tuxen
  */
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
@@ -130,93 +132,156 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
     }
 
-    /* Example URL: http://localhost:8090/store/track/219014434?interval=2014-04-23&limit=2000000 */
+    /*
+     * Example URL:
+     * http://localhost:8090/store/track/219014434?interval=2014-04-
+     * 23&limit=2000000
+     */
     @GET
     @Path("/track/{mmsi : \\d+}")
     @Produces("application/json")
-    public StreamingOutput pastTrack(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
+    public StreamingOutput pastTrack(@Context UriInfo info,
+            @PathParam("mmsi") int mmsi) {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.PAST_TRACK_JSON);
     }
 
-    /* Example URL: http://localhost:8090/store/track?mmsi=219014434&mmsi=219872000&interval=2014-04-23&limit=200000 */
+    /*
+     * Example URL:
+     * http://localhost:8090/store/track?mmsi=219014434&mmsi=219872000
+     * &interval=2014-04-23&limit=200000
+     */
     @GET
     @Path("/track")
     @Produces("application/octet-stream")
-    public StreamingOutput pastTrack(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.PAST_TRACK_JSON);
+    public StreamingOutput pastTrack(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.PAST_TRACK_JSON);
     }
-    
+
     @GET
     @Path("/track/raw/{mmsi : \\d+}")
     @Produces("application/octet-stream")
-    public StreamingOutput pastTrackRaw(@Context UriInfo info, @PathParam("mmsi") int mmsi) {
+    public StreamingOutput pastTrackRaw(@Context UriInfo info,
+            @PathParam("mmsi") int mmsi) {
         Iterable<AisPacket> query = getPastTrack(info, mmsi);
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_TO_TEXT);
     }
-    
+
     @GET
     @Path("/track/raw")
     @Produces("application/octet-stream")
-    public StreamingOutput pastTrackRaw(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
-    }    
-    
+    public StreamingOutput pastTrackRaw(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_TO_TEXT);
+    }
+
     @GET
     @Path("/track/html")
     @Produces("text/html")
-    public StreamingOutput pastTrackHtml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_HTML);
+    public StreamingOutput pastTrackHtml(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_TO_HTML);
     }
-    
+
+    @GET
+    @Path("/track/kml")
+    @Produces(MEDIA_TYPE_KMZ)
+    public Response pastTrackKml(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return Response
+                .ok()
+                .entity(StreamingUtil.createZippedStreamingOutput(query,
+                        AisPacketOutputSinks.newKmlSink(), "track.kmz"))
+                .type(MEDIA_TYPE_KMZ).build();
+    }
+
     @GET
     @Path("/track/prefixed")
     @Produces("application/octet-stream")
-    public StreamingOutput pastTrackPrefixed(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getPastTrack(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
+    public StreamingOutput pastTrackPrefixed(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getPastTrack(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
     }
-    
+
     @GET
     @Path("/history")
     @Produces("application/octet-stream")
-    public StreamingOutput history(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
+    public StreamingOutput history(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
         return historyRaw(info, mmsis);
     }
-    
+
     @GET
     @Path("/history/raw")
     @Produces("application/octet-stream")
-    public StreamingOutput historyRaw(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_TEXT);
-    }    
-    
+    public StreamingOutput historyRaw(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_TO_TEXT);
+    }
+
     @GET
     @Path("/history/html")
     @Produces("text/html")
-    public StreamingOutput historyHtml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_TO_HTML);
+    public StreamingOutput historyHtml(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_TO_HTML);
     }
-    
+
     @GET
     @Path("/history/prefixed")
     @Produces("application/octet-stream")
-    public StreamingOutput historyPrefixed(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
-    }    
-    
+    public StreamingOutput historyPrefixed(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return StreamingUtil.createStreamingOutput(query,
+                AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES);
+    }
+
     @GET
     @Path("/history/kml")
-    @Produces("application/vnd.google-earth.kml+xml")
-    public StreamingOutput historyKml(@Context UriInfo info, @QueryParam("mmsi") List<Integer> mmsis) {
-        Iterable<AisPacket> query = getHistory(info, ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
-        return StreamingUtil.createStreamingOutput(query, AisPacketOutputSinks.newKmlSink());
+    @Produces(MEDIA_TYPE_KMZ)
+    public Response historyKml(@Context UriInfo info,
+            @QueryParam("mmsi") List<Integer> mmsis) {
+        Iterable<AisPacket> query = getHistory(
+                info,
+                ArrayUtils.toPrimitive(mmsis.toArray(new Integer[mmsis.size()])));
+        return Response
+                .ok()
+                .entity(StreamingUtil.createZippedStreamingOutput(query,
+                        AisPacketOutputSinks.newKmlSink(), "history.kmz"))
+                .type(MEDIA_TYPE_KMZ).build();
     }
 
     /**
