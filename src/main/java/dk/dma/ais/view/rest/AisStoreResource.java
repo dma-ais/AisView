@@ -206,15 +206,15 @@ public class AisStoreResource extends AbstractResource {
      */
     @GET
     @Path("/scenario")
-    @Produces("application/vnd.google-earth.kml+xml")
+    @Produces(MEDIA_TYPE_KMZ)
     public Response scenarioKmlGet(@Context UriInfo info) {
         final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
-        return scenarioKml(p.area, p.interval, p.title, p.description, p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt, p.interpolationStepSecs);
+        return scenarioKmz(p.area, p.interval, p.title, p.description, p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt, p.interpolationStepSecs);
     }
 
     /**
-     * Search data from AisStore and generate KML.
+     * Search data from AisStore and generate KMZ output.
      * @param area extract AisPackets from AisStore inside this area.
      * @param interval extract AisPackets from AisStore inside this time interval.
      * @param title Stamp this title into the generated KML (optional).
@@ -225,7 +225,7 @@ public class AisStoreResource extends AbstractResource {
      * @param interpolationStepSecs Interpolate targets between AisPackets using this time step in seconds (optional).
      * @return HTTP response carrying KML for Google Earth
      */
-    private Response scenarioKml(final Area area, final Interval interval, final String title, final String description, final Integer primaryMmsi, final Integer secondaryMmsi, final DateTime snapshotAt, final Integer interpolationStepSecs) {
+    private Response scenarioKmz(final Area area, final Interval interval, final String title, final String description, final Integer primaryMmsi, final Integer secondaryMmsi, final DateTime snapshotAt, final Integer interpolationStepSecs) {
         // Create the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use getArea because this removes all type 5
         b.setInterval(interval);
@@ -300,7 +300,12 @@ public class AisStoreResource extends AbstractResource {
             }
         } : null;
 
-        return Response.ok(StreamingUtil.createStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription)), "application/vnd.google-earth.kml+xml").build();
+        return Response
+            .ok()
+            .entity(StreamingUtil.createZippedStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription), "doc.kml"))
+            .type(MEDIA_TYPE_KMZ)
+            //.header("Content-Disposition", "attachment; filename = scenario.kmz")
+            .build();
     }
 
     private Iterable<AisPacket> getPastTrack(@Context UriInfo info, int... mmsi) {
@@ -320,5 +325,7 @@ public class AisStoreResource extends AbstractResource {
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
         return query;
     }
+
+    private static final String MEDIA_TYPE_KMZ = "application/vnd.google-earth.kmz";
 
 }
