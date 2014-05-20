@@ -26,6 +26,7 @@ import dk.dma.ais.store.job.JobManager;
 import dk.dma.ais.store.job.JobManager.Job;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.JSONObject;
+import dk.dma.commons.util.io.OutputStreamSink;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
@@ -33,7 +34,6 @@ import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -48,18 +48,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static dk.dma.ais.packet.AisPacketOutputSinks.newKmlSink;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Resources that query AisStore.
  * 
  * @author Kasper Nielsen
- * @author Thomas Salling
+ * @author Thomas Borg Salling
  * @author Jens Tuxen
  */
 @Path("/store")
@@ -391,9 +389,11 @@ public class AisStoreResource extends AbstractResource {
             }
         } : null;
 
+        final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks.newKmzSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription, null);
+
         return Response
             .ok()
-            .entity(StreamingUtil.createZippedStreamingOutput(filteredQueryResult, newKmlSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription), "doc.kml"))
+            .entity(StreamingUtil.createStreamingOutput(filteredQueryResult, kmzSink))
             .type(MEDIA_TYPE_KMZ)
             //.header("Content-Disposition", "attachment; filename = scenario.kmz")
             .build();
