@@ -34,9 +34,12 @@ import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+
+import com.google.common.primitives.Ints;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -48,6 +51,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -70,14 +76,69 @@ public class AisStoreResource extends AbstractResource {
     }
 
     /**
-     * Returns a list of source IDs in the source. This one is hard coded for now
+     * Returns a list of source IDs in the source. This one is hard coded for
+     * now
      * 
      * @return a list of source IDs in the source
      */
     @GET
     @Path("/sourceIDs")
     public JSONObject getSourceIDs() {
-        return JSONObject.singleList("sourceIDs", "AISD", "IALA", "AISSAT", "MSSIS", "AISHUB");
+        return JSONObject.singleList("sourceIDs", "AISD", "IALA", "AISSAT",
+                "MSSIS", "AISHUB");
+    }
+
+    private AtomicLong getTenMinuteCount() {
+        // get the latest guaranteed full block
+        long startBlock = (long)( (double)DateTime.now().getMillis() / 10.0 / 60.0 / 1000.0) -1;
+        long endBlock = startBlock + 1;
+
+        long start = startBlock * 10 * 60 * 1000;
+        long end = (endBlock * 10 * 60 * 1000);
+
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime().setInterval(
+                start, end);
+        AisStoreQueryResult query = get(CassandraConnection.class).execute(b);
+        Iterable<AisPacket> q = query;
+
+        final AtomicLong l = new AtomicLong();
+        q = Iterables.counting(q, l);
+        for (Iterator<AisPacket> iterator = q.iterator(); iterator
+                .hasNext();) {
+            iterator.next();
+        }
+        
+        return l;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @GET
+    @Path("/count")
+    public Long getTenMinuteCount(@Context UriInfo info) {
+        return getTenMinuteCount().get();
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @GET
+    @Path("/count/second")
+    public Double getPacketsPerSecond() {
+        return getTenMinuteCount().doubleValue() / 600;
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @GET
+    @Path("/count/minute")
+    public Double getPacketsPerMinute() {
+        return getTenMinuteCount().doubleValue() / 10;
     }
 
     /**
@@ -86,7 +147,8 @@ public class AisStoreResource extends AbstractResource {
     @GET
     @Produces("application/json")
     @Path("/status/{jobId : \\w+}")
-    public JSONObject queryStatus(@Context UriInfo info, @PathParam("jobId") String jobId) {
+    public JSONObject queryStatus(@Context UriInfo info,
+            @PathParam("jobId") String jobId) {
         if (jobId != null) {
             Job j = get(JobManager.class).getResult(jobId);
             if (j != null) {
@@ -102,7 +164,8 @@ public class AisStoreResource extends AbstractResource {
     public StreamingOutput query(@Context UriInfo info) {
         QueryParameterHelper p = new QueryParameterHelper(info);
 
-        // Create builder, we first need to determine which of the 3 AisStore tables we need to use
+        // Create builder, we first need to determine which of the 3 AisStore
+        // tables we need to use
         AisStoreQueryBuilder b;
         if (p.getMMSIs().length > 0) {
             b = AisStoreQueryBuilder.forMmsi(p.getMMSIs());
@@ -112,7 +175,8 @@ public class AisStoreResource extends AbstractResource {
             b = AisStoreQueryBuilder.forTime();
         }
         // Set various properties for the query builder
-        b.setFetchSize(QueryParameterValidators.getParameterAsInt(info, "fetchSize", 3000));
+        b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
+                "fetchSize", 3000));
         b.setInterval(p.getInterval());
 
         // Create the query
@@ -122,7 +186,8 @@ public class AisStoreResource extends AbstractResource {
         // Apply filters from the user
         // Apply area filter again, problem with position tagging of static data
         q = p.applySourceFilter(q);
-        q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other filters reject packets)
+        q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
+                                   // filters reject packets)
         q = Iterables.counting(q, counter);
         if (p.jobId != null) {
             get(JobManager.class).addJob(p.jobId, query, counter);
@@ -283,15 +348,17 @@ public class AisStoreResource extends AbstractResource {
     }
 
     /**
-     * Extract a scenario from AisStore and return it in KML format. Intended for scenario replay sessions using
-     * Google Earth.
+     * Extract a scenario from AisStore and return it in KML format. Intended
+     * for scenario replay sessions using Google Earth.
      *
-     * A scenario is a set of vessels and movements constrained by geographical bounding box, time interval, and
-     * optionally mmsi no.s. It is possible to include custom data in the generated KML; e.g. scenario title and
+     * A scenario is a set of vessels and movements constrained by geographical
+     * bounding box, time interval, and optionally mmsi no.s. It is possible to
+     * include custom data in the generated KML; e.g. scenario title and
      * description.
      *
-     * Example URLs:
-     * - http://localhost:8090/store/scenario?box=56.12,11.10,56.13,11.09&interval=2014-04-23
+     * Example URLs: -
+     * http://localhost:8090/store/scenario?box=56.12,11.10,56.13
+     * ,11.09&interval=2014-04-23
      */
     @GET
     @Path("/scenario")
@@ -299,50 +366,80 @@ public class AisStoreResource extends AbstractResource {
     public Response scenarioKmlGet(@Context UriInfo info) {
         final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
-        return scenarioKmz(p.area, p.interval, p.title, p.description, p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt, p.interpolationStepSecs);
+        return scenarioKmz(p.area, p.interval, p.title, p.description,
+                p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt,
+                p.interpolationStepSecs);
     }
 
     /**
      * Search data from AisStore and generate KMZ output.
-     * @param area extract AisPackets from AisStore inside this area.
-     * @param interval extract AisPackets from AisStore inside this time interval.
-     * @param title Stamp this title into the generated KML (optional).
-     * @param description Stamp this description into the generated KML (optional).
-     * @param primaryMmsi Style this MMSI as the primary target in the scenario (optional).
-     * @param secondaryMmsi Style this MMSI as the secondary target in the scenario (optional).
-     * @param snapshotAt Generate a KML snapshot folder for exactly this point in time (optional).
-     * @param interpolationStepSecs Interpolate targets between AisPackets using this time step in seconds (optional).
+     * 
+     * @param area
+     *            extract AisPackets from AisStore inside this area.
+     * @param interval
+     *            extract AisPackets from AisStore inside this time interval.
+     * @param title
+     *            Stamp this title into the generated KML (optional).
+     * @param description
+     *            Stamp this description into the generated KML (optional).
+     * @param primaryMmsi
+     *            Style this MMSI as the primary target in the scenario
+     *            (optional).
+     * @param secondaryMmsi
+     *            Style this MMSI as the secondary target in the scenario
+     *            (optional).
+     * @param snapshotAt
+     *            Generate a KML snapshot folder for exactly this point in time
+     *            (optional).
+     * @param interpolationStepSecs
+     *            Interpolate targets between AisPackets using this time step in
+     *            seconds (optional).
      * @return HTTP response carrying KML for Google Earth
      */
-    private Response scenarioKmz(final Area area, final Interval interval, final String title, final String description, final Integer primaryMmsi, final Integer secondaryMmsi, final DateTime snapshotAt, final Integer interpolationStepSecs) {
+    private Response scenarioKmz(final Area area, final Interval interval,
+            final String title, final String description,
+            final Integer primaryMmsi, final Integer secondaryMmsi,
+            final DateTime snapshotAt, final Integer interpolationStepSecs) {
         // Create the query
-        AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use getArea because this removes all type 5
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use
+                                                                 // getArea
+                                                                 // because this
+                                                                 // removes all
+                                                                 // type 5
         b.setInterval(interval);
 
         // Execute the query
-        AisStoreQueryResult queryResult = get(CassandraConnection.class).execute(b);
+        AisStoreQueryResult queryResult = get(CassandraConnection.class)
+                .execute(b);
 
         // Apply filters
-        Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult, AisPacketFilters.filterOnMessageId(1, 2, 3, 5, 18, 19, 24));
-        filteredQueryResult = Iterables.filter(filteredQueryResult, AisPacketFilters.filterRelaxedOnMessagePositionWithin(area));
+        Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult,
+                AisPacketFilters.filterOnMessageId(1, 2, 3, 5, 18, 19, 24));
+        filteredQueryResult = Iterables.filter(filteredQueryResult,
+                AisPacketFilters.filterRelaxedOnMessagePositionWithin(area));
 
-        if (! filteredQueryResult.iterator().hasNext()) {
-            return Response.status(Response.Status.NO_CONTENT).entity("No AIS data matching criteria.").build();
+        if (!filteredQueryResult.iterator().hasNext()) {
+            return Response.status(Response.Status.NO_CONTENT)
+                    .entity("No AIS data matching criteria.").build();
         }
 
-        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (primaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
-            @Override
-            public boolean test(AisPacket aisPacket) {
-                return aisPacket.tryGetAisMessage().getUserId() == primaryMmsi.intValue();
-            }
-        });
+        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (primaryMmsi == null ? Predicate.FALSE
+                : new Predicate<AisPacket>() {
+                    @Override
+                    public boolean test(AisPacket aisPacket) {
+                        return aisPacket.tryGetAisMessage().getUserId() == primaryMmsi
+                                .intValue();
+                    }
+                });
 
-        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (secondaryMmsi == null ? Predicate.FALSE : new Predicate<AisPacket>() {
-            @Override
-            public boolean test(AisPacket aisPacket) {
-                return aisPacket.tryGetAisMessage().getUserId() == secondaryMmsi.intValue();
-            }
-        });
+        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (secondaryMmsi == null ? Predicate.FALSE
+                : new Predicate<AisPacket>() {
+                    @Override
+                    public boolean test(AisPacket aisPacket) {
+                        return aisPacket.tryGetAisMessage().getUserId() == secondaryMmsi
+                                .intValue();
+                    }
+                });
 
         Predicate<? super AisPacket> triggerSnapshot = (Predicate<? super AisPacket>) (snapshotAt != null ? new Predicate<AisPacket>() {
             private final long snapshotAtMillis = snapshotAt.getMillis();
@@ -359,12 +456,15 @@ public class AisStoreResource extends AbstractResource {
                 }
                 return generateSnapshot;
             }
-        } : Predicate.FALSE);
+        }
+                : Predicate.FALSE);
 
         Supplier<? extends String> supplySnapshotDescription = new Supplier<String>() {
             @Override
             public String get() {
-                return "<table width=\"300\"><tr><td><h4>" + title + "</h4></td></tr><tr><td><p>"+ description + "</p></td></tr></table>";
+                return "<table width=\"300\"><tr><td><h4>" + title
+                        + "</h4></td></tr><tr><td><p>" + description
+                        + "</p></td></tr></table>";
             }
         };
 
@@ -373,34 +473,43 @@ public class AisStoreResource extends AbstractResource {
             public String get() {
                 return title;
             }
-        } : null;
+        }
+                : null;
 
         Supplier<? extends String> supplyDescription = description != null ? new Supplier<String>() {
             @Override
             public String get() {
                 return description;
             }
-        } : null;
+        }
+                : null;
 
         Supplier<? extends Integer> supplyInterpolationStep = interpolationStepSecs != null ? new Supplier<Integer>() {
             @Override
             public Integer get() {
                 return interpolationStepSecs;
             }
-        } : null;
+        }
+                : null;
 
-        final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks.newKmzSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot, supplySnapshotDescription, supplyInterpolationStep, supplyTitle, supplyDescription, null);
+        final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks
+                .newKmzSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi,
+                        triggerSnapshot, supplySnapshotDescription,
+                        supplyInterpolationStep, supplyTitle,
+                        supplyDescription, null);
 
         return Response
-            .ok()
-            .entity(StreamingUtil.createStreamingOutput(filteredQueryResult, kmzSink))
-            .type(MEDIA_TYPE_KMZ)
-            //.header("Content-Disposition", "attachment; filename = scenario.kmz")
-            .build();
+                .ok()
+                .entity(StreamingUtil.createStreamingOutput(
+                        filteredQueryResult, kmzSink)).type(MEDIA_TYPE_KMZ)
+                // .header("Content-Disposition",
+                // "attachment; filename = scenario.kmz")
+                .build();
     }
 
     /**
      * getPastTrack will only work with position messages
+     * 
      * @param info
      * @param mmsi
      * @return
@@ -416,15 +525,19 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
 
         // Apply filters from the user
-        query = Iterables.filter(query, AisPacketFilters.filterOnMessageType(IVesselPositionMessage.class));
+        query = Iterables.filter(query, AisPacketFilters
+                .filterOnMessageType(IVesselPositionMessage.class));
         query = p.applySourceFilter(query);
-        query = p.applyPositionSampler(query); // WARNING: Must be the second last filter
-        query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
+        query = p.applyPositionSampler(query); // WARNING: Must be the second
+                                               // last filter
+        query = p.applyLimitFilter(query); // WARNING: Must be the last filter
+                                           // (if other filters reject packets)
         return query;
     }
-    
+
     /**
      * getHistory takes all ais data with mmsis using stateful filters
+     * 
      * @param info
      * @param mmsi
      * @return
@@ -438,13 +551,15 @@ public class AisStoreResource extends AbstractResource {
 
         // Create the query
         Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
-        
+
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
 
         // Apply filters from the user
-        query = p.applySourceFilter(query); //first because this potentially filters a lot of packets
+        query = p.applySourceFilter(query); // first because this potentially
+                                            // filters a lot of packets
         query = p.applyTargetFilterArea(query, state);
-        query = p.applyLimitFilter(query); // WARNING: Must be the last filter (if other filters reject packets)
+        query = p.applyLimitFilter(query); // WARNING: Must be the last filter
+                                           // (if other filters reject packets)
         return query;
     }
 
