@@ -94,7 +94,7 @@ public class AisStoreResource extends AbstractResource {
         long endBlock = startBlock + 1;
 
         long start = startBlock * 10 * 60 * 1000;
-        long end = (endBlock * 10 * 60 * 1000);
+        long end = endBlock * 10 * 60 * 1000;
 
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime().setInterval(
                 start, end);
