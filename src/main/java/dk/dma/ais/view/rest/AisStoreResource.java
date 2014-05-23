@@ -37,6 +37,8 @@ import dk.dma.enav.util.function.Supplier;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -63,6 +65,17 @@ import static java.util.Objects.requireNonNull;
  */
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AisStoreResource.class);
+
+    static {
+        LOG.debug("StatisticDataRepositoryMapDB loaded.");
+    }
+
+    {
+        LOG.debug(getClass().getSimpleName() + " created (" + this + ").");
+    }
+
     @GET
     @Path("/ping")
     @Produces(MediaType.TEXT_PLAIN)
@@ -414,8 +427,7 @@ public class AisStoreResource extends AbstractResource {
                 AisPacketFilters.filterRelaxedOnMessagePositionWithin(area));
 
         if (!filteredQueryResult.iterator().hasNext()) {
-            return Response.status(Response.Status.NO_CONTENT)
-                    .entity("No AIS data matching criteria.").build();
+            LOG.warn("No AIS data matching criteria.");
         }
 
         Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (primaryMmsi == null ? Predicate.FALSE
@@ -495,8 +507,8 @@ public class AisStoreResource extends AbstractResource {
 
         return Response
                 .ok()
-                .entity(StreamingUtil.createStreamingOutput(
-                        filteredQueryResult, kmzSink)).type(MEDIA_TYPE_KMZ)
+                .entity(StreamingUtil.createStreamingOutput(filteredQueryResult, kmzSink))
+                .type(MEDIA_TYPE_KMZ)
                 .header("Content-Disposition", "attachment; filename = \"scenario.kmz\"")
                 .build();
     }
