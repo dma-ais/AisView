@@ -34,12 +34,9 @@ import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-
-import com.google.common.primitives.Ints;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -51,8 +48,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -502,8 +497,7 @@ public class AisStoreResource extends AbstractResource {
                 .ok()
                 .entity(StreamingUtil.createStreamingOutput(
                         filteredQueryResult, kmzSink)).type(MEDIA_TYPE_KMZ)
-                // .header("Content-Disposition",
-                // "attachment; filename = scenario.kmz")
+                .header("Content-Disposition", "attachment; filename = \"scenario.kmz\"")
                 .build();
     }
 
