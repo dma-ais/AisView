@@ -3,7 +3,7 @@
 //
 
 //Root domain for request url
-var requestDomain = 'http://placeholder';
+var requestDomain = 'http://placeholder/downloader';
 
 //query endpoint
 var queryEndpoint = '/store/query?';
