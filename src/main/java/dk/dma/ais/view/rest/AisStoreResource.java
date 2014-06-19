@@ -375,6 +375,7 @@ public class AisStoreResource extends AbstractResource {
         final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
         return scenarioKmz(p.area, p.interval, p.title, p.description,
+                p.createSituationFolder, p.createMovementsFolder, p.createTracksFolder,
                 p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt,
                 p.interpolationStepSecs);
     }
@@ -406,6 +407,7 @@ public class AisStoreResource extends AbstractResource {
      */
     private Response scenarioKmz(final Area area, final Interval interval,
             final String title, final String description,
+            final boolean createSituationFolder, final boolean createMovementsFolder, final boolean createTracksFolder,
             final Integer primaryMmsi, final Integer secondaryMmsi,
             final DateTime snapshotAt, final Integer interpolationStepSecs) {
         // Create the query
@@ -500,7 +502,9 @@ public class AisStoreResource extends AbstractResource {
                 : null;
 
         final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks
-                .newKmzSink(Predicate.TRUE, isPrimaryMmsi, isSecondaryMmsi,
+                .newKmzSink(Predicate.TRUE,
+                        createSituationFolder, createMovementsFolder, createTracksFolder,
+                        isPrimaryMmsi, isSecondaryMmsi,
                         triggerSnapshot, supplySnapshotDescription,
                         supplyInterpolationStep, supplyTitle,
                         supplyDescription, null);

@@ -17,7 +17,6 @@ package dk.dma.ais.view.rest;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketFiltersStateful;
@@ -35,16 +34,16 @@ import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.BiPredicate;
 import dk.dma.enav.util.function.Predicate;
-
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +62,8 @@ import static org.apache.commons.lang.StringUtils.isBlank;
  * @author Kasper Nielsen
  */
 class QueryParameterHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(QueryParameterHelper.class);
 
     /** An optional area for the query. */
     final Area area;
@@ -102,10 +103,21 @@ class QueryParameterHelper {
 
     final String jobId;
 
+    final boolean createSituationFolder;
+
+    final boolean createMovementsFolder;
+
+    final boolean createTracksFolder;
+
     public QueryParameterHelper(UriInfo uriInfo) {
         this.uriInfo = requireNonNull(uriInfo);
         this.area = findArea(uriInfo);
         this.interval = findInterval(uriInfo);
+
+        this.createSituationFolder = findCreateSituationFolder(uriInfo);
+        this.createMovementsFolder = findCreateMovementsFolder(uriInfo);
+        this.createTracksFolder = findCreateTracksFolder(uriInfo);
+
         this.kmlSnapshotAt = findAt(uriInfo);
         String limit = getParameter(uriInfo, "limit", null);
         this.limit = limit == null ? null : Integer.parseInt(limit);
@@ -123,6 +135,8 @@ class QueryParameterHelper {
 
         outputSink = getOutputSink(uriInfo);
         jobId = QueryParameterValidators.getParameter(uriInfo, "jobId", null);
+
+        LOG.debug(toString());
     }
 
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {
@@ -241,6 +255,18 @@ class QueryParameterHelper {
         return DateTimeUtil.toInterval(interval);
     }
 
+    private static boolean findCreateSituationFolder(UriInfo info) {
+        return QueryParameterValidators.getParameter(info, "situationFolderEnabled", null) != null;
+    }
+
+    private static boolean findCreateMovementsFolder(UriInfo info) {
+        return QueryParameterValidators.getParameter(info, "movementsFolderEnabled", null) != null;
+    }
+
+    private static boolean findCreateTracksFolder(UriInfo info) {
+        return QueryParameterValidators.getParameter(info, "tracksFolderEnabled", null) != null;
+    }
+
     private static DateTime findAt(UriInfo info) {
         String at = QueryParameterValidators.getParameter(info, "at", null);
         return isBlank(at) ? null : DateTime.parse(at);
@@ -298,4 +324,37 @@ class QueryParameterHelper {
         return p;
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("QueryParameterHelper{");
+        sb.append("area=").append(area);
+        sb.append(", interval=").append(interval);
+        sb.append(", kmlSnapshotAt=").append(kmlSnapshotAt);
+        sb.append(", limit=").append(limit);
+        sb.append(", minDistance=").append(minDistance);
+        sb.append(", minDuration=").append(minDuration);
+        sb.append(", primaryMmsi=").append(primaryMmsi);
+        sb.append(", secondaryMmsi=").append(secondaryMmsi);
+        sb.append(", title='").append(title).append('\'');
+        sb.append(", description='").append(description).append('\'');
+        sb.append(", interpolationStepSecs=").append(interpolationStepSecs);
+        sb.append(", timeToRun=").append(timeToRun);
+        sb.append(", mmsis=");
+        if (mmsis == null) sb.append("null");
+        else {
+            sb.append('[');
+            for (int i = 0; i < mmsis.length; ++i)
+                sb.append(i == 0 ? "" : ", ").append(mmsis[i]);
+            sb.append(']');
+        }
+        sb.append(", outputSink=").append(outputSink);
+        sb.append(", sourceFilter=").append(sourceFilter);
+        sb.append(", uriInfo=").append(uriInfo);
+        sb.append(", jobId='").append(jobId).append('\'');
+        sb.append(", createSituationFolder=").append(createSituationFolder);
+        sb.append(", createMovementsFolder=").append(createMovementsFolder);
+        sb.append(", createTracksFolder=").append(createTracksFolder);
+        sb.append('}');
+        return sb.toString();
+    }
 }
