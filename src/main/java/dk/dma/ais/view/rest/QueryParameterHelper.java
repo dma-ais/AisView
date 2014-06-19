@@ -340,11 +340,14 @@ class QueryParameterHelper {
         sb.append(", interpolationStepSecs=").append(interpolationStepSecs);
         sb.append(", timeToRun=").append(timeToRun);
         sb.append(", mmsis=");
-        if (mmsis == null) sb.append("null");
+        if (mmsis == null) {
+            sb.append("null");
+        }
         else {
             sb.append('[');
-            for (int i = 0; i < mmsis.length; ++i)
+            for (int i = 0; i < mmsis.length; ++i) {
                 sb.append(i == 0 ? "" : ", ").append(mmsis[i]);
+            }
             sb.append(']');
         }
         sb.append(", outputSink=").append(outputSink);
