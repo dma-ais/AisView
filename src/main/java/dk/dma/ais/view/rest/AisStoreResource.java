@@ -421,8 +421,8 @@ public class AisStoreResource extends AbstractResource {
         }
 
         final double size = area.getArea();
-        if (size > 625.0) {
-            throw new IllegalArgumentException("Queries spanning more than 625 square kilometers are not allowed.");
+        if (size > 2500.0) {
+            throw new IllegalArgumentException("Queries spanning more than 2500 square kilometers are not allowed.");
         }
 
         LOG.info("Preparing KML for span of " + hours + " hours + " + minutes + " minutes and " + (float) size + " square kilometers.");
