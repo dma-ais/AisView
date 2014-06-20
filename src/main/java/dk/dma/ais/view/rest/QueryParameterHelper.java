@@ -66,7 +66,7 @@ class QueryParameterHelper {
     private static final Logger LOG = LoggerFactory.getLogger(QueryParameterHelper.class);
 
     /** An optional area for the query. */
-    final Area area;
+    final BoundingBox area;
 
     /** The interval for the query */
     final Interval interval;
@@ -111,7 +111,7 @@ class QueryParameterHelper {
 
     public QueryParameterHelper(UriInfo uriInfo) {
         this.uriInfo = requireNonNull(uriInfo);
-        this.area = findArea(uriInfo);
+        this.area = findBoundingBox(uriInfo);
         this.interval = findInterval(uriInfo);
 
         this.createSituationFolder = findCreateSituationFolder(uriInfo);
@@ -227,7 +227,7 @@ class QueryParameterHelper {
         return secondaryMmsi == null ? null : Integer.parseInt(secondaryMmsi);
     }
 
-    private static Area findArea(UriInfo info) {
+    private static BoundingBox findBoundingBox(UriInfo info) {
         String box = QueryParameterValidators.getParameter(info, "box", null);
         if (box != null) {
             String[] str = box.split(",");

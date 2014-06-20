@@ -31,11 +31,12 @@ import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
-import dk.dma.enav.model.geometry.Area;
+import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -405,11 +406,27 @@ public class AisStoreResource extends AbstractResource {
      *            seconds (optional).
      * @return HTTP response carrying KML for Google Earth
      */
-    private Response scenarioKmz(final Area area, final Interval interval,
+    private Response scenarioKmz(final BoundingBox area, final Interval interval,
             final String title, final String description,
             final boolean createSituationFolder, final boolean createMovementsFolder, final boolean createTracksFolder,
             final Integer primaryMmsi, final Integer secondaryMmsi,
             final DateTime snapshotAt, final Integer interpolationStepSecs) {
+
+        // Pre-check input
+        final Duration duration = interval.toDuration();
+        final long hours = duration.getStandardHours();
+        final long minutes = duration.getStandardMinutes();
+        if (hours > 6) {
+            throw new IllegalArgumentException("Queries spanning more than 6 hours are not allowed.");
+        }
+
+        final double size = area.getArea();
+        if (size > 625.0) {
+            throw new IllegalArgumentException("Queries spanning more than 625 square kilometers are not allowed.");
+        }
+
+        LOG.info("Preparing KML for span of " + hours + " hours + " + minutes + " minutes and " + (float) size + " square kilometers.");
+
         // Create the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use
                                                                  // getArea
@@ -503,7 +520,7 @@ public class AisStoreResource extends AbstractResource {
 
         final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks
                 .newKmzSink(Predicate.TRUE,
-                        createSituationFolder, createMovementsFolder, createTracksFolder,
+                        createSituationFolder, createMovementsFolder    , createTracksFolder,
                         isPrimaryMmsi, isSecondaryMmsi,
                         triggerSnapshot, supplySnapshotDescription,
                         supplyInterpolationStep, supplyTitle,
