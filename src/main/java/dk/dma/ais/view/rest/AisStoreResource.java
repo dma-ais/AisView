@@ -420,8 +420,8 @@ public class AisStoreResource extends AbstractResource {
             throw new IllegalArgumentException("Queries spanning more than 6 hours are not allowed.");
         }
 
-        final double size = area.getArea();
-        if (size > 2500.0) {
+        final float size = area.getArea();
+        if (size > 2500.0*1e6) {
             throw new IllegalArgumentException("Queries spanning more than 2500 square kilometers are not allowed.");
         }
 
