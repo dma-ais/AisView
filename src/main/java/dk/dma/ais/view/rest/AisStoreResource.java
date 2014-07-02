@@ -178,14 +178,23 @@ public class AisStoreResource extends AbstractResource {
         AisStoreQueryBuilder b;
         if (p.getMMSIs().length > 0) {
             b = AisStoreQueryBuilder.forMmsi(p.getMMSIs());
+            b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
+                    "fetchSize", 3000));
+        
+        /*
         } else if (p.getArea() != null) {
             b = AisStoreQueryBuilder.forArea(p.getArea());
+            b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
+                    "fetchSize", 200));
+        */
+            
         } else {
             b = AisStoreQueryBuilder.forTime();
+            b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
+                    "fetchSize", 3000));
         }
         // Set various properties for the query builder
-        b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
-                "fetchSize", 3000));
+
         b.setInterval(p.getInterval());
 
         // Create the query
@@ -194,9 +203,14 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> q = query;
         // Apply filters from the user
         // Apply area filter again, problem with position tagging of static data
+        
+        final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
+        q = p.applyTargetFilterArea(q, state );
+        q = p.applyEFilter(q);
         q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
-                                   // filters reject packets)
+                                    // filters reject packets)
+        
         q = Iterables.counting(q, counter);
         if (p.jobId != null) {
             get(JobManager.class).addJob(p.jobId, query, counter);
