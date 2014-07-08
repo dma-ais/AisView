@@ -476,7 +476,11 @@ public class AisViewHelper {
             if (p != null) {
                 List<PastTrackPoint> pps = p.getPoints();
                 if (pps != null) {
-                    points.addAll(pps);
+                    for (PastTrackPoint point: pps) {
+                        if (point != null) {
+                            points.add(point);
+                        }
+                    }
                 }
             }
         }
