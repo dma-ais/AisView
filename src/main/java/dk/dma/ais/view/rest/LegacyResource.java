@@ -158,7 +158,7 @@ public class LegacyResource extends AbstractResource {
                 @Override
                 public IPastTrack call() throws Exception {
                     return handler.generatePastTrackFromAisStore(aisTarget,
-                            mmsi, mostRecent, ONE_DAY, tolerance, minDist,
+                            mmsi, mostRecent, ONE_DAY * 14, tolerance, minDist,
                             con);
                 }
             });
