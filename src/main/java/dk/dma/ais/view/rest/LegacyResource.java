@@ -331,7 +331,7 @@ public class LegacyResource extends AbstractResource {
 
         BoundingBox bbox = handler.tryGetBbox(request);
         Predicate<TargetInfo> targetPredicate = filterOnTTL(handler.getConf()
-                .getLiveTargetTtl());
+                .getSatTargetTtl());
         if (bbox != null) {
             targetPredicate = targetPredicate.and(filterOnBoundingBox(bbox));
         }
