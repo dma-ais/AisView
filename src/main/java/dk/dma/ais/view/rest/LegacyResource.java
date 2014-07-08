@@ -53,7 +53,6 @@ import dk.dma.ais.packet.AisPacketTags.SourceType;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.util.CacheManager;
-import dk.dma.ais.view.common.util.TargetInfoToAisTarget;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.handler.AisViewHelper;
@@ -144,7 +143,11 @@ public class LegacyResource extends AbstractResource {
         TargetInfo ti = entry.getValue();
 
         IPastTrack pt = new PastTrackSortedSet();
-        final AisVesselTarget aisTarget = (AisVesselTarget) TargetInfoToAisTarget.generateAisTarget(ti);
+
+        //cached method
+        //final AisVesselTarget aisTarget = (AisVesselTarget) TargetInfoToAisTarget.generateAisTarget(ti);
+
+        final AisVesselTarget aisTarget = (AisVesselTarget) ti.getAisTarget();
 
         final double tolerance = 1000;
         final int minDist = 500;
@@ -203,7 +206,7 @@ public class LegacyResource extends AbstractResource {
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
         for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
-            aisTargets.add(TargetInfoToAisTarget.generateAisTarget(e.getValue()));
+            aisTargets.add(e.getValue().getAisTarget());
         }
 
         // Get response from AisViewHandler and return it
@@ -278,7 +281,7 @@ public class LegacyResource extends AbstractResource {
     }
 
     /**
-     * This method extracts Collectins of AisVesselTarget from targettracker. 
+     * This method extracts Collection of AisVesselTarget from TargetTracker. 
      * These collections are used in the older web interface
      * @param targets
      * @param filter
@@ -295,7 +298,7 @@ public class LegacyResource extends AbstractResource {
             @Override
             public void apply(TargetInfo arg0) {
                 AisVesselTarget avt =
-                 handler.getFilteredAisVessel(TargetInfoToAisTarget.generateAisTarget(arg0),
+                 handler.getFilteredAisVessel(arg0.getAisTarget(),
                  filter);
                 //if TargetInfo has cached AisTarget, we can use that to improve performance drastically
                 //AisVesselTarget avt = handler.getFilteredAisVessel(
@@ -390,7 +393,7 @@ public class LegacyResource extends AbstractResource {
         return new Predicate<TargetInfo>() {
             @Override
             public boolean test(TargetInfo arg0) {
-                return TargetInfoToAisTarget.generateAisTarget(arg0).isAlive(ttl);
+                return arg0.getAisTarget().isAlive(ttl);
             }
 
         };
@@ -504,7 +507,7 @@ public class LegacyResource extends AbstractResource {
             @Override
             public boolean test(TargetInfo arg0) {
                 return !handler.rejectedBySearchCriteria(
-                        TargetInfoToAisTarget.generateAisTarget(arg0), searchTerm);
+                        arg0.getAisTarget(), searchTerm);
             }
         };
     }
