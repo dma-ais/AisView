@@ -149,22 +149,7 @@ public class AisStoreResource extends AbstractResource {
         return getTenMinuteCount().doubleValue() / 10;
     }
 
-    /**
-     * Used to query job status for long running AisStore access jobs.
-     */
-    @GET
-    @Produces("application/json")
-    @Path("/status/{jobId : \\w+}")
-    public JSONObject queryStatus(@Context UriInfo info,
-            @PathParam("jobId") String jobId) {
-        if (jobId != null) {
-            Job j = get(JobManager.class).getResult(jobId);
-            if (j != null) {
-                return j.toJSON();
-            }
-        }
-        return new JSONObject();
-    }
+
 
     @GET
     @Produces("application/octet-stream")
