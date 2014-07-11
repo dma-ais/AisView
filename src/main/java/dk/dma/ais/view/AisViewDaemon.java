@@ -73,7 +73,7 @@ public class AisViewDaemon extends AbstractDaemon {
         AisReaders.manageGroup(g);
 
         // A job manager that takes care of tracking ongoing jobs
-        JobManager jobManager = new JobManager();
+        final JobManager jobManager = new JobManager();
 
         // Setup the backup process
         // Files.createDirectories(backup);
