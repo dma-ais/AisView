@@ -230,7 +230,8 @@ public class LegacyResource extends AbstractResource {
                 .findTargets(getSourcePredicates(filter), targetPredicate);
         VesselList list = getVesselList(targets, filter);
 
-        list.setInWorldCount(targets.values().size());
+        //get count for all in world with source predicates.
+        list.setInWorldCount(tt.countNumberOfTargets(getSourcePredicates(filter), filterOnTTL(handler.getConf().getSatTargetTtl())));
 
         // Get request id
         Integer requestId = request.getInt("requestId");
@@ -299,9 +300,6 @@ public class LegacyResource extends AbstractResource {
                 AisVesselTarget avt =
                  handler.getFilteredAisVessel(arg0.getAisTarget(),
                  filter);
-                //if TargetInfo has cached AisTarget, we can use that to improve performance drastically
-                //AisVesselTarget avt = handler.getFilteredAisVessel(
-                //        arg0.getAisTarget(), filter);
                 if (avt != null) {
                     avts.put(avt.getMmsi(), avt);
                 }
