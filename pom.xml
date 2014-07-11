@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>dk.dma</groupId>
 		<artifactId>dma-root-pom</artifactId>
-		<version>17</version>
+		<version>20</version>
 	</parent>
 
 	<groupId>dk.dma.ais.view</groupId>
@@ -17,7 +17,7 @@
 
 	<scm>
 		<connection>scm:git:git@github.com:dma-dk/AisView.git</connection>
-		<developerConnection>scm:git:git@github.com:dma-dk/AisView.git</developerConnection>
+		<developerConnection>scm:git:git@github.com:dma-ais/AisView.git</developerConnection>
 		<url>https://github.com/dma-ais/AisView</url>
 	</scm>
 
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>dk.dma.ais.store</groupId>
 			<artifactId>ais-store-common</artifactId>
-			<version>0.1-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
