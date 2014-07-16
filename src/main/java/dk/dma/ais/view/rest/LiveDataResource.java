@@ -34,7 +34,7 @@ import dk.dma.commons.web.rest.AbstractResource;
 
 /**
  * 
- * @author Kasper Nielsen, Jens Tuxen
+ * @author Kasper Nielsen
  */
 @Path("/")
 public class LiveDataResource extends AbstractResource {
