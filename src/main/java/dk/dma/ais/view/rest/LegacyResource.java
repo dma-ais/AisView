@@ -16,6 +16,7 @@ package dk.dma.ais.view.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.function.ToLongFunction;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -65,6 +67,7 @@ import dk.dma.enav.model.Country;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
+import dk.dma.enav.util.function.BiPredicate;
 import dk.dma.enav.util.function.Predicate;
 
 /**
@@ -95,7 +98,68 @@ public class LegacyResource extends AbstractResource {
     public String ping(@Context UriInfo info) {
         return "pong";
     }
+    
+    @GET
+    @Path("rate")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String rate(@QueryParam("expected") Double expected) {
+        if (expected == null) {
+            expected = 0.0;
+        }
+        
+        Long r = this.rateCount(null);
+        return "status=" + (r > expected ? "ok" : "nok"); 
+    }
+    
+    @GET
+    @Path("rate/count")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Long rateCount(@Context UriInfo uriInfo) {      
+        TargetTracker tt = Objects.requireNonNull(LegacyResource.this
+                .get(TargetTracker.class));
+        
+                
+        Collection<TargetInfo> tis = tt.findTargets(new BiPredicate<AisPacketSource, TargetInfo>() {
+            @Override
+            public boolean test(AisPacketSource t, TargetInfo u) {
+                return true;
+            }
+        });
+        
+        final Date d = new Date(new Date().getTime()-1000);
+        final Long dLong = d.getTime();
+        
+        
+        //count all packets in the TargetInfo which are after the given timestamp.
+        //this is kind of "double work" since we already filtered them above.
+        Long r = tis.stream().mapToLong(new ToLongFunction<TargetInfo>() {
 
+            @Override
+            public long applyAsLong(TargetInfo value) {
+                
+                long r = 0L;
+                if (value.getPositionTimestamp() > dLong) {
+                    r++;
+                }
+                
+                //eep, this is slow but has to be done
+                if (value.getStaticCount() > 1) {
+                    for (AisPacket p: value.getStaticPackets()) {
+                        if (p.getBestTimestamp() > dLong) {
+                            r++;
+                        }
+                    }                    
+                } else if (value.getStaticTimestamp() > dLong) {
+                    r++;
+                }
+                
+                return r;
+            }
+        }).sum();
+        
+        return new Double((double) r).longValue();        
+    }
+    
     @GET
     @Path("anon_vessel_list")
     @Produces(MediaType.APPLICATION_JSON)
