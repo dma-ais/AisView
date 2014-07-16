@@ -17,6 +17,7 @@ package dk.dma.ais.view.rest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -24,7 +25,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -290,9 +294,9 @@ public class LegacyResource extends AbstractResource {
         }
 
         // filter both on source and target
-        ConcurrentHashMapV8<Integer, TargetInfo> targets = (ConcurrentHashMapV8<Integer, TargetInfo>) tt
+        Map<Integer, TargetInfo> targets = tt
                 .findTargets(getSourcePredicates(filter), targetPredicate);
-        VesselList list = getVesselList(targets, filter);
+        VesselList list = getVesselList(targets.values(), filter);
 
         //get count for all in world with source predicates.
         list.setInWorldCount(tt.countNumberOfTargets(getSourcePredicates(filter), filterOnTTL(handler.getConf().getSatTargetTtl())));
@@ -307,11 +311,11 @@ public class LegacyResource extends AbstractResource {
     }
 
     private VesselList getVesselList(
-            ConcurrentHashMapV8<Integer, TargetInfo> targets,
+            Collection<TargetInfo> targets,
             final VesselListFilter filter) {
 
         VesselList list = new VesselList();
-
+        
         for (AisVesselTarget avt : getAisVesselTargetsList(targets, filter)) {
             list.addTarget(avt, avt.getMmsi());
         }
@@ -352,28 +356,29 @@ public class LegacyResource extends AbstractResource {
      * @return
      */
     private Collection<AisVesselTarget> getAisVesselTargetsList(
-            ConcurrentHashMapV8<Integer, TargetInfo> targets,
+            Collection<TargetInfo> targets,
             final VesselListFilter filter) {
 
-        final ConcurrentHashMapV8<Integer, AisVesselTarget> avts = new ConcurrentHashMapV8<>();
-
-        targets.forEachValue(10, new Action<TargetInfo>() {
+        
+        return targets.stream().parallel().map(new Function<TargetInfo, AisVesselTarget>() {
 
             @Override
-            public void apply(TargetInfo arg0) {
-                AisVesselTarget avt =
-                 handler.getFilteredAisVessel(arg0.getAisTarget(),
-                 filter);
-                if (avt != null) {
-                    avts.put(avt.getMmsi(), avt);
-                }
+            public AisVesselTarget apply(TargetInfo t) {
+                return handler.getFilteredAisVessel(t.getAisTarget(),
+                        filter);
             }
-        });
+            
+        }).filter(new java.util.function.Predicate<AisVesselTarget>() {
 
-        return avts.values();
+            @Override
+            public boolean test(AisVesselTarget t) {
+                return t!=null;
+            }
+            
+        }).collect(Collectors.toList());
     }
-
-
+            
+            
 
     private VesselClusterJsonRepsonse cluster(QueryParams request) {
         VesselListFilter filter = new VesselListFilter(request);
@@ -404,16 +409,15 @@ public class LegacyResource extends AbstractResource {
 
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
-        //Long start = System.currentTimeMillis();
-        ConcurrentHashMapV8<Integer, TargetInfo> targets = (ConcurrentHashMapV8<Integer, TargetInfo>) tt
-                .findTargets(getSourcePredicates(filter), targetPredicate);
-        //Long end = System.currentTimeMillis();
+        Long start = System.currentTimeMillis();
+        Map<Integer, TargetInfo> targets =  tt.findTargets(getSourcePredicates(filter), targetPredicate);
+        Long end = System.currentTimeMillis();
 
         //debug
-        //System.out.println("tt.findTargets: " + (end - start) + " ms");
+        System.out.println("tt.findTargets: " + (end - start) + " ms");
 
         Collection<AisVesselTarget> aisTargets = getAisVesselTargetsList(
-                targets, filter);
+                targets.values(), filter);
 
         // Get request id
         Integer requestId = request.getInt("requestId");
