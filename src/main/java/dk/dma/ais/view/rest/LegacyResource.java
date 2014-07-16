@@ -437,7 +437,10 @@ public class LegacyResource extends AbstractResource {
             @Override
             public boolean test(TargetInfo arg0) {
                 if (arg0.hasPositionInfo()) {
-                    return bbox.contains(arg0.getPosition());
+                    Position p = arg0.getPosition();
+                    if (p != null && Position.isValid(p.getLatitude(), p.getLongitude())) {
+                        return bbox.contains(arg0.getPosition());
+                    }
                 }
                 return false;
             }
