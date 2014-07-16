@@ -436,8 +436,8 @@ public class LegacyResource extends AbstractResource {
         return new Predicate<TargetInfo>() {
             @Override
             public boolean test(TargetInfo arg0) {
-                if (arg0.hasPositionInfo() && arg0.getPositionPacket().tryGetPositionTime() != null) {
-                    return bbox.contains(arg0.getPositionPacket().tryGetPositionTime());
+                if (arg0.hasPositionInfo()) {
+                    return bbox.contains(arg0.getPosition());
                 }
                 return false;
             }
