@@ -430,9 +430,7 @@ public class AisViewHelper {
     }
 
     public synchronized AisViewHandlerStats getStat() {
-        // AisViewHandlerStats stats = new
-        // AisViewHandlerStats(targetsMap.values(), getAllPastTracks());
-        // return stats;
+        //AisViewHandlerStats stats = new AisViewHandlerStats(ge, getAllPastTracks());
         return null;
     }
 
