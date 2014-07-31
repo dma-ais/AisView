@@ -74,7 +74,7 @@ public class VesselCluster {
     }
 
     public void setCount(int count) {
-        this.count.set(count);;
+        this.count.set(count);
     }
 
     public BaseVesselList getVessels() {
