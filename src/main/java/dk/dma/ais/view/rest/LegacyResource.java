@@ -79,7 +79,7 @@ public class LegacyResource extends AbstractResource {
     private static final long ONE_DAY = 1000 * 60 * 60 * 24;
     @SuppressWarnings("unused")
     private static final long TEN_MINUTE_BLOCK = 1000 * 60 * 10;
-    private static final Predicate<? super Object> PredicateTRUE = new Predicate<Object>() {
+    private static final Predicate<? super Object> PREDICATETRUE = new Predicate<Object>() {
         @Override
         public boolean test(Object t) {
             return true;
@@ -264,7 +264,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
         final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(PredicateTRUE,
+        Map<Integer, TargetInfo> targets = tt.findTargets(PREDICATETRUE,
                 searchPredicate);
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
