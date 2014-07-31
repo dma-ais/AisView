@@ -14,8 +14,32 @@
  */
 package dk.dma.ais.view.rest;
 
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameter;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsInt;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
+import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang.StringUtils.isBlank;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
+
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketFiltersStateful;
@@ -33,27 +57,6 @@ import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 import dk.dma.enav.util.function.BiPredicate;
 import dk.dma.enav.util.function.Predicate;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameter;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsInt;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * A small helper class to extract query information.
