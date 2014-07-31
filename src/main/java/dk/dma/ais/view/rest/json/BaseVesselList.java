@@ -16,12 +16,17 @@ package dk.dma.ais.view.rest.json;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 import dk.dma.ais.data.AisVesselTarget;
 
+@ThreadSafe
 public abstract class BaseVesselList {
     
-    protected HashMap<Integer, ArrayList<String>> vessels = new HashMap<Integer, ArrayList<String>>();
+    protected ConcurrentHashMap<Integer, ArrayList<String>> vessels = new ConcurrentHashMap<Integer, ArrayList<String>>();
     protected long currentTime;
     protected int vesselCount;
     protected int inWorldCount;
@@ -34,7 +39,7 @@ public abstract class BaseVesselList {
     
     public abstract void addTarget(AisVesselTarget vesselTarget, int anonId);
     
-    public HashMap<Integer, ArrayList<String>> getVessels() {
+    public Map<Integer, ArrayList<String>> getVessels() {
         return vessels;
     }
     
