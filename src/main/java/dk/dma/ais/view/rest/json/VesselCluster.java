@@ -15,6 +15,9 @@
 package dk.dma.ais.view.rest.json;
 
 import static java.util.Objects.requireNonNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.enav.model.geometry.Position;
 
@@ -26,7 +29,7 @@ public class VesselCluster {
 
     private Position from;
     private Position to;
-    private int count;
+    private AtomicInteger count;
     private double density;
     private BaseVesselList vessels;
 
@@ -45,7 +48,8 @@ public class VesselCluster {
     public VesselCluster(Position from, Position to, int count, BaseVesselList vessels) {
         this.from = requireNonNull(from);
         this.to = requireNonNull(to);
-        this.count = count;
+        this.count = new AtomicInteger();
+        this.count.set(count);
         this.vessels = vessels;
     }
 
@@ -66,11 +70,11 @@ public class VesselCluster {
     }
 
     public int getCount() {
-        return count;
+        return count.get();
     }
 
     public void setCount(int count) {
-        this.count = count;
+        this.count.set(count);;
     }
 
     public BaseVesselList getVessels() {
@@ -82,7 +86,7 @@ public class VesselCluster {
     }
 
     public void incrementCount() {
-        count++;
+        this.count.incrementAndGet();
     }
 
     public void addVessel(AisVesselTarget target, int anonId) {
