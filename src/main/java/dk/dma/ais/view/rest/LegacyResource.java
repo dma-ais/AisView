@@ -17,17 +17,17 @@ package dk.dma.ais.view.rest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ws.rs.GET;
@@ -40,17 +40,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import jsr166e.ConcurrentHashMapV8;
-import jsr166e.ConcurrentHashMapV8.Action;
-
 import com.google.common.cache.Cache;
 
-import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.data.AisTarget;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.data.PastTrackSortedSet;
-import dk.dma.ais.message.AisMessageException;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketSourceFilters;
@@ -71,8 +66,6 @@ import dk.dma.enav.model.Country;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
-import dk.dma.enav.util.function.BiPredicate;
-import dk.dma.enav.util.function.Predicate;
 
 /**
  * All previously used web services for backwards compatibility. Ported to use
@@ -86,6 +79,13 @@ public class LegacyResource extends AbstractResource {
     private static final long ONE_DAY = 1000 * 60 * 60 * 24;
     @SuppressWarnings("unused")
     private static final long TEN_MINUTE_BLOCK = 1000 * 60 * 10;
+    private static final Predicate<? super Object> PredicateTRUE = new Predicate<Object>() {
+        @Override
+        public boolean test(Object t) {
+            return true;
+        }
+
+    };
 
     /**
      * @param handler
@@ -102,7 +102,7 @@ public class LegacyResource extends AbstractResource {
     public String ping(@Context UriInfo info) {
         return "pong";
     }
-    
+
     @GET
     @Path("rate")
     @Produces(MediaType.TEXT_PLAIN)
@@ -110,60 +110,60 @@ public class LegacyResource extends AbstractResource {
         if (expected == null) {
             expected = 0.0;
         }
-        
+
         Long r = this.rateCount(null);
-        return "status=" + (r > expected ? "ok" : "nok"); 
+        return "status=" + (r > expected ? "ok" : "nok");
     }
-    
+
     @GET
     @Path("rate/count")
     @Produces(MediaType.TEXT_PLAIN)
-    public Long rateCount(@Context UriInfo uriInfo) {      
+    public Long rateCount(@Context UriInfo uriInfo) {
         TargetTracker tt = Objects.requireNonNull(LegacyResource.this
                 .get(TargetTracker.class));
-        
-                
-        Collection<TargetInfo> tis = tt.findTargets(new BiPredicate<AisPacketSource, TargetInfo>() {
-            @Override
-            public boolean test(AisPacketSource t, TargetInfo u) {
-                return true;
-            }
-        });
-        
-        final Date d = new Date(new Date().getTime()-1000);
+
+        Collection<TargetInfo> tis = tt
+                .findTargets(new BiPredicate<AisPacketSource, TargetInfo>() {
+                    @Override
+                    public boolean test(AisPacketSource t, TargetInfo u) {
+                        return true;
+                    }
+                });
+
+        final Date d = new Date(new Date().getTime() - 1000);
         final Long dLong = d.getTime();
-        
-        
-        //count all packets in the TargetInfo which are after the given timestamp.
-        //this is kind of "double work" since we already filtered them above.
+
+        // count all packets in the TargetInfo which are after the given
+        // timestamp.
+        // this is kind of "double work" since we already filtered them above.
         Long r = tis.stream().mapToLong(new ToLongFunction<TargetInfo>() {
 
             @Override
             public long applyAsLong(TargetInfo value) {
-                
+
                 long r = 0L;
                 if (value.getPositionTimestamp() > dLong) {
                     r++;
                 }
-                
-                //eep, this is slow but has to be done
+
+                // eep, this is slow but has to be done
                 if (value.getStaticCount() > 1) {
-                    for (AisPacket p: value.getStaticPackets()) {
+                    for (AisPacket p : value.getStaticPackets()) {
                         if (p.getBestTimestamp() > dLong) {
                             r++;
                         }
-                    }                    
+                    }
                 } else if (value.getStaticTimestamp() > dLong) {
                     r++;
                 }
-                
+
                 return r;
             }
         }).sum();
-        
-        return new Double((double) r).longValue();        
+
+        return new Double((double) r).longValue();
     }
-    
+
     @GET
     @Path("anon_vessel_list")
     @Produces(MediaType.APPLICATION_JSON)
@@ -211,9 +211,6 @@ public class LegacyResource extends AbstractResource {
 
         IPastTrack pt = new PastTrackSortedSet();
 
-        //cached method
-        //final AisVesselTarget aisTarget = (AisVesselTarget) TargetInfoToAisTarget.generateAisTarget(ti);
-
         final AisVesselTarget aisTarget = (AisVesselTarget) ti.getAisTarget();
 
         final double tolerance = 1000;
@@ -227,13 +224,13 @@ public class LegacyResource extends AbstractResource {
             pt = cache.get(mmsi, new Callable<IPastTrack>() {
                 @Override
                 public IPastTrack call() throws Exception {
-                    return handler.generatePastTrackFromAisStore(aisTarget,
-                            mmsi, mostRecent, ONE_DAY , tolerance, minDist,
-                            con);
+                    return handler.generatePastTrackFromAisStore(mmsi,
+                            mostRecent, ONE_DAY, tolerance, minDist, con);
                 }
             });
 
-            //recentMissing is the missing pasttrack timeframe that is not in the cache
+            // recentMissing is the missing pasttrack timeframe that is not in
+            // the cache
             long recentMissing = mostRecent
                     - pt.getPoints().get(pt.getPoints().size() - 1).getTime();
 
@@ -242,9 +239,8 @@ public class LegacyResource extends AbstractResource {
 
             // 2 minutes need to have passed before we update pastracks
             if (recentMissing > (1000 * 60 * 2)) {
-                IPastTrack pt2 = handler.generatePastTrackFromAisStore(
-                        aisTarget, mmsi, mostRecent, recentMissing, tolerance,
-                        minDist, con);
+                IPastTrack pt2 = handler.generatePastTrackFromAisStore(mmsi,
+                        mostRecent, recentMissing, tolerance, minDist, con);
                 pt = handler.combinePastTrack(pt, pt2);
                 cache.put(mmsi, pt);
             }
@@ -268,7 +264,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
         final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(Predicate.TRUE,
+        Map<Integer, TargetInfo> targets = tt.findTargets(PredicateTRUE,
                 searchPredicate);
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
@@ -287,19 +283,22 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
         BoundingBox bbox = handler.tryGetBbox(request);
-        Predicate<TargetInfo> targetPredicate = filterOnTTL(handler.getConf()
-                .getSatTargetTtl());
-        if (bbox != null) {
-            targetPredicate = targetPredicate.and(filterOnBoundingBox(bbox));
-        }
+        Predicate<TargetInfo> targetPredicate = bbox != null ? filterOnBoundingBox(bbox)
+                : new Predicate<TargetInfo>() {
+                    @Override
+                    public boolean test(TargetInfo element) {
+                        return true;
+                    }
+                };
+        targetPredicate.and(filterOnTTL(handler.getConf().getSatTargetTtl()));
 
         // filter both on source and target
-        Map<Integer, TargetInfo> targets = tt
-                .findTargets(getSourcePredicates(filter), targetPredicate);
-        VesselList list = getVesselList(targets.values(), filter);
+        Stream<TargetInfo> targets = tt.findTargets8(
+                getSourcePredicates(filter), targetPredicate);
+        VesselList list = getVesselList(targets, filter);
 
-        //get count for all in world with source predicates.
-        list.setInWorldCount(tt.countNumberOfTargets(getSourcePredicates(filter), filterOnTTL(handler.getConf().getSatTargetTtl())));
+        // get count for all in world with source predicates.
+        list.setInWorldCount(tt.size());
 
         // Get request id
         Integer requestId = request.getInt("requestId");
@@ -310,75 +309,54 @@ public class LegacyResource extends AbstractResource {
         return new VesselListJsonResponse(requestId, list);
     }
 
-    private VesselList getVesselList(
-            Collection<TargetInfo> targets,
+    private VesselList getVesselList(Stream<TargetInfo> targets,
             final VesselListFilter filter) {
 
         VesselList list = new VesselList();
-        
-        for (AisVesselTarget avt : getAisVesselTargetsList(targets, filter)) {
-            list.addTarget(avt, avt.getMmsi());
-        }
+
+        getAisVesselTargetsStream(targets, filter).parallel().forEach(
+                new Consumer<AisVesselTarget>() {
+                    @Override
+                    public void accept(AisVesselTarget t) {
+                        list.addTarget(t, t.getMmsi());
+                    }
+
+                });
 
         return list;
     }
 
-
     /**
-     * Update aisTarget with messages 
-     * 
-     * @param aisTarget
-     * @param messages
-     * @return
-     */
-    static AisTarget updateAisTarget(AisTarget aisTarget,
-            TreeSet<AisPacket> messages) {
-        for (AisPacket p : messages.descendingSet()) {
-            try {
-                aisTarget.update(p.getAisMessage());
-            } catch (AisMessageException | SixbitException
-                    | NullPointerException e) {
-                // pass, there was an error in the packet/stream that made the packet unparsable
-            } catch (IllegalArgumentException exc) {
-                // happens when we try to update ClassA with ClassB and visa
-                // versa
-                // the youngest (newest report) takes president
-            }
-        }
-        return aisTarget;
-    }
-
-    /**
-     * This method extracts Collection of AisVesselTarget from TargetTracker. 
+     * This method extracts Collection of AisVesselTarget from TargetTracker.
      * These collections are used in the older web interface
+     * 
      * @param targets
      * @param filter
      * @return
      */
-    private Collection<AisVesselTarget> getAisVesselTargetsList(
-            Collection<TargetInfo> targets,
-            final VesselListFilter filter) {
+    private Stream<AisVesselTarget> getAisVesselTargetsStream(
+            Stream<TargetInfo> targets, final VesselListFilter filter) {
 
-        
-        return targets.stream().parallel().map(new Function<TargetInfo, AisVesselTarget>() {
+        return targets
+                .parallel()
+                .map(new Function<TargetInfo, AisVesselTarget>() {
 
-            @Override
-            public AisVesselTarget apply(TargetInfo t) {
-                return handler.getFilteredAisVessel(t.getAisTarget(),
-                        filter);
-            }
-            
-        }).filter(new java.util.function.Predicate<AisVesselTarget>() {
+                    @Override
+                    public AisVesselTarget apply(TargetInfo t) {
+                        return handler.getFilteredAisVessel(t.getAisTarget(),
+                                filter);
+                    }
 
-            @Override
-            public boolean test(AisVesselTarget t) {
-                return t!=null;
-            }
-            
-        }).collect(Collectors.toList());
+                }).parallel()
+                .filter(new java.util.function.Predicate<AisVesselTarget>() {
+
+                    @Override
+                    public boolean test(AisVesselTarget t) {
+                        return t != null;
+                    }
+
+                });
     }
-            
-            
 
     private VesselClusterJsonRepsonse cluster(QueryParams request) {
         VesselListFilter filter = new VesselListFilter(request);
@@ -396,11 +374,16 @@ public class LegacyResource extends AbstractResource {
         }
 
         BoundingBox bbox = handler.tryGetBbox(request);
-        Predicate<TargetInfo> targetPredicate = filterOnTTL(handler.getConf()
-                .getSatTargetTtl());
-        if (bbox != null) {
-            targetPredicate = targetPredicate.and(filterOnBoundingBox(bbox));
-        }
+        bbox = null;
+
+        Predicate<TargetInfo> targetPredicate = bbox != null ? filterOnBoundingBox(bbox)
+                : new Predicate<TargetInfo>() {
+                    @Override
+                    public boolean test(TargetInfo element) {
+                        return true;
+                    }
+                };
+        targetPredicate.and(filterOnTTL(handler.getConf().getSatTargetTtl()));
 
         Position pointA = Position.create(request.getDouble("topLat"),
                 request.getDouble("topLon"));
@@ -410,14 +393,15 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
         Long start = System.currentTimeMillis();
-        Map<Integer, TargetInfo> targets =  tt.findTargets(getSourcePredicates(filter), targetPredicate);
+        Stream<TargetInfo> targets = tt.findTargets8(
+                getSourcePredicates(filter), targetPredicate);
         Long end = System.currentTimeMillis();
 
-        //debug
-        System.out.println("tt.findTargets: " + (end - start) + " ms");
+        // debug
+        System.out.println("tt.findTargets8: " + (end - start) + " ms");
 
-        Collection<AisVesselTarget> aisTargets = getAisVesselTargetsList(
-                targets.values(), filter);
+        Stream<AisVesselTarget> aisTargets = getAisVesselTargetsStream(targets,
+                filter);
 
         // Get request id
         Integer requestId = request.getInt("requestId");
@@ -426,24 +410,25 @@ public class LegacyResource extends AbstractResource {
         }
 
         return handler.getClusterResponse(aisTargets, requestId, filter, limit,
-                size, pointA, pointB);
+                size, pointA, pointB, tt.size());
     }
 
     /**
      * TargetInfo predicate for boundingbox filtering
-     * TODO: maybe move to aislib
+     * 
      * @param bbox
      * @return
      */
-    private Predicate<? super TargetInfo> filterOnBoundingBox(
-            final BoundingBox bbox) {
+    private Predicate<TargetInfo> filterOnBoundingBox(final BoundingBox bbox) {
         return new Predicate<TargetInfo>() {
             @Override
             public boolean test(TargetInfo arg0) {
                 if (arg0.hasPositionInfo()) {
                     Position p = arg0.getPosition();
-                    if (p != null && Position.isValid(p.getLatitude(), p.getLongitude())) {
-                        return bbox.contains(arg0.getPosition());
+                    if (p != null
+                            && Position.isValid(p.getLatitude(),
+                                    p.getLongitude())) {
+                        return bbox.contains(p);
                     }
                 }
                 return false;
@@ -452,8 +437,9 @@ public class LegacyResource extends AbstractResource {
     }
 
     /**
-     * Filter on TTL using AisTarget 
-     * This is not generic enough to be moved to aislib. It uses AisTarget generation
+     * Filter on TTL using AisTarget This is not generic enough to be moved to
+     * aislib. It uses AisTarget generation
+     * 
      * @param ttl
      * @return
      */
@@ -469,6 +455,7 @@ public class LegacyResource extends AbstractResource {
 
     /**
      * Overloaded bounding box filtering using points
+     * 
      * @param pointA
      * @param pointB
      * @return
@@ -489,7 +476,7 @@ public class LegacyResource extends AbstractResource {
      * @param key
      * @return
      */
-    private Predicate<AisPacketSource> getSourcePredicate(
+    private dk.dma.enav.util.function.Predicate<AisPacketSource> getSourcePredicate(
             VesselListFilter filter, String key) {
         Map<String, HashSet<String>> filters = filter.getFilterMap();
 
@@ -522,6 +509,28 @@ public class LegacyResource extends AbstractResource {
     }
 
     /**
+     * Java8 version of source predicate.
+     * @param filter
+     * @param key
+     * @return
+     */
+    private Predicate<AisPacketSource> getSourcePredicate8(
+            VesselListFilter filter, String key) {
+        return new Predicate<AisPacketSource>() {
+
+            @Override
+            public boolean test(AisPacketSource t) {
+                final dk.dma.enav.util.function.Predicate<AisPacketSource> p = getSourcePredicate(filter, key);
+                if (p == null) {
+                    return true; 
+                }
+                return p.test(t);
+            }
+
+        };
+    }
+
+    /**
      * Get all predicates that relate to source from VesselListFilter.
      * 
      * TODO: Replace this with expression parser from QueryParameterHelper once
@@ -535,7 +544,7 @@ public class LegacyResource extends AbstractResource {
 
         ArrayList<Predicate<AisPacketSource>> predFilters = new ArrayList<>();
         for (String key : filter.getFilterMap().keySet()) {
-            Predicate<AisPacketSource> p = getSourcePredicate(filter, key);
+            Predicate<AisPacketSource> p = getSourcePredicate8(filter, key);
             if (p != null) {
                 predFilters.add(p);
             }
@@ -551,7 +560,8 @@ public class LegacyResource extends AbstractResource {
 
         }
 
-        //pick the finalpredicate if it's not null or create an equivalent one to Predicate.TRUE
+        // pick the finalpredicate if it's not null or create an equivalent one
+        // to Predicate.TRUE
         finalPredicate = (finalPredicate == null) ? new Predicate<AisPacketSource>() {
 
             @Override
@@ -565,8 +575,9 @@ public class LegacyResource extends AbstractResource {
     }
 
     /**
-     * Use code from AisViewHelper and AisTarget + reflection to filter on a vague search term
-     * The search term will match name, mmsi and other fields.
+     * Use code from AisViewHelper and AisTarget + reflection to filter on a
+     * vague search term The search term will match name, mmsi and other fields.
+     * 
      * @param searchTerm
      * @return
      */
@@ -574,8 +585,8 @@ public class LegacyResource extends AbstractResource {
         return new Predicate<TargetInfo>() {
             @Override
             public boolean test(TargetInfo arg0) {
-                return !handler.rejectedBySearchCriteria(
-                        arg0.getAisTarget(), searchTerm);
+                return !handler.rejectedBySearchCriteria(arg0.getAisTarget(),
+                        searchTerm);
             }
         };
     }
