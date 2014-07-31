@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 
@@ -35,6 +38,7 @@ import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.data.PastTrackPoint;
 import dk.dma.ais.data.PastTrackSortedSet;
 import dk.dma.ais.message.AisMessage;
+import dk.dma.ais.message.AisPosition;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
@@ -76,7 +80,7 @@ public class AisViewHelper {
      * @param filter
      * @return
      */
-    public synchronized AisVesselTarget getFilteredAisVessel(AisTarget target,
+    public AisVesselTarget getFilteredAisVessel(AisTarget target,
             VesselListFilter filter) {
 
         if (!(target instanceof AisVesselTarget)) {
@@ -85,7 +89,6 @@ public class AisViewHelper {
         AisVesselTarget vesselTarget = (AisVesselTarget) target;
 
         Map<String, HashSet<String>> filterMap = filter.getFilterMap();
-        
 
         // Maybe filtered away
         Set<String> vesselClass = filterMap.get("vesselClass");
@@ -119,10 +122,9 @@ public class AisViewHelper {
 
         return vesselTarget;
     }
-    
+
     /**
-     * Generates an IPastTrack. Note this also has a sideeffect of updating the
-     * aisTarget TODO: find a way to remove sideeffect
+     * Generates an IPastTrack from AisStore
      * 
      * @param aisTarget
      * @param mmsi
@@ -132,37 +134,45 @@ public class AisViewHelper {
      * @param minDist
      * @return
      */
-    public IPastTrack generatePastTrackFromAisStore(AisVesselTarget aisTarget,
+    public IPastTrack generatePastTrackFromAisStore(
             int mmsi, long mostRecent, long timeBack, double tolerance,
             int minDist, CassandraConnection con) {
 
-        PastTrackSimplifier pts = new PastTrackSimplifier();
         IPastTrack pt = new PastTrackSortedSet();
         // just one query
         AisStoreQueryBuilder query = AisStoreQueryBuilder.forMmsi(mmsi)
                 .setInterval(mostRecent - timeBack, mostRecent);
         AisStoreQueryResult result = con.execute(query);
         Iterator<AisPacket> it = result.iterator();
+        
+        AisVesselTarget aisTarget = null;
+        
         while (it.hasNext() && !result.isCancelled()) {
             AisPacket p = it.next();
             AisMessage m = p.tryGetAisMessage();
-
+            
             if (aisTarget == null) {
                 AisTarget tmp = AisTarget.createTarget(m);
                 if (tmp instanceof AisVesselTarget) {
                     aisTarget = (AisVesselTarget) tmp;
                 }
             } else {
-                aisTarget.update(m);
+                try {
+                    aisTarget.update(m);
+                } catch (IllegalArgumentException e) {
+                    // Trying To update class ? target with report of other
+                    // target type
+                } catch (NullPointerException e) {
+                    // TODO:
+                }
             }
 
             if (m instanceof IVesselPositionMessage) {
                 pt.addPosition(aisTarget.getVesselPosition(), minDist);
             }
-
         }
 
-        pt = pts.simplifyPastTrack(pt, tolerance);
+
         return pt;
     }
 
@@ -182,6 +192,7 @@ public class AisViewHelper {
      * 
      * @return false if target is out of specified area, else true.
      */
+    @SuppressWarnings("unused")
     private static boolean rejectedByPosition(AisVesselTarget target,
             Position pointA, Position pointB) {
 
@@ -234,64 +245,64 @@ public class AisViewHelper {
      * @param limit
      * @return
      */
-    public synchronized VesselClusterJsonRepsonse getClusterResponse(
-            Collection<AisVesselTarget> aisTargets, int requestId,
+    public VesselClusterJsonRepsonse getClusterResponse(
+            Stream<AisVesselTarget> aisTargets, int requestId,
             VesselListFilter filter, int limit, double size, Position pointA,
-            Position pointB) {
+            Position pointB, Integer inWorld) {
 
         Grid grid = GridFactory.getInstance().getGrid(size);
 
         // Maps cell ids to vessel clusters
-        HashMap<Long, VesselCluster> map = new HashMap<Long, VesselCluster>();
+        ConcurrentHashMap<Long, VesselCluster> map = new ConcurrentHashMap<Long, VesselCluster>();
 
         // Iterate over targets
-        int inWorld = 0;
-        for (AisTarget target : aisTargets) {
-            AisVesselTarget vesselTarget = getFilteredAisVessel(target, filter);
-            if (vesselTarget == null
-                    || vesselTarget.getVesselPosition() == null
-                    || vesselTarget.getVesselPosition().getPos() == null) {
-                continue;
-            }
+        aisTargets.parallel().forEach(new Consumer<AisVesselTarget>() {
 
-            inWorld++;
+            @Override
+            public void accept(AisVesselTarget target) {
+                try {
+                    AisVesselTarget vesselTarget = getFilteredAisVessel(target,
+                            filter);
 
-            // Is it inside the requested area
-            if (rejectedByPosition(vesselTarget, pointA, pointB)) {
-                continue;
-            }
+                    Position vesselPosition = vesselTarget.getVesselPosition()
+                            .getPos();
+                    long cellId = grid.getCellId(vesselPosition.getLatitude(),
+                            vesselPosition.getLongitude());
 
-            Position vesselPosition = vesselTarget.getVesselPosition().getPos();
-            long cellId = grid.getCellId(vesselPosition.getLatitude(),
-                    vesselPosition.getLongitude());
+                    // Only create vessel cluster if new
+                    if (map.containsKey(cellId)) {
 
-            // Only create vessel cluster if new
-            if (map.containsKey(cellId)) {
+                        map.get(cellId).incrementCount();
 
-                map.get(cellId).incrementCount();
+                        if (map.get(cellId).getCount() < limit) {
+                            map.get(cellId).getVessels()
+                                    .addTarget(vesselTarget, target.getMmsi());
+                        }
 
-                if (map.get(cellId).getCount() < limit) {
-                    map.get(cellId).getVessels()
-                            .addTarget(vesselTarget, target.getMmsi());
+                    } else {
+
+                        Position from = grid.getGeoPosOfCellId(cellId);
+
+                        double toLon = from.getLongitude()
+                                + grid.getCellSizeInDegrees();
+                        double toLat = from.getLatitude()
+                                + grid.getCellSizeInDegrees();
+                        Position to = Position.create(toLat, toLon);
+
+                        VesselCluster cluster = new VesselCluster(from, to, 1,
+                                new VesselList());
+                        map.put(cellId, cluster);
+                        map.get(cellId).getVessels()
+                                .addTarget(vesselTarget, target.getMmsi());
+
+                    }
+
+                } catch (NullPointerException e) {
+                    // pass
                 }
 
-            } else {
-
-                Position from = grid.getGeoPosOfCellId(cellId);
-
-                double toLon = from.getLongitude()
-                        + grid.getCellSizeInDegrees();
-                double toLat = from.getLatitude() + grid.getCellSizeInDegrees();
-                Position to = Position.create(toLat, toLon);
-
-                VesselCluster cluster = new VesselCluster(from, to, 1,
-                        new VesselList());
-                map.put(cellId, cluster);
-                map.get(cellId).getVessels()
-                        .addTarget(vesselTarget, target.getMmsi());
-
             }
-        }
+        });
 
         // Calculate density
         ArrayList<VesselCluster> clusters = new ArrayList<VesselCluster>(
@@ -324,7 +335,7 @@ public class AisViewHelper {
      *            MMSIs.
      * @return A list of targets.
      */
-    public synchronized VesselList searchTargets(String searchCriteria,
+    public VesselList searchTargets(String searchCriteria,
             List<AisTarget> targets) {
 
         VesselList response = new VesselList();
@@ -430,14 +441,15 @@ public class AisViewHelper {
     }
 
     public synchronized AisViewHandlerStats getStat() {
-        //AisViewHandlerStats stats = new AisViewHandlerStats(ge, getAllPastTracks());
+        // AisViewHandlerStats stats = new AisViewHandlerStats(ge,
+        // getAllPastTracks());
         return null;
     }
 
     public AisViewConfiguration getConf() {
         return conf;
     }
-    
+
     public static BoundingBox getBbox(QueryParams request) {
         // Get corners
         Double topLat = request.getDouble("topLat");
@@ -457,7 +469,7 @@ public class AisViewHelper {
             return null;
         }
     }
-    
+
     /**
      * Combine two pastTracks (no regard for different pasttrack options or
      * validation of points)
@@ -469,11 +481,11 @@ public class AisViewHelper {
     public IPastTrack combinePastTrack(final IPastTrack p1, final IPastTrack p2) {
         final TreeSet<PastTrackPoint> points = new TreeSet<PastTrackPoint>();
 
-        for (IPastTrack p: Arrays.asList(p1,p2)) {
+        for (IPastTrack p : Arrays.asList(p1, p2)) {
             if (p != null) {
                 List<PastTrackPoint> pps = p.getPoints();
                 if (pps != null) {
-                    for (PastTrackPoint point: pps) {
+                    for (PastTrackPoint point : pps) {
                         if (point != null) {
                             points.add(point);
                         }
@@ -481,7 +493,7 @@ public class AisViewHelper {
                 }
             }
         }
-        
+
         IPastTrack finalPastTrack = new IPastTrack() {
             final TreeSet<PastTrackPoint> inner = points;
 
