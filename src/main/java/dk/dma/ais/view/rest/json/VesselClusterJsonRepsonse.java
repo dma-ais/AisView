@@ -15,6 +15,7 @@
 package dk.dma.ais.view.rest.json;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 
 /**
@@ -22,7 +23,7 @@ import java.util.ArrayList;
  */
 public class VesselClusterJsonRepsonse extends JsonResponse{
 
-    private ArrayList<VesselCluster> clusters;
+    private Collection<VesselCluster> clusters;
     
     /**
      * Constructor of VesselClusterJsonRepsonse.
@@ -33,12 +34,12 @@ public class VesselClusterJsonRepsonse extends JsonResponse{
      * @param vesselsInWorld
      *             The number of known vessels.
      */
-    public VesselClusterJsonRepsonse(int requestId, ArrayList<VesselCluster> clusters, int vesselsInWorld) {
+    public VesselClusterJsonRepsonse(int requestId, Collection<VesselCluster> clusters, int vesselsInWorld) {
         super(requestId, vesselsInWorld);
         this.clusters = clusters;
     }
 
-    public ArrayList<VesselCluster> getClusters() {
+    public Collection<VesselCluster> getClusters() {
         return clusters;
     }
 
