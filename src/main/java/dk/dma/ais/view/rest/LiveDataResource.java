@@ -17,6 +17,7 @@ package dk.dma.ais.view.rest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,11 +27,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
 import dk.dma.ais.reader.AisReaderGroup;
+import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.web.rest.AbstractResource;
+import dk.dma.db.cassandra.CassandraConnection;
 
 /**
  * 
@@ -101,5 +106,46 @@ public class LiveDataResource extends AbstractResource {
             }
         };
     }
+    
+    @GET
+    @Path("/tracker/count")
+    @Produces(MediaType.TEXT_PLAIN)
+    public int getCount(@Context UriInfo info) {
+        return get(TargetTracker.class).countNumberOfTargets(new Predicate<AisPacketSource>() {
+
+            @Override
+            public boolean test(AisPacketSource t) {
+                return true;
+            }
+        }, new Predicate<TargetInfo>() {
+
+            @Override
+            public boolean test(TargetInfo t) {
+                return true;
+            }
+        });
+    }
+    
+    @GET
+    @Path("/tracker/count/targetinfo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public int getTargetInfoCount(@Context UriInfo info) {
+        return get(TargetTracker.class).findTargets(new Predicate<AisPacketSource>() {
+
+            @Override
+            public boolean test(AisPacketSource t) {
+                return true;
+            }
+        }, new Predicate<TargetInfo>() {
+
+            @Override
+            public boolean test(TargetInfo t) {
+                return true;
+            }
+        }).size();
+    }    
+    
+    
+    
 
 }
