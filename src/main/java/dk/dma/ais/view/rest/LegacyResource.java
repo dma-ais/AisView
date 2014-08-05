@@ -123,7 +123,7 @@ public class LegacyResource extends AbstractResource {
                 .get(TargetTracker.class));
 
         Collection<TargetInfo> tis = tt
-                .findTargets(new BiPredicate<AisPacketSource, TargetInfo>() {
+                .findTargetsIncludingDuplicates(new BiPredicate<AisPacketSource, TargetInfo>() {
                     @Override
                     public boolean test(AisPacketSource t, TargetInfo u) {
                         return true;
@@ -318,6 +318,7 @@ public class LegacyResource extends AbstractResource {
                 new Consumer<AisVesselTarget>() {
                     @Override
                     public void accept(AisVesselTarget t) {
+                        //threadsafe
                         list.addTarget(t, t.getMmsi());
                     }
 
@@ -374,7 +375,8 @@ public class LegacyResource extends AbstractResource {
         }
 
         BoundingBox bbox = handler.tryGetBbox(request);
-        bbox = null;
+        //
+        //bbox = null;
 
         Predicate<TargetInfo> targetPredicate = bbox != null ? filterOnBoundingBox(bbox)
                 : new Predicate<TargetInfo>() {
@@ -392,13 +394,9 @@ public class LegacyResource extends AbstractResource {
 
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
-        Long start = System.currentTimeMillis();
         Stream<TargetInfo> targets = tt.findTargets8(
                 getSourcePredicates(filter), targetPredicate);
-        Long end = System.currentTimeMillis();
 
-        // debug
-        System.out.println("tt.findTargets8: " + (end - start) + " ms");
 
         Stream<AisVesselTarget> aisTargets = getAisVesselTargetsStream(targets,
                 filter);
