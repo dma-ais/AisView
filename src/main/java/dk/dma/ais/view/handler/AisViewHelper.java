@@ -14,10 +14,7 @@
  */
 package dk.dma.ais.view.handler;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -38,14 +35,12 @@ import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.data.PastTrackPoint;
 import dk.dma.ais.data.PastTrackSortedSet;
 import dk.dma.ais.message.AisMessage;
-import dk.dma.ais.message.AisPosition;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.view.common.grid.Grid;
 import dk.dma.ais.view.common.grid.GridFactory;
-import dk.dma.ais.view.common.util.PastTrackSimplifier;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.rest.VesselListFilter;
@@ -299,32 +294,37 @@ public class AisViewHelper {
 
                 } catch (NullPointerException e) {
                     // pass
+                } catch (IllegalArgumentException e) {
+                    //Position illegal argument latitude/longitude
                 }
+                
 
             }
         });
 
         // Calculate density
-        ArrayList<VesselCluster> clusters = new ArrayList<VesselCluster>(
-                map.values());
-        for (VesselCluster c : clusters) {
+        map.forEachValue(10, new Consumer<VesselCluster>() {
 
-            Position from = Position.create(c.getFrom().getLatitude(), c
-                    .getFrom().getLongitude());
-            Position to = Position.create(c.getTo().getLatitude(), c.getTo()
-                    .getLongitude());
-            Position topRight = Position.create(from.getLatitude(),
-                    to.getLongitude());
-            Position botLeft = Position.create(to.getLatitude(),
-                    from.getLongitude());
-            double width = from.geodesicDistanceTo(topRight) / 1000;
-            double height = from.geodesicDistanceTo(botLeft) / 1000;
-            double areaSize = width * height;
-            double density = (double) c.getCount() / areaSize;
-            c.setDensity(density);
+            @Override
+            public void accept(VesselCluster c) {
+                Position from = Position.create(c.getFrom().getLatitude(), c
+                        .getFrom().getLongitude());
+                Position to = Position.create(c.getTo().getLatitude(), c.getTo()
+                        .getLongitude());
+                Position topRight = Position.create(from.getLatitude(),
+                        to.getLongitude());
+                Position botLeft = Position.create(to.getLatitude(),
+                        from.getLongitude());
+                double width = from.geodesicDistanceTo(topRight) / 1000;
+                double height = from.geodesicDistanceTo(botLeft) / 1000;
+                double areaSize = width * height;
+                double density = (double) c.getCount() / areaSize;
+                c.setDensity(density);
+                
+            }
+        });
 
-        }
-        return new VesselClusterJsonRepsonse(requestId, clusters, inWorld);
+        return new VesselClusterJsonRepsonse(requestId, map.values(), inWorld);
     }
 
     /**
