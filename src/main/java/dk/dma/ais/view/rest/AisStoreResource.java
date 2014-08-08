@@ -33,6 +33,7 @@ import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.util.function.Predicate;
 import dk.dma.enav.util.function.Supplier;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -50,6 +51,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -66,7 +68,8 @@ import static java.util.Objects.requireNonNull;
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AisStoreResource.class);
+    private static final Logger LOG = LoggerFactory
+            .getLogger(AisStoreResource.class);
 
     static {
         LOG.debug("StatisticDataRepositoryMapDB loaded.");
@@ -96,9 +99,15 @@ public class AisStoreResource extends AbstractResource {
                 "MSSIS", "AISHUB");
     }
 
+    /**
+     * Get the count of messages from packets received with timestamp in the
+     * closest full 10 minutes time block.
+     * 
+     * @return
+     */
     private AtomicLong getTenMinuteCount() {
         // get the latest guaranteed full block
-        long startBlock = (long)( (double)DateTime.now().getMillis() / 10.0 / 60.0 / 1000.0) -1;
+        long startBlock = (long) ((double) DateTime.now().getMillis() / 10.0 / 60.0 / 1000.0) - 1;
         long endBlock = startBlock + 1;
 
         long start = startBlock * 10 * 60 * 1000;
@@ -111,11 +120,10 @@ public class AisStoreResource extends AbstractResource {
 
         final AtomicLong l = new AtomicLong();
         q = Iterables.counting(q, l);
-        for (Iterator<AisPacket> iterator = q.iterator(); iterator
-                .hasNext();) {
+        for (Iterator<AisPacket> iterator = q.iterator(); iterator.hasNext();) {
             iterator.next();
         }
-        
+
         return l;
     }
 
@@ -149,7 +157,25 @@ public class AisStoreResource extends AbstractResource {
         return getTenMinuteCount().doubleValue() / 10;
     }
 
+    /**
+     * Check against the expected rate of packets. Just like legacy /rate this
+     * is a check for packets seen on average the last 10 minutes.
+     * 
+     * @param expected
+     *            number of packets expected every second (e.g 700)
+     * @return "status=nok" or "status=ok"
+     */
+    @GET
+    @Path("rate")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String rate(@QueryParam("expected") Double expected) {
+        if (expected == null) {
+            expected = 0.0;
+        }
 
+        Double r = this.getTenMinuteCount().doubleValue() / 600.0;
+        return "status=" + (r.intValue() > expected ? "ok" : "nok");
+    }
 
     @GET
     @Produces("application/octet-stream")
@@ -164,14 +190,14 @@ public class AisStoreResource extends AbstractResource {
             b = AisStoreQueryBuilder.forMmsi(p.getMMSIs());
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
                     "fetchSize", 3000));
-        
-        /*
-        } else if (p.getArea() != null) {
-            b = AisStoreQueryBuilder.forArea(p.getArea());
-            b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
-                    "fetchSize", 200));
-        */
-            
+
+            /*
+             * } else if (p.getArea() != null) { b =
+             * AisStoreQueryBuilder.forArea(p.getArea());
+             * b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
+             * "fetchSize", 200));
+             */
+
         } else {
             b = AisStoreQueryBuilder.forTime();
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
@@ -187,14 +213,14 @@ public class AisStoreResource extends AbstractResource {
         Iterable<AisPacket> q = query;
         // Apply filters from the user
         // Apply area filter again, problem with position tagging of static data
-        
+
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
-        q = p.applyTargetFilterArea(q, state );
+        q = p.applyTargetFilterArea(q, state);
         q = p.applyEFilter(q);
         q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
-                                    // filters reject packets)
-        
+                                   // filters reject packets)
+
         q = Iterables.counting(q, counter);
         if (p.jobId != null) {
             get(JobManager.class).addJob(p.jobId, query, counter);
@@ -374,9 +400,9 @@ public class AisStoreResource extends AbstractResource {
         final QueryParameterHelper p = new QueryParameterHelper(info);
         requireNonNull(p.getArea(), "Missing box parameter.");
         return scenarioKmz(p.area, p.interval, p.title, p.description,
-                p.createSituationFolder, p.createMovementsFolder, p.createTracksFolder,
-                p.primaryMmsi, p.secondaryMmsi, p.kmlSnapshotAt,
-                p.interpolationStepSecs);
+                p.createSituationFolder, p.createMovementsFolder,
+                p.createTracksFolder, p.primaryMmsi, p.secondaryMmsi,
+                p.kmlSnapshotAt, p.interpolationStepSecs);
     }
 
     /**
@@ -404,26 +430,31 @@ public class AisStoreResource extends AbstractResource {
      *            seconds (optional).
      * @return HTTP response carrying KML for Google Earth
      */
-    private Response scenarioKmz(final BoundingBox area, final Interval interval,
-            final String title, final String description,
-            final boolean createSituationFolder, final boolean createMovementsFolder, final boolean createTracksFolder,
-            final Integer primaryMmsi, final Integer secondaryMmsi,
-            final DateTime snapshotAt, final Integer interpolationStepSecs) {
+    private Response scenarioKmz(final BoundingBox area,
+            final Interval interval, final String title,
+            final String description, final boolean createSituationFolder,
+            final boolean createMovementsFolder,
+            final boolean createTracksFolder, final Integer primaryMmsi,
+            final Integer secondaryMmsi, final DateTime snapshotAt,
+            final Integer interpolationStepSecs) {
 
         // Pre-check input
         final Duration duration = interval.toDuration();
         final long hours = duration.getStandardHours();
         final long minutes = duration.getStandardMinutes();
         if (hours > 6) {
-            throw new IllegalArgumentException("Queries spanning more than 6 hours are not allowed.");
+            throw new IllegalArgumentException(
+                    "Queries spanning more than 6 hours are not allowed.");
         }
 
         final float size = area.getArea();
-        if (size > 2500.0*1e6) {
-            throw new IllegalArgumentException("Queries spanning more than 2500 square kilometers are not allowed.");
+        if (size > 2500.0 * 1e6) {
+            throw new IllegalArgumentException(
+                    "Queries spanning more than 2500 square kilometers are not allowed.");
         }
 
-        LOG.info("Preparing KML for span of " + hours + " hours + " + minutes + " minutes and " + (float) size + " square kilometers.");
+        LOG.info("Preparing KML for span of " + hours + " hours + " + minutes
+                + " minutes and " + (float) size + " square kilometers.");
 
         // Create the query
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use
@@ -517,19 +548,19 @@ public class AisStoreResource extends AbstractResource {
                 : null;
 
         final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks
-                .newKmzSink(Predicate.TRUE,
-                        createSituationFolder, createMovementsFolder    , createTracksFolder,
-                        isPrimaryMmsi, isSecondaryMmsi,
-                        triggerSnapshot, supplySnapshotDescription,
-                        supplyInterpolationStep, supplyTitle,
-                        supplyDescription, null);
+                .newKmzSink(Predicate.TRUE, createSituationFolder,
+                        createMovementsFolder, createTracksFolder,
+                        isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot,
+                        supplySnapshotDescription, supplyInterpolationStep,
+                        supplyTitle, supplyDescription, null);
 
         return Response
                 .ok()
-                .entity(StreamingUtil.createStreamingOutput(filteredQueryResult, kmzSink))
+                .entity(StreamingUtil.createStreamingOutput(
+                        filteredQueryResult, kmzSink))
                 .type(MEDIA_TYPE_KMZ)
-                .header("Content-Disposition", "attachment; filename = \"scenario.kmz\"")
-                .build();
+                .header("Content-Disposition",
+                        "attachment; filename = \"scenario.kmz\"").build();
     }
 
     /**
