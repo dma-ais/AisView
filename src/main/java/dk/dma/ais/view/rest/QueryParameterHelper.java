@@ -303,6 +303,11 @@ class QueryParameterHelper {
                     getParameter(info, "separator", ";"));
         case "prefixed_sentences": 
             return AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES;
+        case "OUTPUT_TO_KML":
+            return AisPacketOutputSinks.OUTPUT_TO_KML();
+        case "kml":
+            return AisPacketOutputSinks.OUTPUT_TO_KML();
+            
         default:
             try {
                 return (OutputStreamSink<AisPacket>) AisPacketOutputSinks.class.getField(output.toUpperCase()).get(null);
