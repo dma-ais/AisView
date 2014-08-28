@@ -298,16 +298,18 @@ class QueryParameterHelper {
             return AisPacketOutputSinks.OUTPUT_TO_TEXT;
         case "table":
             String columns = getParameterWithCustomErrorMessage(info, "columns",
-                    "A query parameter (columns), must be present when using table output");
+                    "A query parameter (columns), must be present when using table output. Example: columns=time;mmsi;lat;lon");
             return AisPacketOutputSinks.newTableSink(columns, !info.getQueryParameters().containsKey("noHeader"),
                     getParameter(info, "separator", ";"));
         case "prefixed_sentences": 
             return AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES;
-        case "OUTPUT_TO_KML":
+        case "output_to_kml":
             return AisPacketOutputSinks.OUTPUT_TO_KML();
         case "kml":
             return AisPacketOutputSinks.OUTPUT_TO_KML();
+        
             
+        //this will work for static fields like OUTPUT_TO_HTML, OUTPUT_TO_TEXT
         default:
             try {
                 return (OutputStreamSink<AisPacket>) AisPacketOutputSinks.class.getField(output.toUpperCase()).get(null);
