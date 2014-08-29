@@ -14,32 +14,11 @@
  */
 package dk.dma.ais.view.rest;
 
-import dk.dma.ais.message.IVesselPositionMessage;
-import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.packet.AisPacketFilters;
-import dk.dma.ais.packet.AisPacketFiltersStateful;
-import dk.dma.ais.packet.AisPacketOutputSinks;
-import dk.dma.ais.store.AisStoreQueryBuilder;
-import dk.dma.ais.store.AisStoreQueryResult;
-import dk.dma.ais.store.job.JobManager;
-import dk.dma.ais.store.job.JobManager.Job;
-import dk.dma.commons.util.Iterables;
-import dk.dma.commons.util.JSONObject;
-import dk.dma.commons.util.io.OutputStreamSink;
-import dk.dma.commons.web.rest.AbstractResource;
-import dk.dma.commons.web.rest.StreamingUtil;
-import dk.dma.commons.web.rest.query.QueryParameterValidators;
-import dk.dma.db.cassandra.CassandraConnection;
-import dk.dma.enav.model.geometry.BoundingBox;
-import dk.dma.enav.util.function.Predicate;
-import dk.dma.enav.util.function.Supplier;
+import static java.util.Objects.requireNonNull;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Interval;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -52,11 +31,31 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.lang.ArrayUtils;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static java.util.Objects.requireNonNull;
+import dk.dma.ais.message.IVesselPositionMessage;
+import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.packet.AisPacketFilters;
+import dk.dma.ais.packet.AisPacketFiltersStateful;
+import dk.dma.ais.packet.AisPacketOutputSinks;
+import dk.dma.ais.store.AisStoreQueryBuilder;
+import dk.dma.ais.store.AisStoreQueryResult;
+import dk.dma.ais.store.job.JobManager;
+import dk.dma.commons.util.Iterables;
+import dk.dma.commons.util.JSONObject;
+import dk.dma.commons.util.io.OutputStreamSink;
+import dk.dma.commons.web.rest.AbstractResource;
+import dk.dma.commons.web.rest.StreamingUtil;
+import dk.dma.commons.web.rest.query.QueryParameterValidators;
+import dk.dma.db.cassandra.CassandraConnection;
+import dk.dma.enav.model.geometry.BoundingBox;
+import dk.dma.enav.util.function.Predicate;
+import dk.dma.enav.util.function.Supplier;
 
 /**
  * Resources that query AisStore.
@@ -430,6 +429,7 @@ public class AisStoreResource extends AbstractResource {
      *            seconds (optional).
      * @return HTTP response carrying KML for Google Earth
      */
+    @SuppressWarnings("unchecked")
     private Response scenarioKmz(final BoundingBox area,
             final Interval interval, final String title,
             final String description, final boolean createSituationFolder,

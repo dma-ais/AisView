@@ -27,7 +27,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import dk.dma.ais.configuration.bus.AisBusConfiguration;
-import dk.dma.ais.view.common.web.WebServerConfiguration;
 
 /**
  * Class to represent AisView configuration. To be marshalled and unmarshalled by JAXB.
@@ -36,7 +35,6 @@ import dk.dma.ais.view.common.web.WebServerConfiguration;
 public class AisViewConfiguration {
 
     private AisBusConfiguration aisbusConfiguration;
-    private WebServerConfiguration serverConfiguration;
     private boolean anonymous;
     private boolean recordPastTrack;
     private int liveTargetTtl = 1200; // 20 min
@@ -60,14 +58,6 @@ public class AisViewConfiguration {
         this.aisbusConfiguration = aisbusConfiguration;
     }
 
-    public WebServerConfiguration getServerConfiguration() {
-        return serverConfiguration;
-    }
-
-    public void setServerConfiguration(WebServerConfiguration serverConfiguration) {
-        this.serverConfiguration = serverConfiguration;
-    }
-    
     public boolean isAnonymous() {
         return anonymous;
     }

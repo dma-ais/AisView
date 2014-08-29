@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.Parameter;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractScheduledService;
-import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
 import com.google.inject.Injector;
 
 import dk.dma.ais.packet.AisPacketSource;

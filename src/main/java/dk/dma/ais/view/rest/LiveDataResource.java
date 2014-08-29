@@ -35,7 +35,6 @@ import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.commons.util.io.CountingOutputStream;
 import dk.dma.commons.web.rest.AbstractResource;
-import dk.dma.db.cassandra.CassandraConnection;
 
 /**
  * 
