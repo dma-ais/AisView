@@ -44,7 +44,6 @@ import dk.dma.ais.view.common.grid.GridFactory;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.rest.VesselListFilter;
-import dk.dma.ais.view.rest.json.AisViewHandlerStats;
 import dk.dma.ais.view.rest.json.VesselCluster;
 import dk.dma.ais.view.rest.json.VesselClusterJsonRepsonse;
 import dk.dma.ais.view.rest.json.VesselList;
@@ -438,12 +437,6 @@ public class AisViewHelper {
         }
 
         return true;
-    }
-
-    public synchronized AisViewHandlerStats getStat() {
-        // AisViewHandlerStats stats = new AisViewHandlerStats(ge,
-        // getAllPastTracks());
-        return null;
     }
 
     public AisViewConfiguration getConf() {

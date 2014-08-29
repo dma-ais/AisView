@@ -15,7 +15,6 @@
 package dk.dma.ais.view.rest.json;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
