@@ -474,7 +474,7 @@ public class LegacyResource extends AbstractResource {
      * @param key
      * @return
      */
-    private dk.dma.enav.util.function.Predicate<AisPacketSource> getSourcePredicate(
+    private Predicate<AisPacketSource> getSourcePredicate(
             VesselListFilter filter, String key) {
         Map<String, HashSet<String>> filters = filter.getFilterMap();
 

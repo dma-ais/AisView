@@ -19,6 +19,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -54,8 +56,6 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.BoundingBox;
-import dk.dma.enav.util.function.Predicate;
-import dk.dma.enav.util.function.Supplier;
 
 /**
  * Resources that query AisStore.
