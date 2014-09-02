@@ -79,13 +79,6 @@ public class LegacyResource extends AbstractResource {
     private static final long ONE_DAY = 1000 * 60 * 60 * 24;
     @SuppressWarnings("unused")
     private static final long TEN_MINUTE_BLOCK = 1000 * 60 * 10;
-    private static final Predicate<? super Object> PREDICATETRUE = new Predicate<Object>() {
-        @Override
-        public boolean test(Object t) {
-            return true;
-        }
-
-    };
 
     /**
      * @param handler
@@ -264,7 +257,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
         final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(PREDICATETRUE,
+        Map<Integer, TargetInfo> targets = tt.findTargets(e->true,
                 searchPredicate);
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
@@ -474,7 +467,7 @@ public class LegacyResource extends AbstractResource {
      * @param key
      * @return
      */
-    private dk.dma.enav.util.function.Predicate<AisPacketSource> getSourcePredicate(
+    private Predicate<AisPacketSource> getSourcePredicate(
             VesselListFilter filter, String key) {
         Map<String, HashSet<String>> filters = filter.getFilterMap();
 
@@ -506,27 +499,6 @@ public class LegacyResource extends AbstractResource {
         return null;
     }
 
-    /**
-     * Java8 version of source predicate.
-     * @param filter
-     * @param key
-     * @return
-     */
-    private Predicate<AisPacketSource> getSourcePredicate8(
-            VesselListFilter filter, String key) {
-        return new Predicate<AisPacketSource>() {
-
-            @Override
-            public boolean test(AisPacketSource t) {
-                final dk.dma.enav.util.function.Predicate<AisPacketSource> p = getSourcePredicate(filter, key);
-                if (p == null) {
-                    return true; 
-                }
-                return p.test(t);
-            }
-
-        };
-    }
 
     /**
      * Get all predicates that relate to source from VesselListFilter.
@@ -542,7 +514,7 @@ public class LegacyResource extends AbstractResource {
 
         ArrayList<Predicate<AisPacketSource>> predFilters = new ArrayList<>();
         for (String key : filter.getFilterMap().keySet()) {
-            Predicate<AisPacketSource> p = getSourcePredicate8(filter, key);
+            Predicate<AisPacketSource> p = getSourcePredicate(filter, key);
             if (p != null) {
                 predFilters.add(p);
             }

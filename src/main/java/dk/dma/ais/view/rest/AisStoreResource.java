@@ -19,6 +19,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -54,8 +56,6 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.BoundingBox;
-import dk.dma.enav.util.function.Predicate;
-import dk.dma.enav.util.function.Supplier;
 
 /**
  * Resources that query AisStore.
@@ -66,6 +66,7 @@ import dk.dma.enav.util.function.Supplier;
  */
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
+    
 
     private static final Logger LOG = LoggerFactory
             .getLogger(AisStoreResource.class);
@@ -190,11 +191,12 @@ public class AisStoreResource extends AbstractResource {
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
                     "fetchSize", 3000));
 
-            
+        /*    
         } else if (p.getArea() != null) {
             b = AisStoreQueryBuilder.forArea(p.getArea());
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
                     "fetchSize", 200));
+        */
 
         } else {
             b = AisStoreQueryBuilder.forTime();
@@ -215,7 +217,6 @@ public class AisStoreResource extends AbstractResource {
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
         q = p.applyTargetFilterArea(q, state);
-        q = p.applyEFilter(q);
         q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
                                    // filters reject packets)
 
@@ -476,26 +477,14 @@ public class AisStoreResource extends AbstractResource {
         if (!filteredQueryResult.iterator().hasNext()) {
             LOG.warn("No AIS data matching criteria.");
         }
+        
+        Predicate<? super AisPacket> isPrimaryMmsi = primaryMmsi == null ? e->true
+                : aisPacket->aisPacket.tryGetAisMessage().getUserId() == primaryMmsi.intValue();
 
-        Predicate<? super AisPacket> isPrimaryMmsi = (Predicate<? super AisPacket>) (primaryMmsi == null ? Predicate.FALSE
-                : new Predicate<AisPacket>() {
-                    @Override
-                    public boolean test(AisPacket aisPacket) {
-                        return aisPacket.tryGetAisMessage().getUserId() == primaryMmsi
-                                .intValue();
-                    }
-                });
+        Predicate<? super AisPacket> isSecondaryMmsi =  secondaryMmsi == null ? e->true
+                : aisPacket->aisPacket.tryGetAisMessage().getUserId() == secondaryMmsi.intValue();
 
-        Predicate<? super AisPacket> isSecondaryMmsi = (Predicate<? super AisPacket>) (secondaryMmsi == null ? Predicate.FALSE
-                : new Predicate<AisPacket>() {
-                    @Override
-                    public boolean test(AisPacket aisPacket) {
-                        return aisPacket.tryGetAisMessage().getUserId() == secondaryMmsi
-                                .intValue();
-                    }
-                });
-
-        Predicate<? super AisPacket> triggerSnapshot = (Predicate<? super AisPacket>) (snapshotAt != null ? new Predicate<AisPacket>() {
+        Predicate<? super AisPacket> triggerSnapshot =  snapshotAt != null ? new Predicate<AisPacket>() {
             private final long snapshotAtMillis = snapshotAt.getMillis();
             private boolean snapshotGenerated;
 
@@ -511,43 +500,19 @@ public class AisStoreResource extends AbstractResource {
                 return generateSnapshot;
             }
         }
-                : Predicate.FALSE);
+                : e->true;
 
-        Supplier<? extends String> supplySnapshotDescription = new Supplier<String>() {
-            @Override
-            public String get() {
-                return "<table width=\"300\"><tr><td><h4>" + title
-                        + "</h4></td></tr><tr><td><p>" + description
-                        + "</p></td></tr></table>";
-            }
-        };
+        Supplier<? extends String> supplySnapshotDescription = ()->{ return "<table width=\"300\"><tr><td><h4>" + title
+                        + "</h4></td></tr><tr><td><p>" + description + "</p></td></tr></table>";};
 
-        Supplier<? extends String> supplyTitle = title != null ? new Supplier<String>() {
-            @Override
-            public String get() {
-                return title;
-            }
-        }
-                : null;
+        Supplier<? extends String> supplyTitle = title != null ? ()->title : null;
 
-        Supplier<? extends String> supplyDescription = description != null ? new Supplier<String>() {
-            @Override
-            public String get() {
-                return description;
-            }
-        }
-                : null;
+        Supplier<? extends String> supplyDescription = description != null ? ()->description: null;
 
-        Supplier<? extends Integer> supplyInterpolationStep = interpolationStepSecs != null ? new Supplier<Integer>() {
-            @Override
-            public Integer get() {
-                return interpolationStepSecs;
-            }
-        }
-                : null;
+        Supplier<? extends Integer> supplyInterpolationStep = interpolationStepSecs != null ? ()->interpolationStepSecs : null;
 
         final OutputStreamSink<AisPacket> kmzSink = AisPacketOutputSinks
-                .newKmzSink(Predicate.TRUE, createSituationFolder,
+                .newKmzSink(e->true, createSituationFolder,
                         createMovementsFolder, createTracksFolder,
                         isPrimaryMmsi, isSecondaryMmsi, triggerSnapshot,
                         supplySnapshotDescription, supplyInterpolationStep,

@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>dk.dma.web</groupId>
 			<artifactId>dma-web-rest</artifactId>
-			<version>0.2-SNAPSHOT</version>
+			<version>0.3-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

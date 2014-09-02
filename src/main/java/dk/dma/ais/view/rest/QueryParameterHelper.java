@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -55,8 +57,7 @@ import dk.dma.enav.model.geometry.Area;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
-import dk.dma.enav.util.function.BiPredicate;
-import dk.dma.enav.util.function.Predicate;
+
 
 /**
  * A small helper class to extract query information.
@@ -167,9 +168,6 @@ class QueryParameterHelper {
         return Iterables.filter(i, AisPacketFilters.samplingFilter(minDistance, minDuration));
     }
     
-    public Iterable<AisPacket> applyEFilter(Iterable<AisPacket> i) {
-        return eFilter == null ? i : Iterables.filter(i,eFilter);
-    }
 
     public AisPacketStream applySourceFilter(AisPacketStream s) {
         return sourceFilter == null ? s : s.filter(sourceFilter);
@@ -192,7 +190,7 @@ class QueryParameterHelper {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Predicate<TargetInfo> getTargetPredicate() {
-        return (Predicate) Predicate.TRUE;
+        return e->true;
     }
 
     public Predicate<AisPacketSource> getSourcePredicate() {
