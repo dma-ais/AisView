@@ -14,13 +14,6 @@
  */
 package dk.dma.ais.view.rest;
 
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameter;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsInt;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
