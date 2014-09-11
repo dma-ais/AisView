@@ -112,13 +112,10 @@ class QueryParameterHelper {
 
     final boolean createTracksFolder;
 
-    private Predicate<AisPacket> eFilter;
-
     public QueryParameterHelper(UriInfo uriInfo) {
         this.uriInfo = requireNonNull(uriInfo);
         this.area = findBoundingBox(uriInfo);
         this.interval = findInterval(uriInfo);
-        this.eFilter = findEFilter(uriInfo);
 
         this.createSituationFolder = findCreateSituationFolder(uriInfo);
         this.createMovementsFolder = findCreateMovementsFolder(uriInfo);
@@ -167,7 +164,6 @@ class QueryParameterHelper {
         }
         return Iterables.filter(i, AisPacketFilters.samplingFilter(minDistance, minDuration));
     }
-    
 
     public AisPacketStream applySourceFilter(AisPacketStream s) {
         return sourceFilter == null ? s : s.filter(sourceFilter);
@@ -249,15 +245,6 @@ class QueryParameterHelper {
             Position p1 = Position.create(lat1, lon1);
             Position p2 = Position.create(lat2, lon2);
             return BoundingBox.create(p1, p2, CoordinateSystem.CARTESIAN);
-        }
-        return null;
-    }
-    
-    private static Predicate<AisPacket> findEFilter(UriInfo info) {
-        String filter = QueryParameterValidators.getParameter(info, "efilter", null);
-        if (filter != null) {
-            return AisPacketFilters.parseSourceFilter(filter);
-            
         }
         return null;
     }
