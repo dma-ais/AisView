@@ -209,10 +209,20 @@ public class LegacyResource extends AbstractResource {
         final double tolerance = 1000;
         final int minDist = 500;
 
-        if (pastTrack) {
-            final CassandraConnection con = LegacyResource.this
-                    .get(CassandraConnection.class);
-
+        
+        //TODO: make Cassandra totally optional
+        //workaround for no cassandra connection
+        CassandraConnection connection = null;
+        try {
+            connection = LegacyResource.this.get(CassandraConnection.class);
+        } catch (UnsupportedOperationException e) {
+            
+        }
+        
+        if (pastTrack && connection != null) {
+            final CassandraConnection con = connection;
+            
+            
             final long mostRecent = ti.getPositionPacket().getBestTimestamp();
             pt = cache.get(mmsi, new Callable<IPastTrack>() {
                 @Override
