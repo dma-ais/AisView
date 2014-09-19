@@ -27,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
@@ -106,6 +107,45 @@ public class LiveDataResource extends AbstractResource {
         };
     }
     
+    /** Returns a live stream of all incoming data. */
+    @GET
+    @Path("/stream/json")
+    @Produces(MediaType.TEXT_PLAIN)
+    public StreamingOutput livestreamJson(@Context UriInfo info) {
+        final QueryParameterHelper p = new QueryParameterHelper(info);
+        return new StreamingOutput() {
+            public void write(final OutputStream os) throws IOException {
+                AisPacketStream s = LiveDataResource.this.get(
+                        AisReaderGroup.class).stream();
+                s = p.applySourceFilter(s);
+                s = p.applyLimitFilter(s);
+
+                CountingOutputStream cos = new CountingOutputStream(os);
+                // We flush the sink after each written line, to be more
+                // responsive
+                Subscription ss = s.subscribeSink(AisPacketOutputSinks.JSON_MESSAGE
+                        .newFlushEveryTimeSink(), cos);
+                
+                long lastCount = 0;
+                for (;;) {
+                    try {
+                        if (ss.awaitCancelled(60, TimeUnit.SECONDS)) {
+                            return;
+                        } else if (lastCount == cos.getCount()) {
+                            ss.cancel(); // No data written in 60 seconds (browser default timeout)
+                        }
+                        lastCount = cos.getCount();
+                    } catch (InterruptedException ignore) {
+                    } finally {
+                        ss.cancel(); // just in case an InterruptedException is
+                                     // thrown
+                    }
+                }
+            }
+        };
+        
+    }
+    
     @GET
     @Path("/tracker/count")
     @Produces(MediaType.TEXT_PLAIN)
@@ -142,8 +182,9 @@ public class LiveDataResource extends AbstractResource {
                 return true;
             }
         }).size();
-    }    
+    }
     
+
     
     
 
