@@ -52,6 +52,14 @@ public class TrackerResource extends AbstractResource {
     public TrackerResource() {
         super();
     }
+    
+    
+    @GET
+    @Path("/count/targetinfo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public int getTargetInfoCount(@Context UriInfo info) {
+        return get(TargetTracker.class).findTargets(s->true, t->true).size();
+    }    
 
     @GET
     @Path("/count")
