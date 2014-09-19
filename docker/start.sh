@@ -1,6 +1,4 @@
 cd /AisView
-git pull
-mvn clean install
 
 BACKUPP="-backup ${BACKUP}"
 
