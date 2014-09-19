@@ -19,15 +19,16 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ws.rs.GET;
@@ -51,8 +52,10 @@ import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketSourceFilters;
 import dk.dma.ais.packet.AisPacketTags.SourceType;
 import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.TargetInfoToAisTarget;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.util.CacheManager;
+import dk.dma.ais.view.common.util.TargetInfoFilters;
 import dk.dma.ais.view.common.web.QueryParams;
 import dk.dma.ais.view.configuration.AisViewConfiguration;
 import dk.dma.ais.view.handler.AisViewHelper;
@@ -201,28 +204,27 @@ public class LegacyResource extends AbstractResource {
         Entry<AisPacketSource, TargetInfo> entry = Objects.requireNonNull(tt
                 .getNewestEntry(mmsi));
         TargetInfo ti = entry.getValue();
+        
+        AisVesselTarget target = (AisVesselTarget)TargetInfoToAisTarget
+                .generateAisTarget(ti);
 
         IPastTrack pt = new PastTrackSortedSet();
-
-        final AisVesselTarget aisTarget = (AisVesselTarget) ti.getAisTarget();
 
         final double tolerance = 1000;
         final int minDist = 500;
 
-        
-        //TODO: make Cassandra totally optional
-        //workaround for no cassandra connection
+        // TODO: make Cassandra totally optional
+        // workaround for no cassandra connection
         CassandraConnection connection = null;
         try {
             connection = LegacyResource.this.get(CassandraConnection.class);
         } catch (UnsupportedOperationException e) {
-            
+
         }
-        
+
         if (pastTrack && connection != null) {
             final CassandraConnection con = connection;
-            
-            
+
             final long mostRecent = ti.getPositionPacket().getBestTimestamp();
             pt = cache.get(mmsi, new Callable<IPastTrack>() {
                 @Override
@@ -250,7 +252,7 @@ public class LegacyResource extends AbstractResource {
 
         }
 
-        VesselTargetDetails details = new VesselTargetDetails(aisTarget,
+        VesselTargetDetails details = new VesselTargetDetails(target,
                 entry.getKey(), mmsi, pt);
 
         return details;
@@ -267,7 +269,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
         final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(e->true,
+        Map<Integer, TargetInfo> targets = tt.findTargets(e -> true,
                 searchPredicate);
 
         LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
@@ -286,20 +288,17 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
         BoundingBox bbox = handler.tryGetBbox(request);
-        Predicate<TargetInfo> targetPredicate = bbox != null ? filterOnBoundingBox(bbox)
-                : new Predicate<TargetInfo>() {
-                    @Override
-                    public boolean test(TargetInfo element) {
-                        return true;
-                    }
-                };
-        targetPredicate.and(filterOnTTL(handler.getConf().getSatTargetTtl()));
+        Predicate<TargetInfo> targetPredicate = bbox != null ? TargetInfoFilters.filterOnBoundingBox(bbox) : e->true;
 
-        // filter both on source and target
-        Stream<TargetInfo> targets = tt.findTargets8(
-                getSourcePredicates(filter), targetPredicate);
-        VesselList list = getVesselList(targets, filter);
+        targetPredicate.and(TargetInfoFilters.filterOnTTL(handler.getConf().getLiveTargetTtl()));
+       
+        targetPredicate = targetPredicate.and(getTargetPredicates(filter));
 
+        Stream<TargetInfo>targets = tt.findTargets8(getSourcePredicates(filter), targetPredicate);
+        
+        VesselList list = new VesselList();
+        targets.parallel().forEach(e -> list.addTarget(e, e.getMmsi()));
+        
         // get count for all in world with source predicates.
         list.setInWorldCount(tt.size());
 
@@ -312,55 +311,6 @@ public class LegacyResource extends AbstractResource {
         return new VesselListJsonResponse(requestId, list);
     }
 
-    private VesselList getVesselList(Stream<TargetInfo> targets,
-            final VesselListFilter filter) {
-
-        VesselList list = new VesselList();
-
-        getAisVesselTargetsStream(targets, filter).parallel().forEach(
-                new Consumer<AisVesselTarget>() {
-                    @Override
-                    public void accept(AisVesselTarget t) {
-                        //threadsafe
-                        list.addTarget(t, t.getMmsi());
-                    }
-
-                });
-
-        return list;
-    }
-
-    /**
-     * This method extracts Collection of AisVesselTarget from TargetTracker.
-     * These collections are used in the older web interface
-     * 
-     * @param targets
-     * @param filter
-     * @return
-     */
-    private Stream<AisVesselTarget> getAisVesselTargetsStream(
-            Stream<TargetInfo> targets, final VesselListFilter filter) {
-
-        return targets
-                .parallel()
-                .map(new Function<TargetInfo, AisVesselTarget>() {
-
-                    @Override
-                    public AisVesselTarget apply(TargetInfo t) {
-                        return handler.getFilteredAisVessel(t.getAisTarget(),
-                                filter);
-                    }
-
-                }).parallel()
-                .filter(new java.util.function.Predicate<AisVesselTarget>() {
-
-                    @Override
-                    public boolean test(AisVesselTarget t) {
-                        return t != null;
-                    }
-
-                });
-    }
 
     private VesselClusterJsonRepsonse cluster(QueryParams request) {
         VesselListFilter filter = new VesselListFilter(request);
@@ -379,16 +329,11 @@ public class LegacyResource extends AbstractResource {
 
         BoundingBox bbox = handler.tryGetBbox(request);
         //
-        //bbox = null;
+        Predicate<TargetInfo> targetPredicate = bbox != null ? TargetInfoFilters.filterOnBoundingBox(bbox)
+                : e -> true;
 
-        Predicate<TargetInfo> targetPredicate = bbox != null ? filterOnBoundingBox(bbox)
-                : new Predicate<TargetInfo>() {
-                    @Override
-                    public boolean test(TargetInfo element) {
-                        return true;
-                    }
-                };
-        targetPredicate.and(filterOnTTL(handler.getConf().getSatTargetTtl()));
+        targetPredicate = targetPredicate.and(TargetInfoFilters.filterOnTTL(handler.getConf().getLiveTargetTtl()));
+        targetPredicate = targetPredicate.and(getTargetPredicates(filter));
 
         Position pointA = Position.create(request.getDouble("topLat"),
                 request.getDouble("topLon"));
@@ -399,74 +344,17 @@ public class LegacyResource extends AbstractResource {
 
         Stream<TargetInfo> targets = tt.findTargets8(
                 getSourcePredicates(filter), targetPredicate);
-
-
-        Stream<AisVesselTarget> aisTargets = getAisVesselTargetsStream(targets,
-                filter);
-
+        
         // Get request id
         Integer requestId = request.getInt("requestId");
         if (requestId == null) {
             requestId = -1;
         }
 
-        return handler.getClusterResponse(aisTargets, requestId, filter, limit,
+        return handler.getClusterResponse(targets, requestId, limit,
                 size, pointA, pointB, tt.size());
     }
 
-    /**
-     * TargetInfo predicate for boundingbox filtering
-     * 
-     * @param bbox
-     * @return
-     */
-    private Predicate<TargetInfo> filterOnBoundingBox(final BoundingBox bbox) {
-        return new Predicate<TargetInfo>() {
-            @Override
-            public boolean test(TargetInfo arg0) {
-                if (arg0.hasPositionInfo()) {
-                    Position p = arg0.getPosition();
-                    if (p != null
-                            && Position.isValid(p.getLatitude(),
-                                    p.getLongitude())) {
-                        return bbox.contains(p);
-                    }
-                }
-                return false;
-            }
-        };
-    }
-
-    /**
-     * Filter on TTL using AisTarget This is not generic enough to be moved to
-     * aislib. It uses AisTarget generation
-     * 
-     * @param ttl
-     * @return
-     */
-    private Predicate<TargetInfo> filterOnTTL(final int ttl) {
-        return new Predicate<TargetInfo>() {
-            @Override
-            public boolean test(TargetInfo arg0) {
-                return arg0.getAisTarget().isAlive(ttl);
-            }
-
-        };
-    }
-
-    /**
-     * Overloaded bounding box filtering using points
-     * 
-     * @param pointA
-     * @param pointB
-     * @return
-     */
-    @SuppressWarnings("unused")
-    private Predicate<? super TargetInfo> filterOnBoundingBox(
-            final Position pointA, final Position pointB) {
-        return filterOnBoundingBox(BoundingBox.create(pointA, pointB,
-                CoordinateSystem.GEODETIC));
-    }
 
     /**
      * Get a Predicate based filter using VesselListFilter
@@ -504,12 +392,25 @@ public class LegacyResource extends AbstractResource {
             case "sourceSystem":
                 return AisPacketSourceFilters.filterOnSourceId(values);
             }
+
         }
 
         return null;
     }
 
+    private Predicate<TargetInfo> getTargetPredicates(
+            final VesselListFilter filter) {
+        
 
+        List<Predicate<TargetInfo>> preds = filter.getFilterMap().keySet()
+                .stream().map(e -> getTargetPredicate(filter, e))
+                .filter(e -> e != null).collect(Collectors.toList());
+
+        Optional<Predicate<TargetInfo>> finalPredicate = preds.stream().reduce((a, b) -> a.and(b));
+
+        return (finalPredicate.isPresent()) ? finalPredicate.get() : e->true;
+    }
+    
     /**
      * Get all predicates that relate to source from VesselListFilter.
      * 
@@ -517,41 +418,47 @@ public class LegacyResource extends AbstractResource {
      * clients have been updated.
      * 
      * @param filter
-     * @return
+     * @return a collection of .and predicates, or an always true predicate 
      */
     private Predicate<AisPacketSource> getSourcePredicates(
             final VesselListFilter filter) {
 
-        ArrayList<Predicate<AisPacketSource>> predFilters = new ArrayList<>();
-        for (String key : filter.getFilterMap().keySet()) {
-            Predicate<AisPacketSource> p = getSourcePredicate(filter, key);
-            if (p != null) {
-                predFilters.add(p);
+        List<Predicate<AisPacketSource>> preds = filter.getFilterMap().keySet()
+                .stream().map(e -> getSourcePredicate(filter, e))
+                .filter(e -> e != null).collect(Collectors.toList());
+
+        Optional<Predicate<AisPacketSource>> finalPredicate = preds.stream().reduce((a, b) -> a.and(b));
+
+        return (finalPredicate.isPresent()) ? finalPredicate.get() : e->true;
+    }    
+
+    /**
+     * maps legacy VesselListFilter to predicate based ones for TargetInfo
+     * @param filter
+     * @param key
+     * @return
+     */
+    private Predicate<TargetInfo> getTargetPredicate(VesselListFilter filter,
+            String key) {
+
+        Map<String, HashSet<String>> filters = filter.getFilterMap();
+        
+
+        if (filters.containsKey(key)) {
+            String[] values = filters.get(key).toArray(new String[0]);
+
+            switch (key) {
+            case "country":
+                List<Country> countries = Country.findAllByCode(values);
+                return e -> countries.stream().sequential()
+                        .anyMatch(x -> x == e.getCountry());
+            case "staticReport":
+                return TargetInfoFilters.filterOnHasStatic();
             }
+
         }
 
-        Predicate<AisPacketSource> finalPredicate = null;
-        for (Predicate<AisPacketSource> p : predFilters) {
-            if (finalPredicate == null) {
-                finalPredicate = p;
-            } else {
-                finalPredicate = finalPredicate.and(p);
-            }
-
-        }
-
-        // pick the finalpredicate if it's not null or create an equivalent one
-        // to Predicate.TRUE
-        finalPredicate = (finalPredicate == null) ? new Predicate<AisPacketSource>() {
-
-            @Override
-            public boolean test(AisPacketSource arg0) {
-                return true;
-            }
-        }
-                : finalPredicate;
-
-        return finalPredicate;
+        return null;
     }
 
     /**
