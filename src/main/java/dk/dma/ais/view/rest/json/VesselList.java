@@ -19,10 +19,17 @@ import java.util.Locale;
 
 import dk.dma.ais.data.AisClassAPosition;
 import dk.dma.ais.data.AisClassAStatic;
+import dk.dma.ais.data.AisClassBStatic;
 import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
+import dk.dma.ais.message.AisMessage;
+import dk.dma.ais.message.AisMessage5;
+import dk.dma.ais.message.AisStaticCommon;
+import dk.dma.ais.message.AisTargetType;
 import dk.dma.ais.message.ShipTypeCargo;
+import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.tracker.TargetInfo;
 
 public class VesselList extends BaseVesselList {
     
@@ -98,6 +105,87 @@ public class VesselList extends BaseVesselList {
         
         vessels.put(anonId, list);    
         vesselCount++;
+    }
+    
+    @Override
+    public void addTarget(TargetInfo vesselTarget, int anonId) {
+
+
+        if (!vesselTarget.hasPositionInfo() || vesselTarget.getPosition() == null) {
+            return;
+        }
+        
+        float cog = vesselTarget.getCog();
+        //float sog = vesselTarget.getSog();
+        Double lat = vesselTarget.getPosition().getLatitude();
+        Double lon = vesselTarget.getPosition().getLongitude();
+
+        
+        String vesselClass;
+        ShipTypeCargo shipTypeCargo = new ShipTypeCargo(vesselTarget.getStaticShipType());
+        
+
+        Byte navStatus = vesselTarget.getNavStatus();        
+        
+        vesselClass = vesselTarget.getTargetType().toString();
+
+
+        // Round cog to nearest 10
+        long cogL = Math.round(cog / 10.0) * 10;
+        if (cogL == 360) {
+            cogL = 0;
+        }
+
+        ArrayList<String> list = new ArrayList<String>();
+        
+        list.add(Long.toString(cogL));
+        list.add(String.format(Locale.US, "%.5f", lat));
+        list.add(String.format(Locale.US, "%.5f", lon));
+        list.add(vesselClass);
+        ShipTypeMapper.ShipTypeColor color = ShipTypeMapper.ShipTypeColor.GREY;
+        if (shipTypeCargo != null) {
+            color = shipTypeMapper.getColor(shipTypeCargo.getShipType());
+        }
+        list.add(Integer.toString(color.ordinal()));
+        
+        list.add((navStatus != null && (navStatus == 1 || navStatus ==5)) ? "1" : "0");
+        
+        list.add(Long.toString(vesselTarget.getMmsi()));     
+        
+        String name = "N/A";
+        String callsign = "N/A";
+        String imoNo = "N/A";
+                
+        
+        AisTargetType att = vesselTarget.getTargetType();
+        if (vesselTarget.hasStaticInfo() && (att == AisTargetType.A || att == AisTargetType.B)) {
+            AisVesselStatic avs = (att == AisTargetType.A) ? new AisClassAStatic() : new AisClassBStatic();            
+            
+            for (AisPacket p: vesselTarget.getStaticPackets()) {
+                AisMessage m = p.tryGetAisMessage();
+                
+                if (m != null && m instanceof AisMessage5) {
+                    AisMessage5 am5 = (AisMessage5)m;
+                    imoNo = (am5.getImo() > 0) ? Long.toString(am5.getImo()) : "N/A";
+                    avs.update(am5);
+                } else if (m != null && m instanceof AisStaticCommon ) {
+                    avs.update((AisStaticCommon)m);
+                }
+            }
+            
+            name = AisMessage.trimText(avs.getName());
+            callsign = AisMessage.trimText(avs.getCallsign());
+
+            
+        }
+
+        list.add(name);
+        list.add(callsign);
+        list.add(imoNo);
+        
+        vessels.put(anonId, list);    
+        vesselCount++;
+        
     }
 
 }

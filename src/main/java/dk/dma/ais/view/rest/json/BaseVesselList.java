@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 import dk.dma.ais.data.AisVesselTarget;
+import dk.dma.ais.tracker.TargetInfo;
 
 @ThreadSafe
 public abstract class BaseVesselList {
@@ -37,6 +38,8 @@ public abstract class BaseVesselList {
     }
     
     public abstract void addTarget(AisVesselTarget vesselTarget, int anonId);
+    
+    public abstract void addTarget(TargetInfo vesselTarget, int anonId);
     
     public Map<Integer, ArrayList<String>> getVessels() {
         return vessels;
@@ -58,3 +61,4 @@ public abstract class BaseVesselList {
     }
     
 }
+

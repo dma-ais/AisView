@@ -15,20 +15,34 @@
 package dk.dma.ais.view.rest.json;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import dk.dma.ais.data.AisClassAPosition;
 import dk.dma.ais.data.AisClassAStatic;
+import dk.dma.ais.data.AisClassBStatic;
 import dk.dma.ais.data.AisClassBTarget;
 import dk.dma.ais.data.AisTargetDimensions;
 import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
+import dk.dma.ais.message.AisMessage;
+import dk.dma.ais.message.AisMessage18;
+import dk.dma.ais.message.AisMessage3;
+import dk.dma.ais.message.AisMessage5;
+import dk.dma.ais.message.AisStaticCommon;
+import dk.dma.ais.message.AisTargetType;
+import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.message.NavigationalStatus;
+import dk.dma.ais.message.ShipTypeCargo;
+import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.enav.model.geometry.Position;
 
 public class VesselTargetDetails {    
     
@@ -170,6 +184,132 @@ public class VesselTargetDetails {
         }        
 
     }
+    
+    public VesselTargetDetails(TargetInfo target, AisPacketSource aisSource, int anonId, IPastTrack pastTrack) {
+        if (!target.hasPositionInfo() || target.getPosition() == null) {
+            return;
+        }
+        
+        Position pos = target.getPosition();
+        
+        this.pastTrack = pastTrack;
+        
+        long lastTime = Math.max(target.getPositionTimestamp(), target.getStaticTimestamp());
+                        
+        this.currentTime = System.currentTimeMillis();
+        this.id = anonId;
+        this.mmsi = target.getMmsi();
+        this.vesselClass = (target.getTargetType() == AisTargetType.A) ? "A" : "B";
+        this.lastReceived = formatTime(currentTime - lastTime);
+        this.lat = latToPrintable(pos.getLatitude());
+        this.lon = lonToPrintable(pos.getLongitude());
+        this.cog = formatDouble((double) target.getCog(), 0);        
+        this.heading = formatDouble((double)target.getHeading(), 1);
+        this.sog = formatDouble((double)target.getSog(), 1);    
+
+        this.country = (target.getCountry() == null) ? "N/A" : target.getCountry().getName();
+        this.sourceType = (aisSource.getSourceType() == null) ? "N/A" : aisSource.getSourceType().encode();
+        this.sourceSystem = (aisSource.getSourceId() == null) ? "N/A" : aisSource.getSourceId();
+        this.sourceRegion = (aisSource.getSourceRegion() == null) ? "N/A": aisSource.getSourceRegion();        
+        this.sourceBs = (aisSource.getSourceBaseStation() <= 0) ? "N/A" : Integer.toString(aisSource.getSourceBaseStation());
+        
+        this.sourceCountry = (aisSource.getSourceCountry() == null) ? "N/A" : aisSource.getSourceCountry().getName();
+        // Class A position
+        if (target.hasStaticInfo() && target.getTargetType() == AisTargetType.A) {
+            //TODO fix changed method.
+            NavigationalStatus navigationalStatus = NavigationalStatus.get(target.getNavStatus());
+            this.navStatus = navigationalStatus.prettyStatus();
+            this.moored = target.getNavStatus() == 1 || target.getNavStatus() == 5;
+
+        }
+        
+        //expensive?
+        AisMessage tMessage = target.getPositionPacket().tryGetAisMessage();
+        if (tMessage instanceof IVesselPositionMessage) {
+            IVesselPositionMessage m = (IVesselPositionMessage)tMessage;
+            
+            this.posAcc = (m.getPosAcc() == 1) ? "High" : "Low";
+            
+            if (m instanceof AisMessage3) {
+                AisMessage3 i = (AisMessage3)m;
+                this.rot = (i.getRot() > -1) ? "N/A": Integer.toString(i.getRot(), 1);
+            }
+            
+        } else {
+            this.posAcc = "Low";
+        }
+        
+
+        this.pos = latToPrintable(pos.getLatitude()) + " - " + lonToPrintable(pos.getLongitude());
+        
+        
+        AisTargetType att = target.getTargetType();
+        if (target.hasStaticInfo() && (att == AisTargetType.A || att == AisTargetType.B)) {
+            List<AisVesselStatic> avsList = new ArrayList<AisVesselStatic>();
+            
+            for (AisPacket p: target.getPackets()) {
+                AisVesselStatic avs = (att == AisTargetType.A) ? new AisClassAStatic() : new AisClassBStatic();
+                
+                AisMessage m = p.tryGetAisMessage();
+                
+                if (m != null) {
+                    if (m instanceof AisMessage5) {
+                        AisMessage5 am5 = (AisMessage5)m;
+                        imoNo = (am5.getImo() > 0) ? Long.toString(am5.getImo()) : "N/A";
+                    }
+                    
+                    avs.update(m);
+                }
+                
+                avsList.add(avs);
+            }
+            
+            avsList.forEach(avs -> {
+                
+                if (avs.getName() != null) {
+                    name = AisMessage.trimText(avs.getName());
+                }
+                
+                if (avs.getCallsign() != null) {
+                    callsign = AisMessage.trimText(avs.getCallsign());
+                }
+                
+                if (avs instanceof AisClassAStatic) {
+                    AisClassAStatic acas = (AisClassAStatic) avs;
+                    if (acas.getDestination() != null) {
+                        this.destination = acas.getDestination();
+                    }
+                    
+                    if (acas.getDraught() != null) {
+                        this.draught = Double.toString(acas.getDraught());
+                    }
+
+                    if (acas.getEta() != null) {
+                        this.eta = getISO8620(acas.getEta());
+                    }
+
+                }
+                
+                if (avs.getDimensions() != null) {
+                    AisTargetDimensions dim = avs.getDimensions();
+                    this.length = Integer.toString(dim.getDimBow() + dim.getDimStern());
+                    this.width = Integer.toString(dim.getDimPort() + dim.getDimStarboard());
+                }
+  
+                
+            });
+            
+            
+            if (target.getStaticShipType() > 0) {
+                ShipTypeCargo stc = new ShipTypeCargo(target.getStaticShipType());
+                this.vesselType = stc.prettyType();
+                this.cargo = stc.prettyCargo();
+            }
+            
+        }
+
+    }
+        
     /**
      * Anonymize is no longer supported
      */
