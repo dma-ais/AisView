@@ -67,7 +67,6 @@ import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.Country;
 import dk.dma.enav.model.geometry.BoundingBox;
-import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 
 /**
