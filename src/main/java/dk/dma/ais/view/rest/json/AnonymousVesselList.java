@@ -22,6 +22,8 @@ import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.message.ShipTypeCargo;
+import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.enav.model.geometry.Position;
 
 public class AnonymousVesselList extends BaseVesselList {
 
@@ -85,5 +87,53 @@ public class AnonymousVesselList extends BaseVesselList {
         vessels.put(anonId, list);
         vesselCount++;
     }
+
+    @Override
+    public void addTarget(TargetInfo vesselTarget, int anonId) {
+
+                
+        float cog = vesselTarget.getCog();
+        //float sog = vesselTarget.getSog();
+        Double lat = vesselTarget.getPosition().getLatitude();
+        Double lon = vesselTarget.getPosition().getLongitude();
+
+        
+        String vesselClass;
+        ShipTypeCargo shipTypeCargo = new ShipTypeCargo(vesselTarget.getStaticShipType());
+        
+
+        Byte navStatus = vesselTarget.getNavStatus();        
+        
+        vesselClass = vesselTarget.getTargetType().toString();
+
+
+        // Round cog to nearest 10
+        long cogL = Math.round(cog / 10.0) * 10;
+        if (cogL == 360) {
+            cogL = 0;
+        }
+
+        ArrayList<String> list = new ArrayList<String>();
+
+        list.add(Long.toString(cogL));
+        list.add(String.format(Locale.US, "%.5f", lat));
+        list.add(String.format(Locale.US, "%.5f", lon));
+        list.add(vesselClass);
+        ShipTypeMapper.ShipTypeColor color = ShipTypeMapper.ShipTypeColor.GREY;
+        if (shipTypeCargo != null) {
+            color = shipTypeMapper.getColor(shipTypeCargo.getShipType());
+        }
+        list.add(Integer.toString(color.ordinal()));
+
+        list.add((navStatus != null && (navStatus == 1 || navStatus == 5)) ? "1" : "0");
+
+        vessels.put(anonId, list);
+        vesselCount++;
+        
+    }
+    
+    
+    
+    
 
 }
