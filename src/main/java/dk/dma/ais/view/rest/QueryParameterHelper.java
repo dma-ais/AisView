@@ -49,6 +49,7 @@ import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.view.common.util.TargetInfoFilters;
 import dk.dma.commons.util.DateTimeUtil;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -101,6 +102,9 @@ class QueryParameterHelper {
 
     /** A predicate on the source of each packet. */
     final Predicate<? super AisPacket> sourceFilter;
+    
+    /** A general AisPacket filter on source, target and message */
+    final Predicate<? super AisPacket> packetFilter;
 
     final UriInfo uriInfo;
 
@@ -127,6 +131,7 @@ class QueryParameterHelper {
         Set<Integer> mmsi = new HashSet<>(QueryParameterValidators.getParametersAsInt(uriInfo, "mmsi"));
         this.mmsis = Ints.toArray(mmsi);
         sourceFilter = getSourceFilter(uriInfo);
+        packetFilter = getPacketFilter(uriInfo);
 
         minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null, Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
@@ -141,6 +146,8 @@ class QueryParameterHelper {
 
         LOG.debug(toString());
     }
+
+
 
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {
         return area == null ? i : Iterables.filter(i, AisPacketFilters.filterOnMessagePositionWithin(area));
@@ -172,6 +179,10 @@ class QueryParameterHelper {
     public Iterable<AisPacket> applySourceFilter(Iterable<AisPacket> i) {
         return sourceFilter == null ? i : Iterables.filter(i, sourceFilter);
     }
+    
+    public Iterable<AisPacket> applyPacketFilter(Iterable<AisPacket> i) {
+        return sourceFilter == null ? i : Iterables.filter(i, packetFilter);
+    }
 
     public BiPredicate<AisPacketSource, TargetInfo> getSourceAndTargetPredicate() {
         final Predicate<AisPacketSource> ps = getSourcePredicate();
@@ -184,13 +195,21 @@ class QueryParameterHelper {
         };
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public Predicate<TargetInfo> getTargetPredicate() {
         return e->true;
     }
-
+    
+    public Predicate<TargetInfo> getTargetAreaFilter() {
+        return area != null ? TargetInfoFilters.filterOnBoundingBox(area) : null;
+    }
+        
     public Predicate<AisPacketSource> getSourcePredicate() {
         return getPacketSourceFilter(uriInfo);
+    }
+
+
+    public Predicate<AisPacket> getPacketFilter() {
+        return getPacketFilter(uriInfo);
     }
 
     public Area getArea() {
@@ -323,6 +342,20 @@ class QueryParameterHelper {
     }
 
     private static Predicate<AisPacket> getSourceFilter(UriInfo info) {
+        List<String> filters = QueryParameterValidators.getParameters(info, "filter");
+        if (filters.isEmpty()) {
+            return null;
+        }
+        Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters.get(0));
+        for (int i = 1; i < filters.size(); i++) {
+            p = p.and(AisPacketFilters.parseSourceFilter(filters.get(i)));
+        }
+        return p;
+    }
+    
+    /**
+     */
+    private Predicate<AisPacket> getPacketFilter(UriInfo info) {
         List<String> filters = QueryParameterValidators.getParameters(info, "filter");
         if (filters.isEmpty()) {
             return null;
