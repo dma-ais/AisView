@@ -39,6 +39,7 @@ import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
+import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.view.common.grid.Grid;
 import dk.dma.ais.view.common.grid.GridFactory;
 import dk.dma.ais.view.common.web.QueryParams;
@@ -229,7 +230,7 @@ public class AisViewHelper {
         }
         return true;
     }
-
+    
     /**
      * Returns a list of vessel clusters based on a filtering. The returned list
      * does only contain clusters with vessels.
@@ -238,69 +239,71 @@ public class AisViewHelper {
      * @param size
      * @param limit
      * @return
-     */
+     */   
     public VesselClusterJsonRepsonse getClusterResponse(
-            Stream<AisVesselTarget> aisTargets, int requestId,
-            VesselListFilter filter, int limit, double size, Position pointA,
+            Stream<TargetInfo> targets, int requestId, int limit, double size, Position pointA,
             Position pointB, Integer inWorld) {
-
+        
         Grid grid = GridFactory.getInstance().getGrid(size);
 
         // Maps cell ids to vessel clusters
         ConcurrentHashMap<Long, VesselCluster> map = new ConcurrentHashMap<Long, VesselCluster>();
-
+        
+        
         // Iterate over targets
-        aisTargets.parallel().forEach(new Consumer<AisVesselTarget>() {
+        targets.parallel().forEach(new Consumer<TargetInfo>() {
 
             @Override
-            public void accept(AisVesselTarget target) {
-                try {
-                    AisVesselTarget vesselTarget = getFilteredAisVessel(target,
-                            filter);
+            public void accept(TargetInfo target) {
 
-                    Position vesselPosition = vesselTarget.getVesselPosition()
-                            .getPos();
-                    long cellId = grid.getCellId(vesselPosition.getLatitude(),
-                            vesselPosition.getLongitude());
-
-                    // Only create vessel cluster if new
-                    if (map.containsKey(cellId)) {
-
-                        map.get(cellId).incrementCount();
-
-                        if (map.get(cellId).getCount() < limit) {
-                            map.get(cellId).getVessels()
-                                    .addTarget(vesselTarget, target.getMmsi());
-                        }
-
-                    } else {
-
-                        Position from = grid.getGeoPosOfCellId(cellId);
-
-                        double toLon = from.getLongitude()
-                                + grid.getCellSizeInDegrees();
-                        double toLat = from.getLatitude()
-                                + grid.getCellSizeInDegrees();
-                        Position to = Position.create(toLat, toLon);
-
-                        VesselCluster cluster = new VesselCluster(from, to, 1,
-                                new VesselList());
-                        map.put(cellId, cluster);
-                        map.get(cellId).getVessels()
-                                .addTarget(vesselTarget, target.getMmsi());
-
-                    }
-
-                } catch (NullPointerException e) {
-                    // pass
-                } catch (IllegalArgumentException e) {
-                    //Position illegal argument latitude/longitude
+                if (!target.hasPositionInfo()) {
+                    return;
                 }
                 
+                if (target.getPosition() == null) {
+                    return;
+                }
+                
+                
+                Position pos = target.getPosition();
+                if (!Position.isValid(pos.getLatitude(), pos.getLongitude())) {
+                    return;
+                };
+                
+                long cellId = grid.getCellId(pos.getLatitude(),
+                        pos.getLongitude());
+
+                // Only create vessel cluster if new
+                if (map.containsKey(cellId)) {
+
+                    map.get(cellId).incrementCount();
+
+                    if (map.get(cellId).getCount() < limit) {
+                        map.get(cellId).getVessels()
+                                .addTarget(target, target.getMmsi());
+                    }
+
+                } else {
+
+                    Position from = grid.getGeoPosOfCellId(cellId);
+
+                    double toLon = from.getLongitude()
+                            + grid.getCellSizeInDegrees();
+                    double toLat = from.getLatitude()
+                            + grid.getCellSizeInDegrees();
+                    Position to = Position.create(toLat, toLon);
+
+                    VesselCluster cluster = new VesselCluster(from, to, 1,
+                            new VesselList());
+                    map.put(cellId, cluster);
+                    map.get(cellId).getVessels()
+                            .addTarget(target, target.getMmsi());
+                    
+                }
 
             }
         });
-
+        
         // Calculate density
         map.forEachValue(10, new Consumer<VesselCluster>() {
 
@@ -322,10 +325,13 @@ public class AisViewHelper {
                 
             }
         });
-
+        
         return new VesselClusterJsonRepsonse(requestId, map.values(), inWorld);
+        
+        
     }
 
+   
     /**
      * Get simple list of anonymous targets that matches the search criteria.
      * 
