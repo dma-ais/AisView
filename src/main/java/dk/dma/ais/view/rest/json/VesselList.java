@@ -115,7 +115,7 @@ public class VesselList extends BaseVesselList {
             return;
         }
         
-        float cog = vesselTarget.getCog();
+        float cog = vesselTarget.getCog()/10.0f;
         //float sog = vesselTarget.getSog();
         Double lat = vesselTarget.getPosition().getLatitude();
         Double lon = vesselTarget.getPosition().getLongitude();
