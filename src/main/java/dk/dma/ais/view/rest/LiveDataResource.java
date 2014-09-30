@@ -119,8 +119,7 @@ public class LiveDataResource extends AbstractResource {
                 CountingOutputStream cos = new CountingOutputStream(os);
                 // We flush the sink after each written line, to be more
                 // responsive
-                Subscription ss = s.subscribeSink(AisPacketOutputSinks.JSON_MESSAGE
-                        .newFlushEveryTimeSink(), cos);
+                Subscription ss = s.subscribeSink(AisPacketOutputSinks.jsonMessageSink(), cos);
                 
                 long lastCount = 0;
                 for (;;) {

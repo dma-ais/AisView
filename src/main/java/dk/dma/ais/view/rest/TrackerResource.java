@@ -85,7 +85,7 @@ public class TrackerResource extends AbstractResource {
         Iterable<AisPacket> p = applyFilters(l.stream(), qh);
         
         return StreamingUtil.createStreamingOutput(p,
-                AisPacketOutputSinks.JSON_MESSAGE);
+                AisPacketOutputSinks.jsonStaticListSink());
     }
 
     @GET
@@ -119,7 +119,7 @@ public class TrackerResource extends AbstractResource {
         Iterable<AisPacket> p = applyFilters(packets.stream(), qh);
 
         return StreamingUtil.createStreamingOutput(p,
-                AisPacketOutputSinks.JSON_STATIC_LIST);
+                AisPacketOutputSinks.jsonStaticListSink());
     }
 
     @GET
@@ -142,7 +142,7 @@ public class TrackerResource extends AbstractResource {
                         .map(e -> e.getPositionPacket()), qh);
 
         return StreamingUtil.createStreamingOutput(packets,
-                AisPacketOutputSinks.JSON_MESSAGE);
+                AisPacketOutputSinks.jsonPosListSink());
     }
 
     @GET
@@ -166,7 +166,7 @@ public class TrackerResource extends AbstractResource {
         Iterable<AisPacket> packets = applyFilters(sPacket, qh);
 
         return StreamingUtil.createStreamingOutput(packets,
-                AisPacketOutputSinks.JSON_POS_LIST);
+                AisPacketOutputSinks.jsonPosListSink());
     }
 
     /**
@@ -193,7 +193,7 @@ public class TrackerResource extends AbstractResource {
         Stream<AisPacket> packets = getPacketStream(info);
         return StreamingUtil.createStreamingOutput(
                 (Iterable<AisPacket>) packets::iterator,
-                AisPacketOutputSinks.JSON_MESSAGE);
+                AisPacketOutputSinks.jsonMessageSink());
     }
 
     @GET
