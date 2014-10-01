@@ -30,7 +30,6 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.packet.AisPacketFiltersStateful;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.tracker.TargetInfo;
@@ -85,7 +84,7 @@ public class TrackerResource extends AbstractResource {
         Iterable<AisPacket> p = applyFilters(l.stream(), qh);
         
         return StreamingUtil.createStreamingOutput(p,
-                AisPacketOutputSinks.jsonStaticListSink());
+                qh.getOutputSink());
     }
 
     @GET
@@ -119,7 +118,7 @@ public class TrackerResource extends AbstractResource {
         Iterable<AisPacket> p = applyFilters(packets.stream(), qh);
 
         return StreamingUtil.createStreamingOutput(p,
-                AisPacketOutputSinks.jsonStaticListSink());
+                qh.getOutputSink());
     }
 
     @GET
@@ -142,7 +141,7 @@ public class TrackerResource extends AbstractResource {
                         .map(e -> e.getPositionPacket()), qh);
 
         return StreamingUtil.createStreamingOutput(packets,
-                AisPacketOutputSinks.jsonPosListSink());
+                qh.getOutputSink());
     }
 
     @GET
@@ -165,8 +164,10 @@ public class TrackerResource extends AbstractResource {
 
         Iterable<AisPacket> packets = applyFilters(sPacket, qh);
 
+        
+        
         return StreamingUtil.createStreamingOutput(packets,
-                AisPacketOutputSinks.jsonPosListSink());
+                qh.getOutputSink());
     }
 
     /**
