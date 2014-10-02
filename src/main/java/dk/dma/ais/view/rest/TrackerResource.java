@@ -106,7 +106,7 @@ public class TrackerResource extends AbstractResource {
 
         Stream<TargetInfo> s = tt.findTargets8(predSource, predTarget);
 
-        Stream<AisPacket[]> sPackets = s.map(e -> e.getPackets());
+        Stream<AisPacket[]> sPackets = s.map(e -> e.getStaticPackets());
 
         final ConcurrentLinkedDeque<AisPacket> packets = new ConcurrentLinkedDeque<AisPacket>();
         sPackets.forEach(e -> {
