@@ -14,6 +14,13 @@
  */
 package dk.dma.ais.view.rest;
 
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameter;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsInt;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
+import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
+import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang.StringUtils.isBlank;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -32,19 +39,13 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameter;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsInt;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterAsIntWithRange;
-import static dk.dma.commons.web.rest.query.QueryParameterValidators.getParameterWithCustomErrorMessage;
-import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
-
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketFiltersStateful;
+import dk.dma.ais.packet.AisPacketOutputSinkJsonObject;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
@@ -59,7 +60,6 @@ import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
 
-
 /**
  * A small helper class to extract query information.
  * 
@@ -67,7 +67,8 @@ import dk.dma.enav.model.geometry.Position;
  */
 class QueryParameterHelper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QueryParameterHelper.class);
+    private static final Logger LOG = LoggerFactory
+            .getLogger(QueryParameterHelper.class);
 
     /** An optional area for the query. */
     final BoundingBox area;
@@ -102,7 +103,7 @@ class QueryParameterHelper {
 
     /** A predicate on the source of each packet. */
     final Predicate<? super AisPacket> sourceFilter;
-    
+
     /** A general AisPacket filter on source, target and message */
     final Predicate<? super AisPacket> packetFilter;
 
@@ -128,18 +129,21 @@ class QueryParameterHelper {
         this.kmlSnapshotAt = findAt(uriInfo);
         String limit = getParameter(uriInfo, "limit", null);
         this.limit = limit == null ? null : Integer.parseInt(limit);
-        Set<Integer> mmsi = new HashSet<>(QueryParameterValidators.getParametersAsInt(uriInfo, "mmsi"));
+        Set<Integer> mmsi = new HashSet<>(
+                QueryParameterValidators.getParametersAsInt(uriInfo, "mmsi"));
         this.mmsis = Ints.toArray(mmsi);
         sourceFilter = getSourceFilter(uriInfo);
         packetFilter = getPacketFilter(uriInfo);
 
-        minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null, Range.atLeast(0));
+        minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null,
+                Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
         primaryMmsi = findPrimaryMmsi(uriInfo);
         secondaryMmsi = findSecondaryMmsi(uriInfo);
         title = getParameter(uriInfo, "title", null);
         description = getParameter(uriInfo, "description", null);
-        interpolationStepSecs = getParameterAsInt(uriInfo, "interpolation", null);
+        interpolationStepSecs = getParameterAsInt(uriInfo, "interpolation",
+                null);
 
         outputSink = getOutputSink(uriInfo);
         jobId = QueryParameterValidators.getParameter(uriInfo, "jobId", null);
@@ -147,14 +151,15 @@ class QueryParameterHelper {
         LOG.debug(toString());
     }
 
-
-
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {
-        return area == null ? i : Iterables.filter(i, AisPacketFilters.filterOnMessagePositionWithin(area));
+        return area == null ? i : Iterables.filter(i,
+                AisPacketFilters.filterOnMessagePositionWithin(area));
     }
-    
-    public Iterable<AisPacket> applyTargetFilterArea(Iterable<AisPacket> i, AisPacketFiltersStateful state) {
-        return area == null ? i : Iterables.filter(i, state.filterOnTargetPositionWithin(area));
+
+    public Iterable<AisPacket> applyTargetFilterArea(Iterable<AisPacket> i,
+            AisPacketFiltersStateful state) {
+        return area == null ? i : Iterables.filter(i,
+                state.filterOnTargetPositionWithin(area));
     }
 
     public AisPacketStream applyLimitFilter(AisPacketStream s) {
@@ -162,14 +167,16 @@ class QueryParameterHelper {
     }
 
     public Iterable<AisPacket> applyLimitFilter(Iterable<AisPacket> i) {
-        return limit == null ? i : com.google.common.collect.Iterables.limit(i, limit);
+        return limit == null ? i : com.google.common.collect.Iterables.limit(i,
+                limit);
     }
 
     public Iterable<AisPacket> applyPositionSampler(Iterable<AisPacket> i) {
         if (minDistance == null && minDuration == null) {
             return i;
         }
-        return Iterables.filter(i, AisPacketFilters.samplingFilter(minDistance, minDuration));
+        return Iterables.filter(i,
+                AisPacketFilters.samplingFilter(minDistance, minDuration));
     }
 
     public AisPacketStream applySourceFilter(AisPacketStream s) {
@@ -179,9 +186,9 @@ class QueryParameterHelper {
     public Iterable<AisPacket> applySourceFilter(Iterable<AisPacket> i) {
         return sourceFilter == null ? i : Iterables.filter(i, sourceFilter);
     }
-    
+
     public Iterable<AisPacket> applyPacketFilter(Iterable<AisPacket> i) {
-        return sourceFilter == null ? i : Iterables.filter(i, packetFilter);
+        return packetFilter == null ? i : Iterables.filter(i, packetFilter);
     }
 
     public BiPredicate<AisPacketSource, TargetInfo> getSourceAndTargetPredicate() {
@@ -196,17 +203,17 @@ class QueryParameterHelper {
     }
 
     public Predicate<TargetInfo> getTargetPredicate() {
-        return e->true;
+        return e -> true;
     }
-    
+
     public Predicate<TargetInfo> getTargetAreaFilter() {
-        return area != null ? TargetInfoFilters.filterOnBoundingBox(area) : null;
+        return area != null ? TargetInfoFilters.filterOnBoundingBox(area)
+                : null;
     }
-        
+
     public Predicate<AisPacketSource> getSourcePredicate() {
         return getPacketSourceFilter(uriInfo);
     }
-
 
     public Predicate<AisPacket> getPacketFilter() {
         return getPacketFilter(uriInfo);
@@ -235,17 +242,21 @@ class QueryParameterHelper {
     }
 
     private static Long findMinimumDurationMS(UriInfo info) {
-        String dur = QueryParameterValidators.getParameter(info, "minDuration", null);
-        return dur == null ? null : Period.parse(dur).toStandardSeconds().getSeconds() * 1000L;
+        String dur = QueryParameterValidators.getParameter(info, "minDuration",
+                null);
+        return dur == null ? null : Period.parse(dur).toStandardSeconds()
+                .getSeconds() * 1000L;
     }
 
     private static Integer findPrimaryMmsi(UriInfo info) {
-        String primaryMmsi = QueryParameterValidators.getParameter(info, "primaryMmsi", null);
+        String primaryMmsi = QueryParameterValidators.getParameter(info,
+                "primaryMmsi", null);
         return primaryMmsi == null ? null : Integer.parseInt(primaryMmsi);
     }
 
     private static Integer findSecondaryMmsi(UriInfo info) {
-        String secondaryMmsi = QueryParameterValidators.getParameter(info, "secondaryMmsi", null);
+        String secondaryMmsi = QueryParameterValidators.getParameter(info,
+                "secondaryMmsi", null);
         return secondaryMmsi == null ? null : Integer.parseInt(secondaryMmsi);
     }
 
@@ -254,8 +265,9 @@ class QueryParameterHelper {
         if (box != null) {
             String[] str = box.split(",");
             if (str.length != 4) {
-                throw new UnsupportedOperationException("A box must contain exactly 4 points, was " + str.length + "("
-                        + box + ")");
+                throw new UnsupportedOperationException(
+                        "A box must contain exactly 4 points, was "
+                                + str.length + "(" + box + ")");
             }
             double lat1 = Double.parseDouble(str[0]);
             double lon1 = Double.parseDouble(str[1]);
@@ -269,24 +281,29 @@ class QueryParameterHelper {
     }
 
     private static Interval findInterval(UriInfo info) {
-        String interval = QueryParameterValidators.getParameter(info, "interval", null);
+        String interval = QueryParameterValidators.getParameter(info,
+                "interval", null);
         if (interval == null) {
             return null;
-            // throw new IllegalArgumentException("Must define kmlSnapshotAt least one interval");
+            // throw new
+            // IllegalArgumentException("Must define kmlSnapshotAt least one interval");
         }
         return DateTimeUtil.toInterval(interval);
     }
 
     private static boolean findCreateSituationFolder(UriInfo info) {
-        return QueryParameterValidators.getParameter(info, "situationFolderEnabled", null) != null;
+        return QueryParameterValidators.getParameter(info,
+                "situationFolderEnabled", null) != null;
     }
 
     private static boolean findCreateMovementsFolder(UriInfo info) {
-        return QueryParameterValidators.getParameter(info, "movementsFolderEnabled", null) != null;
+        return QueryParameterValidators.getParameter(info,
+                "movementsFolderEnabled", null) != null;
     }
 
     private static boolean findCreateTracksFolder(UriInfo info) {
-        return QueryParameterValidators.getParameter(info, "tracksFolderEnabled", null) != null;
+        return QueryParameterValidators.getParameter(info,
+                "tracksFolderEnabled", null) != null;
     }
 
     private static DateTime findAt(UriInfo info) {
@@ -301,68 +318,97 @@ class QueryParameterHelper {
         case "raw":
             return AisPacketOutputSinks.OUTPUT_TO_TEXT;
         case "table":
-            String columns = getParameterWithCustomErrorMessage(info, "columns",
+            String columns = getParameterWithCustomErrorMessage(
+                    info,
+                    "columns",
                     "A query parameter (columns), must be present when using table output. Example: columns=time;mmsi;lat;lon");
-            return AisPacketOutputSinks.newTableSink(columns, !info.getQueryParameters().containsKey("noHeader"),
+            return AisPacketOutputSinks.newTableSink(columns, !info
+                    .getQueryParameters().containsKey("noHeader"),
                     getParameter(info, "separator", ";"));
-        case "prefixed_sentences": 
+        case "prefixed_sentences":
             return AisPacketOutputSinks.OUTPUT_PREFIXED_SENTENCES;
         case "output_to_kml":
             return AisPacketOutputSinks.OUTPUT_TO_KML();
         case "kml":
             return AisPacketOutputSinks.OUTPUT_TO_KML();
-        
+
+        case "jsonobject":
+            String format = getParameter(info, "columns", "");
+            if (format.equals("")) {
+                format = AisPacketOutputSinkJsonObject.ALLCOLUMNS;
+            }
+            return AisPacketOutputSinks.jsonObjectSink(format);
+        case "json":
+            return AisPacketOutputSinks.jsonMessageSink();
             
-        //this will work for static fields like OUTPUT_TO_HTML, OUTPUT_TO_TEXT
+            
+        // this will work for static fields like OUTPUT_TO_HTML,
+        // OUTPUT_TO_TEXT
         default:
             try {
-                return (OutputStreamSink<AisPacket>) AisPacketOutputSinks.class.getField(output.toUpperCase()).get(null);
+                return (OutputStreamSink<AisPacket>) AisPacketOutputSinks.class
+                        .getField(output.toUpperCase()).get(null);
             } catch (IllegalArgumentException | IllegalAccessException
                     | NoSuchFieldException | SecurityException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
-        
 
-        throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
-                .entity("Unknown output format [output=" + output + "]\n").type(MediaType.TEXT_PLAIN).build());
+        throw new WebApplicationException(Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity("Unknown output format [output=" + output + "]\n")
+                .type(MediaType.TEXT_PLAIN).build());
     }
 
     private static Predicate<AisPacketSource> getPacketSourceFilter(UriInfo info) {
-        List<String> filters = QueryParameterValidators.getParameters(info, "filter");
+        List<String> filters = QueryParameterValidators.getParameters(info,
+                "filter");
         if (filters.isEmpty()) {
             return null;
         }
-        Predicate<AisPacketSource> p = AisPacketSource.createPredicate(filters.get(0));
-        for (int i = 1; i < filters.size(); i++) {
-            p = p.and(AisPacketSource.createPredicate(filters.get(i)));
+
+        Predicate<AisPacketSource> p = null;
+        try {
+            p = AisPacketSource.createPredicate(filters.get(0));
+            for (int i = 1; i < filters.size(); i++) {
+                p = p.and(AisPacketSource.createPredicate(filters.get(i)));
+            }
+        } catch (NullPointerException e) {
+
         }
+
         return p;
     }
 
     private static Predicate<AisPacket> getSourceFilter(UriInfo info) {
-        List<String> filters = QueryParameterValidators.getParameters(info, "filter");
+        List<String> filters = QueryParameterValidators.getParameters(info,
+                "filter");
+
         if (filters.isEmpty()) {
             return null;
         }
-        Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters.get(0));
+        Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters
+                .get(0));
         for (int i = 1; i < filters.size(); i++) {
             p = p.and(AisPacketFilters.parseSourceFilter(filters.get(i)));
         }
         return p;
     }
-    
+
     /**
      */
-    private Predicate<AisPacket> getPacketFilter(UriInfo info) {
-        List<String> filters = QueryParameterValidators.getParameters(info, "filter");
+    private static Predicate<AisPacket> getPacketFilter(UriInfo info) {
+        List<String> filters = QueryParameterValidators.getParameters(info,
+                "filter");
         if (filters.isEmpty()) {
             return null;
         }
-        Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters.get(0));
+        
+        Predicate<AisPacket> p = AisPacketFilters.parseExpressionFilter(filters
+                .get(0));
         for (int i = 1; i < filters.size(); i++) {
-            p = p.and(AisPacketFilters.parseSourceFilter(filters.get(i)));
+            p = p.and(AisPacketFilters.parseExpressionFilter(filters.get(i)));
         }
         return p;
     }
@@ -385,8 +431,7 @@ class QueryParameterHelper {
         sb.append(", mmsis=");
         if (mmsis == null) {
             sb.append("null");
-        }
-        else {
+        } else {
             sb.append('[');
             for (int i = 0; i < mmsis.length; ++i) {
                 sb.append(i == 0 ? "" : ", ").append(mmsis[i]);
