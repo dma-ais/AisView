@@ -1,5 +1,3 @@
-cd /AisView
-
 BACKUPP="-backup ${BACKUP}"
 
 if [ -z "${DATABASE}" ]; then 
@@ -8,5 +6,5 @@ if [ -z "${DATABASE}" ]; then
 else
 	DATABASEP="-database ${DATABASE}" 
 fi
-
-java -jar target/ais-view-0.2-SNAPSHOT.jar $SOURCES $BACKUPP $DATABASEP
+LATEST=`ls /archive/target/ais-view*SNAPSHOT.jar`
+java -jar $LATEST $SOURCES $BACKUPP $DATABASEP

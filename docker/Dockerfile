@@ -1,9 +1,8 @@
-FROM kaspernielsen/javabox
+FROM tbsalling/javabox
 
-RUN apt-get install maven -y
 RUN mkdir -p /data
-RUN git clone https://github.com/dma-ais/AisView /AisView
-RUN (cd /AisView; mvn clean install)
+RUN wget --progress=bar "https://dma.ci.cloudbees.com/job/AisView/lastSuccessfulBuild/artifact/*zip*/archive.zip" -O /archive.zip
+RUN unzip /archive.zip -d /
 RUN mkdir -p /aisview-backup
 ADD ./start.sh /start.sh
 EXPOSE 8090
