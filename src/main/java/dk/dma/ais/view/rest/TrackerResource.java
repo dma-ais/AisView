@@ -57,14 +57,22 @@ public class TrackerResource extends AbstractResource {
     @Path("/count/targetinfo")
     @Produces(MediaType.TEXT_PLAIN)
     public int getTargetInfoCount(@Context UriInfo info) {
-        return get(TargetTracker.class).findTargets(s->true, t->true).size();
+        QueryParameterHelper qh = new QueryParameterHelper(info);
+        Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
+        predTarget = (predTarget == null) ? e -> true : predTarget;        
+        predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
+        return get(TargetTracker.class).findTargets(qh.getSourcePredicate(), predTarget).size();
     }    
 
     @GET
     @Path("/count")
     @Produces(MediaType.TEXT_PLAIN)
     public int getCount(@Context UriInfo info) {
-        return get(TargetTracker.class).countNumberOfTargets(s->true,t->true);
+        QueryParameterHelper qh = new QueryParameterHelper(info);
+        Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
+        predTarget = (predTarget == null) ? e -> true : predTarget;        
+        predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
+        return get(TargetTracker.class).countNumberOfTargets(qh.getSourcePredicate(),predTarget);
     }
 
     @GET
@@ -191,7 +199,8 @@ public class TrackerResource extends AbstractResource {
     @Path("/packets/json")
     @Produces(MediaType.TEXT_PLAIN)
     public StreamingOutput getPacketsJson(@Context UriInfo info) {
-        Stream<AisPacket> packets = getPacketStream(info);
+        QueryParameterHelper qh = new QueryParameterHelper(info);
+        Stream<AisPacket> packets = getPacketStream(info, qh);
         return StreamingUtil.createStreamingOutput(
                 (Iterable<AisPacket>) packets::iterator,
                 AisPacketOutputSinks.jsonMessageSink());
@@ -201,15 +210,13 @@ public class TrackerResource extends AbstractResource {
     @Path("/packets/")
     @Produces(MediaType.TEXT_PLAIN)
     public StreamingOutput getPackets(@Context UriInfo info) {
-        Stream<AisPacket> packets = getPacketStream(info);
+        QueryParameterHelper qh = new QueryParameterHelper(info);
+        Stream<AisPacket> packets = getPacketStream(info, qh);
         return StreamingUtil.createStreamingOutput(
-                (Iterable<AisPacket>) packets::iterator,
-                AisPacketOutputSinks.OUTPUT_TO_TEXT);
+                (Iterable<AisPacket>) packets::iterator,qh.getOutputSink());
     }
 
-    private Stream<AisPacket> getPacketStream(UriInfo info) {
-        QueryParameterHelper qh = new QueryParameterHelper(info);
-
+    private Stream<AisPacket> getPacketStream(UriInfo info, QueryParameterHelper qh) {
         Predicate<AisPacketSource> predSource = qh.getSourcePredicate();
         predSource = (predSource == null) ? e -> true : predSource;
 
