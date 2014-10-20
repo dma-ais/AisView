@@ -16,6 +16,10 @@ package dk.dma.ais.view.rest;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -27,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -144,7 +149,7 @@ public class AisStoreResource extends AbstractResource {
     @GET
     @Path("/count/second")
     public Double getPacketsPerSecond() {
-        return getTenMinuteCount().doubleValue() / 600;
+        return getTenMinuteCount().doubleValue() / 600.0;
     }
 
     /**
@@ -173,16 +178,11 @@ public class AisStoreResource extends AbstractResource {
             expected = 0.0;
         }
 
-        Double r = this.getTenMinuteCount().doubleValue() / 600.0;
+        Double r = this.getTenMinuteCount().doubleValue() / 600;
         return "status=" + (r.intValue() > expected ? "ok" : "nok");
     }
 
-    @GET
-    @Produces("application/octet-stream")
-    @Path("/query")
-    public StreamingOutput query(@Context UriInfo info) {
-        QueryParameterHelper p = new QueryParameterHelper(info);
-
+    private AisStoreQueryResult handleQueryRequest(QueryParameterHelper p, UriInfo info) {
         // Create builder, we first need to determine which of the 3 AisStore
         // tables we need to use
         AisStoreQueryBuilder b;
@@ -208,23 +208,74 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(p.getInterval());
 
         // Create the query
-        AtomicLong counter = new AtomicLong();
         AisStoreQueryResult query = get(CassandraConnection.class).execute(b);
+        return query;
+    }
+    
+    @GET
+    @Produces("application/octet-stream")
+    @Path("/query")
+    public StreamingOutput query(@Context UriInfo info) {
+        QueryParameterHelper p = new QueryParameterHelper(info);        
+        AisStoreQueryResult query = handleQueryRequest(p, info);
         Iterable<AisPacket> q = query;
+
+        q = applyUserFilters(q, p);
+        
+        AtomicLong counter = new AtomicLong();        
+        q = Iterables.counting(q, counter);
+        if (p.jobId == null) {
+            get(JobManager.class).addJob(new Date().toString() + ": "+info.getRequestUri(), query, counter);
+        } else {
+            get(JobManager.class).addJob(p.jobId, query, counter);
+        }
+        
+        return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
+    }
+    
+    private Iterable<AisPacket> applyUserFilters(Iterable<AisPacket> q, QueryParameterHelper p) {
         // Apply filters from the user
-        // Apply area filter again, problem with position tagging of static data
 
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
         q = p.applyTargetFilterArea(q, state);
         q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
                                    // filters reject packets)
+        return q;
+    }
 
-        q = Iterables.counting(q, counter);
-        if (p.jobId != null) {
-            get(JobManager.class).addJob(p.jobId, query, counter);
-        }
-        return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
+    @GET
+    @Path("/queue")
+    @Produces(MediaType.TEXT_HTML)
+    public String queue(@Context UriInfo info) {
+        
+        final StreamingOutput so = query(info);
+        
+        new Thread(() -> {
+            // oh, the joy of IO logic!
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream("/tmp/test");
+                so.write(fos);
+                
+            } catch (Exception e) {
+                LOG.debug("FAILED to queue file output stream");
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } finally {
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
+        }).start();
+                
+        return "<a href=\"/store/job/all\">jobs</a>";
     }
 
     /*
@@ -442,7 +493,7 @@ public class AisStoreResource extends AbstractResource {
         final Duration duration = interval.toDuration();
         final long hours = duration.getStandardHours();
         final long minutes = duration.getStandardMinutes();
-        if (hours > 6) {
+        if (hours > 60) {
             throw new IllegalArgumentException(
                     "Queries spanning more than 6 hours are not allowed.");
         }
@@ -457,11 +508,13 @@ public class AisStoreResource extends AbstractResource {
                 + " minutes and " + (float) size + " square kilometers.");
 
         // Create the query
-        AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use
+        //AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime(); // Cannot use
                                                                  // getArea
                                                                  // because this
                                                                  // removes all
                                                                  // type 5
+        AisStoreQueryBuilder b = AisStoreQueryBuilder.forArea(area);
+        
         b.setInterval(interval);
 
         // Execute the query
@@ -526,6 +579,9 @@ public class AisStoreResource extends AbstractResource {
                 .header("Content-Disposition",
                         "attachment; filename = \"scenario.kmz\"").build();
     }
+    
+    
+    
 
     /**
      * getPastTrack will only work with position messages

@@ -42,9 +42,16 @@ public class AisStoreJobResource extends AbstractResource {
     }
     
     @GET
+    @Path("/")
+    @Produces("application/json")
+    public JSONObject root(@Context UriInfo info) {
+        return all(info);
+    }
+    
+    @GET
     @Path("/all")
     @Produces("application/json")
-    public JSONObject getId(@Context UriInfo info) {
+    public JSONObject all(@Context UriInfo info) {
         return get(JobManager.class).toJSON();
     }
     
