@@ -58,10 +58,11 @@ public class TrackerResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     public int getTargetInfoCount(@Context UriInfo info) {
         QueryParameterHelper qh = new QueryParameterHelper(info);
+        Predicate<AisPacketSource> predSource = (qh.getSourcePredicate() == null) ? e->true : qh.getSourcePredicate();
         Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
         predTarget = (predTarget == null) ? e -> true : predTarget;        
         predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
-        return get(TargetTracker.class).findTargets(qh.getSourcePredicate(), predTarget).size();
+        return get(TargetTracker.class).findTargets(predSource, predTarget).size();
     }    
 
     @GET
@@ -69,10 +70,11 @@ public class TrackerResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     public int getCount(@Context UriInfo info) {
         QueryParameterHelper qh = new QueryParameterHelper(info);
+        Predicate<AisPacketSource> predSource = (qh.getSourcePredicate() == null) ? e->true : qh.getSourcePredicate();
         Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
         predTarget = (predTarget == null) ? e -> true : predTarget;        
         predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
-        return get(TargetTracker.class).countNumberOfTargets(qh.getSourcePredicate(),predTarget);
+        return get(TargetTracker.class).countNumberOfTargets(predSource,predTarget);
     }
 
     @GET
