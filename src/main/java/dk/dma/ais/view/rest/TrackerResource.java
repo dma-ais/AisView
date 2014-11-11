@@ -35,7 +35,6 @@ import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.util.TargetInfoFilters;
-import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 
 /**
@@ -43,7 +42,7 @@ import dk.dma.commons.web.rest.StreamingUtil;
  * @author Jens Tuxen
  */
 @Path("/tracker")
-public class TrackerResource extends AbstractResource {
+public class TrackerResource extends AbstractTrackerResource {
 
     /**
      * @param handler
@@ -180,23 +179,6 @@ public class TrackerResource extends AbstractResource {
                 qh.getOutputSink());
     }
 
-    /**
-     * Helper function for applying filters from Stream to Iterable.
-     * @param streamPackets
-     * @param qh
-     * @return
-     */
-    private Iterable<AisPacket> applyFilters(Stream<AisPacket> streamPackets,
-            QueryParameterHelper qh) {
-        // reapplying filters on packet stream
-        Iterable<AisPacket> packets = (Iterable<AisPacket>) streamPackets::iterator;
-
-        // filters
-        packets = qh.applyPacketFilter(packets);
-
-        return packets;
-    }
-
     @GET
     @Path("/packets/json")
     @Produces(MediaType.TEXT_PLAIN)
@@ -216,31 +198,6 @@ public class TrackerResource extends AbstractResource {
         Stream<AisPacket> packets = getPacketStream(info, qh);
         return StreamingUtil.createStreamingOutput(
                 (Iterable<AisPacket>) packets::iterator,qh.getOutputSink());
-    }
-
-    private Stream<AisPacket> getPacketStream(UriInfo info, QueryParameterHelper qh) {
-        Predicate<AisPacketSource> predSource = qh.getSourcePredicate();
-        predSource = (predSource == null) ? e -> true : predSource;
-
-        Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
-        predTarget = (predTarget == null) ? e -> true : predTarget;
-        
-        predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
-
-        TargetTracker tt = get(TargetTracker.class);
-
-        Stream<TargetInfo> s = tt.findTargets8(predSource, predTarget);
-        Stream<AisPacket[]> sPackets = s.map(e -> e.getPackets()).filter(
-                o -> o != null);
-
-        final ConcurrentLinkedDeque<AisPacket> packets = new ConcurrentLinkedDeque<AisPacket>();
-        sPackets.sequential().forEach(e -> {
-            for (int i = 0; i < e.length; i++) {
-                packets.add(e[i]);
-            }
-        });
-
-        return packets.stream();
     }
 
 }
