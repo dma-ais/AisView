@@ -61,13 +61,14 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.1.3.v20140225</version>
+			<version>${dependencies.jetty.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>9.1.3.v20140225</version>
+			<version>${dependencies.jetty.version}</version>
 		</dependency>
+
 
 		<!-- Overwrite Jersey JAX-RS TEMP fix for bug in 2.4.1 with multiple resources 
 			Please update dma-web-rest dependencies and remove this -->
@@ -81,6 +82,24 @@
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-simple-http</artifactId>
 			<version>2.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>javax-websocket-server-impl</artifactId>
+			<version>${dependencies.jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<artifactId>javax-websocket-client-impl</artifactId>
+			<version>${dependencies.jetty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
+			<version>1.0</version>
 		</dependency>
 
 		<dependency>
