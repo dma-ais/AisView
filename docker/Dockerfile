@@ -1,4 +1,4 @@
-FROM tbsalling/javabox
+FROM java:8
 
 RUN mkdir -p /data
 RUN wget --progress=bar "https://dma.ci.cloudbees.com/job/AisView/lastSuccessfulBuild/artifact/*zip*/archive.zip" -O /archive.zip
