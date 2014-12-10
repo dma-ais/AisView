@@ -26,7 +26,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
-import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketStream;
 import dk.dma.ais.packet.AisPacketStream.Subscription;
 import dk.dma.ais.reader.AisReaderGroup;
@@ -37,7 +36,7 @@ import dk.dma.commons.web.rest.AbstractResource;
  * 
  * @author Kasper Nielsen
  */
-@Path("/stream")
+@Path("/")
 public class LiveDataResource extends AbstractResource {
 
     /**
@@ -46,15 +45,8 @@ public class LiveDataResource extends AbstractResource {
     public LiveDataResource() {
         super();
     }
-
-
-
-    /** Returns a live stream of all incoming data. */
-    @GET
-    @Path("/")
-    @Produces(MediaType.TEXT_PLAIN)
-    public StreamingOutput livestream(@Context UriInfo info) {
-        final QueryParameterHelper p = new QueryParameterHelper(info);
+    
+    private StreamingOutput newStreamingOutput(final QueryParameterHelper p, final UriInfo info) {
         return new StreamingOutput() {
             public void write(final OutputStream os) throws IOException {
                 AisPacketStream s = LiveDataResource.this.get(
@@ -101,50 +93,19 @@ public class LiveDataResource extends AbstractResource {
                 }
             }
         };
+     
     }
-    
+
+
     /** Returns a live stream of all incoming data. */
     @GET
-    @Path("/json")
+    @Path("/stream")
     @Produces(MediaType.TEXT_PLAIN)
-    public StreamingOutput livestreamJson(@Context UriInfo info) {
+    public StreamingOutput livestream(@Context UriInfo info) {
         final QueryParameterHelper p = new QueryParameterHelper(info);
-        return new StreamingOutput() {
-            public void write(final OutputStream os) throws IOException {
-                AisPacketStream s = LiveDataResource.this.get(
-                        AisReaderGroup.class).stream();
-                s = p.applySourceFilter(s);
-                s = p.applyLimitFilter(s);
-
-                CountingOutputStream cos = new CountingOutputStream(os);
-                // We flush the sink after each written line, to be more
-                // responsive
-                Subscription ss = s.subscribeSink(AisPacketOutputSinks.jsonMessageSink(), cos);
-                
-                long lastCount = 0;
-                for (;;) {
-                    try {
-                        if (ss.awaitCancelled(1, TimeUnit.DAYS)) {
-                            return;
-                        } else if (lastCount == cos.getCount()) {
-                            ss.cancel(); // No data written in 60 seconds (browser default timeout)
-                        }
-                        lastCount = cos.getCount();
-                    } catch (InterruptedException ignore) {
-                    } finally {
-                        ss.cancel(); // just in case an InterruptedException is
-                                     // thrown
-                    }
-                }
-            }
-        };
-        
+        return newStreamingOutput(p, info);
     }
-    
-
-    
-
-    
-    
 
 }
+
+
