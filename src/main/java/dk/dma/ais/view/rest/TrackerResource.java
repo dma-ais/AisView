@@ -17,6 +17,7 @@ package dk.dma.ais.view.rest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -35,6 +36,7 @@ import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.tracker.TargetInfo;
 import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.ais.view.common.util.TargetInfoFilters;
+import dk.dma.commons.util.JSONObject;
 import dk.dma.commons.web.rest.StreamingUtil;
 
 /**
@@ -49,6 +51,51 @@ public class TrackerResource extends AbstractTrackerResource {
      */
     public TrackerResource() {
         super();
+    }
+    
+    /**
+     * Returns a list of source IDs currently available in the tracker
+     * @return a list of source IDs in the source
+     */
+    @GET
+    @Path("/source/ids")
+    public JSONObject getSourceIDs() {
+        
+        TargetTracker tt = TrackerResource.this.get(TargetTracker.class);
+        
+        ConcurrentSkipListSet<String> ids = new ConcurrentSkipListSet<String>();
+        
+        tt.findTargets(source-> {
+            if (source.getSourceId() != null) {
+                ids.add(source.getSourceId());
+            }
+            return false;
+        },target->true);
+        
+        return JSONObject.singleList("sourceIDs", ids.toArray());
+    }
+    
+    /**
+     * Returns a list of source regions
+     * @return a list of source region numbers
+     */
+    @GET
+    @Path("/source/regions")
+    public JSONObject getSourceRegions() {
+        
+        TargetTracker tt = TrackerResource.this.get(TargetTracker.class);
+        
+        ConcurrentSkipListSet<String> ids = new ConcurrentSkipListSet<String>();
+        
+        tt.findTargets(source-> {
+            if (source.getSourceRegion() != null) {
+                ids.add(source.getSourceRegion());
+            }
+            return false;
+        },target->true);
+        
+        
+        return JSONObject.singleList("sourceregions", ids.toArray());
     }
     
     
