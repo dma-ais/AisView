@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
 
 import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.packet.AisPacketTags;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
@@ -107,10 +108,8 @@ public class AisViewDaemon extends AbstractDaemon {
 
                     @Override
                     public boolean test(AisPacketSource t, TargetInfo u) {
-                        
-                        
-                        switch(t.getSourceId()) {
-                        case "AISSAT":
+                        switch(t.getSourceType()) {
+                        case SATELLITE:
                             return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(satellite);
                         default:
                             return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(live);
