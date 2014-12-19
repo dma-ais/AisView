@@ -19,9 +19,11 @@ import static java.util.Objects.requireNonNull;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -53,6 +55,8 @@ import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.store.job.JobManager;
+import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.TargetTracker;
 import dk.dma.commons.util.Iterables;
 import dk.dma.commons.util.JSONObject;
 import dk.dma.commons.util.io.OutputStreamSink;
@@ -91,18 +95,7 @@ public class AisStoreResource extends AbstractResource {
         return "pong";
     }
 
-    /**
-     * Returns a list of source IDs in the source. This one is hard coded for
-     * now
-     * 
-     * @return a list of source IDs in the source
-     */
-    @GET
-    @Path("/sourceIDs")
-    public JSONObject getSourceIDs() {
-        return JSONObject.singleList("sourceIDs", "AISD", "IALA", "AISSAT",
-                "MSSIS", "AISHUB");
-    }
+
 
     /**
      * Get the count of messages from packets received with timestamp in the
@@ -191,12 +184,10 @@ public class AisStoreResource extends AbstractResource {
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
                     "fetchSize", 3000));
 
-        /*    
         } else if (p.getArea() != null) {
             b = AisStoreQueryBuilder.forArea(p.getArea());
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
                     "fetchSize", 200));
-        */
 
         } else {
             b = AisStoreQueryBuilder.forTime();
