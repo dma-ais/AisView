@@ -505,6 +505,7 @@ public class AisStoreResource extends AbstractResource {
                                                                  // removes all
                                                                  // type 5
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forArea(area);
+        b.setFetchSize(200);
         
         b.setInterval(interval);
 
