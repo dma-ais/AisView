@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -304,11 +305,11 @@ public class AisViewHelper {
             }
         });
         
+        
         // Calculate density
-        map.forEachValue(10, new Consumer<VesselCluster>() {
-
+        map.forEach(new BiConsumer<Long,VesselCluster>() {
             @Override
-            public void accept(VesselCluster c) {
+            public void accept(Long t, VesselCluster c) {
                 Position from = Position.create(c.getFrom().getLatitude(), c
                         .getFrom().getLongitude());
                 Position to = Position.create(c.getTo().getLatitude(), c.getTo()
@@ -322,7 +323,6 @@ public class AisViewHelper {
                 double areaSize = width * height;
                 double density = (double) c.getCount() / areaSize;
                 c.setDensity(density);
-                
             }
         });
         
