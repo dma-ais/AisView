@@ -187,7 +187,7 @@ public class AisStoreResource extends AbstractResource {
         } else if (p.getArea() != null) {
             b = AisStoreQueryBuilder.forArea(p.getArea());
             b.setFetchSize(QueryParameterValidators.getParameterAsInt(info,
-                    "fetchSize", 2));
+                    "fetchSize", 512));
 
         } else {
             b = AisStoreQueryBuilder.forTime();
