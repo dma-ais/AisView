@@ -14,11 +14,24 @@
  */
 package dk.dma.ais.view;
 
+import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.Parameter;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
+
 import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.packet.AisPacketTags;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
@@ -30,16 +43,6 @@ import dk.dma.ais.view.rest.WebServer;
 import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.db.cassandra.CassandraConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiPredicate;
 
 /**
  * AIS viewer daemon
@@ -81,7 +84,10 @@ public class AisViewDaemon extends AbstractDaemon {
 
         // Setup the backup process
         // Files.createDirectories(backup);
-        Files.createParentDirs(backup);
+        backup.mkdirs();
+        if(!backup.isDirectory()) {
+            throw new IOException("Unable to create directories for " + backup);
+        }
 
         start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
 

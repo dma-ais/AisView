@@ -10,7 +10,7 @@
 
 	<groupId>dk.dma.ais.view</groupId>
 	<artifactId>ais-view</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>AisView</name>
 	<description>AisViewer</description>
