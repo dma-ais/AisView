@@ -19,6 +19,8 @@ import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketFilters;
 import dk.dma.ais.packet.AisPacketFiltersStateful;
 import dk.dma.ais.packet.AisPacketOutputSinks;
+import dk.dma.ais.reader.AisReader;
+import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
 import dk.dma.ais.store.job.JobManager;
@@ -37,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -47,6 +50,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -66,12 +71,10 @@ import static java.util.Objects.requireNonNull;
 @Path("/store")
 public class AisStoreResource extends AbstractResource {
     
-
-    private static final Logger LOG = LoggerFactory
-            .getLogger(AisStoreResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AisStoreResource.class);
 
     static {
-        LOG.debug("StatisticDataRepositoryMapDB loaded.");
+        LOG.debug("AisStoreResource loaded.");
     }
 
     {
@@ -84,8 +87,6 @@ public class AisStoreResource extends AbstractResource {
     public String ping(@Context UriInfo info) {
         return "pong";
     }
-
-
 
     /**
      * Get the count of messages from packets received with timestamp in the
@@ -409,6 +410,35 @@ public class AisStoreResource extends AbstractResource {
                 .entity(StreamingUtil.createZippedStreamingOutput(query,
                         AisPacketOutputSinks.newKmlSink(), "history.kml"))
                 .type(MEDIA_TYPE_KMZ).build();
+    }
+
+    /**
+     * Produce KML output for POSTed AIS data in NMEA format.
+     *
+     * Use 'curl -X POST -T <ais-data-file> http://127.0.0.1:8090/store/history/kml' to test
+     */
+    @POST
+    @Path("/history/kml")
+    @Produces(MEDIA_TYPE_KMZ)
+    public Response historyKml(InputStream inputStream) { //String x /*@Context UriInfo info*/) {
+        ArrayList<AisPacket> packets = new ArrayList<>();
+
+        AisReader reader = AisReaders.createReaderFromInputStream(inputStream);
+        reader.registerPacketHandler(aisPacket -> packets.add(aisPacket));
+        reader.start();
+        try {
+            reader.join();
+        } catch (InterruptedException e) {
+            LOG.error(e.getMessage(), e);
+            return Response.serverError().build();
+        }
+
+        StreamingOutput output = StreamingUtil.createZippedStreamingOutput(packets, AisPacketOutputSinks.newKmlSink(), "history.kml");
+
+        return Response
+            .ok()
+            .entity(output)
+            .type(MEDIA_TYPE_KMZ).build();
     }
 
     /**
