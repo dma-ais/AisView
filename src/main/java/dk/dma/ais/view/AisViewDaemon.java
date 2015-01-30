@@ -14,24 +14,11 @@
  */
 package dk.dma.ais.view;
 
-import java.io.File;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiPredicate;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.beust.jcommander.Parameter;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
-
 import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.packet.AisPacketTags;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
@@ -43,6 +30,16 @@ import dk.dma.ais.view.rest.WebServer;
 import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.db.cassandra.CassandraConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
 
 /**
  * AIS viewer daemon
@@ -57,8 +54,8 @@ public class AisViewDaemon extends AbstractDaemon {
     @Parameter(names = "-backup", description = "The backup directory")
     File backup = new File("aisview-backup");
 
-    @Parameter(names = "-databaseName", description = "The cassandra database to write data to")
-    String cassandraDatabase = "aisdata";
+    @Parameter(names = "-nodatabase", description = "Do not attempt to connect to any cassandra cluster")
+    boolean noCassandra = false;
 
     @Parameter(names = "-database", description = "A list of cassandra hosts that can store the data, list=empty -> AisStore disabled")
     List<String> cassandraSeeds = Collections.emptyList();
@@ -147,8 +144,13 @@ public class AisViewDaemon extends AbstractDaemon {
         start(g.asService());
 
         // Start Ais Store Connection
-        CassandraConnection con = cassandraSeeds.isEmpty() ? null
-                : start(CassandraConnection.create("aisdata", cassandraSeeds));
+        CassandraConnection con = null;
+        if (!noCassandra && !cassandraSeeds.isEmpty()) {
+            con = start(CassandraConnection.create("aisdata", cassandraSeeds));
+            LOG.info("Connected to Cassandra cluster " + con.getSession().getCluster().getClusterName());
+        } else {
+            LOG.warn("Not connected to any cassandra cluster.");
+        }
 
         WebServer ws = new WebServer(port);
         ws.getContext().setAttribute(
