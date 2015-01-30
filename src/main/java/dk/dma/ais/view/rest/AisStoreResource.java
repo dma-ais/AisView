@@ -60,6 +60,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * Resources that query AisStore.
@@ -416,15 +417,23 @@ public class AisStoreResource extends AbstractResource {
      * Produce KML output for POSTed AIS data in NMEA format.
      *
      * Use 'curl -X POST -T <ais-data-file> http://127.0.0.1:8090/store/history/kml' to test
+     * Or with expression filter:
+     * 'curl -X POST -T <ais-data-file> http://127.0.0.1:8090/store/history/kml?filter="m.mmsi=247469000" > test.kmz'
      */
     @POST
     @Path("/history/kml")
     @Produces(MEDIA_TYPE_KMZ)
-    public Response historyKml(InputStream inputStream) { //String x /*@Context UriInfo info*/) {
+    public Response createKml(@QueryParam("filter") String filterExpression, InputStream inputStream) {
+        LOG.debug("Filter expression: " + filterExpression);
+        Predicate<AisPacket> filter = isBlank(filterExpression) ? p->true : AisPacketFilters.parseExpressionFilter(filterExpression);
+
         ArrayList<AisPacket> packets = new ArrayList<>();
 
         AisReader reader = AisReaders.createReaderFromInputStream(inputStream);
-        reader.registerPacketHandler(aisPacket -> packets.add(aisPacket));
+        reader.registerPacketHandler(
+            aisPacket -> { if (filter.test(aisPacket)) packets.add(aisPacket); }
+        );
+
         reader.start();
         try {
             reader.join();
