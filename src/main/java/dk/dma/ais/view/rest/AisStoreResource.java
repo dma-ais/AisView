@@ -222,6 +222,8 @@ public class AisStoreResource extends AbstractResource {
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
         q = p.applyTargetFilterArea(q, state);
+        q = p.applyTargetPositionSampler(q);
+
         q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
                                    // filters reject packets)
         return q;
