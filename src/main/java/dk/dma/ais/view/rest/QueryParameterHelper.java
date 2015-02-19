@@ -82,6 +82,8 @@ class QueryParameterHelper {
 
     final Long minDuration;
 
+    final Long duplicateWindow;
+
     final Integer primaryMmsi;
 
     final Integer secondaryMmsi;
@@ -135,6 +137,8 @@ class QueryParameterHelper {
         minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null,
                 Range.atLeast(0));
         minDuration = findMinimumDurationMS(uriInfo);
+        String duplicateWindow = getParameter(uriInfo, "duplicateWindow", null);
+        this.duplicateWindow = (duplicateWindow == null) ? null : Long.parseLong(duplicateWindow) * 1000; // to ms
         primaryMmsi = findPrimaryMmsi(uriInfo);
         secondaryMmsi = findSecondaryMmsi(uriInfo);
         title = getParameter(uriInfo, "title", null);
@@ -174,6 +178,14 @@ class QueryParameterHelper {
         }
         return Iterables.filter(i,
                 AisPacketFilters.samplingFilter(minDistance, minDuration));
+    }
+
+    public Iterable<AisPacket> applyDuplicateFilter(Iterable<AisPacket> i) {
+        if (duplicateWindow == null) {
+            return i;
+        }
+        return Iterables.filter(i,
+                AisPacketFilters.duplicateFilter(duplicateWindow));
     }
 
     public Iterable<AisPacket> applyTargetPositionSampler(Iterable<AisPacket> i) {

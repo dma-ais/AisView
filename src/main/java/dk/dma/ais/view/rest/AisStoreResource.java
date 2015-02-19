@@ -221,6 +221,7 @@ public class AisStoreResource extends AbstractResource {
 
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
         q = p.applySourceFilter(q);
+        q = p.applyDuplicateFilter(q);
         q = p.applyTargetFilterArea(q, state);
         q = p.applyTargetPositionSampler(q);
 
