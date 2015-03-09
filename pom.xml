@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>dk.dma</groupId>
 		<artifactId>dma-root-pom</artifactId>
-		<version>21</version>
+		<version>22</version>
 	</parent>
 
 	<groupId>dk.dma.ais.view</groupId>
 	<artifactId>ais-view</artifactId>
-	<version>0.3-SNAPSHOT</version>
+	<version>0.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>AisView</name>
 	<description>AisViewer</description>
@@ -130,7 +130,7 @@
 		<dependency>
 			<groupId>dk.dma.ais.store</groupId>
 			<artifactId>ais-store-common</artifactId>
-			<version>${project.version}</version>
+			<version>0.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -146,8 +146,6 @@
 		</dependency>
 
 	</dependencies>
-
-
 
 	<repositories>
 		<repository>
