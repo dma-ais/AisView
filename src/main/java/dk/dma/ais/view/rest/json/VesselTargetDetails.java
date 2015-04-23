@@ -14,13 +14,6 @@
  */
 package dk.dma.ais.view.rest.json;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import dk.dma.ais.data.AisClassAPosition;
 import dk.dma.ais.data.AisClassAStatic;
 import dk.dma.ais.data.AisClassBStatic;
@@ -31,18 +24,23 @@ import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
 import dk.dma.ais.message.AisMessage;
-import dk.dma.ais.message.AisMessage18;
 import dk.dma.ais.message.AisMessage3;
 import dk.dma.ais.message.AisMessage5;
-import dk.dma.ais.message.AisStaticCommon;
 import dk.dma.ais.message.AisTargetType;
 import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.message.NavigationalStatus;
 import dk.dma.ais.message.ShipTypeCargo;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
 import dk.dma.enav.model.geometry.Position;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class VesselTargetDetails {    
     

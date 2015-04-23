@@ -17,13 +17,11 @@ package dk.dma.ais.view;
 import com.beust.jcommander.Parameter;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
-import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
 import dk.dma.ais.store.job.JobManager;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.ais.tracker.TargetTracker;
-import dk.dma.ais.tracker.TargetTrackerFileBackupService;
+import dk.dma.ais.tracker.targetTracker.TargetTracker;
+import dk.dma.ais.tracker.targetTracker.TargetTrackerFileBackupService;
 import dk.dma.ais.view.common.util.CacheManager;
 import dk.dma.ais.view.rest.WebServer;
 import dk.dma.commons.app.AbstractDaemon;
@@ -39,7 +37,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiPredicate;
 
 /**
  * AIS viewer daemon
@@ -89,7 +86,7 @@ public class AisViewDaemon extends AbstractDaemon {
         start(new TargetTrackerFileBackupService(targetTracker, backup.toPath()));
 
         // start tracking
-        targetTracker.readFromStream(g.stream());
+        targetTracker.subscribeToPacketStream(g.stream());
         
         //target tracking cleanup service
         start(new AbstractScheduledService() {
@@ -104,27 +101,19 @@ public class AisViewDaemon extends AbstractDaemon {
                 final Date satellite = new Date(new Date().getTime()-(1000*60*60*48));
                 final Date live = new Date(new Date().getTime()-(1000*60*60*12));
                 
-                targetTracker.removeAll(new BiPredicate<AisPacketSource, TargetInfo>() {
-
-                    @Override
-                    public boolean test(AisPacketSource t, TargetInfo u) {
-                        switch(t.getSourceType()) {
-                        case SATELLITE:
-                            return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(satellite);
-                        default:
-                            return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(live);
-                        }
-                        
+                targetTracker.removeAll((t, u) -> {
+                    switch(t.getSourceType()) {
+                    case SATELLITE:
+                        return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(satellite);
+                    default:
+                        return !u.hasPositionInfo() || new Date(u.getPositionTimestamp()).before(live);
                     }
                 });
-
-                
             }
         });
         
         //target cleanup missing static data
         start(new AbstractScheduledService() {
-            
             @Override
             protected Scheduler scheduler() {
                 return Scheduler.newFixedDelaySchedule(1, 24, TimeUnit.HOURS);
@@ -132,15 +121,7 @@ public class AisViewDaemon extends AbstractDaemon {
             
             @Override
             protected void runOneIteration() throws Exception {
-                
-                targetTracker.removeAll(new BiPredicate<AisPacketSource, TargetInfo>() {
-                    @Override
-                    public boolean test(AisPacketSource t, TargetInfo u) {
-                        return !u.hasStaticInfo();
-                    }
-                });
-
-                
+                targetTracker.removeAll(u -> !u.hasStaticInfo());
             }
         });
         

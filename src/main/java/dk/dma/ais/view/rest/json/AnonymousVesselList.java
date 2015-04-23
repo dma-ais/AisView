@@ -14,16 +14,15 @@
  */
 package dk.dma.ais.view.rest.json;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
 import dk.dma.ais.data.AisClassAPosition;
 import dk.dma.ais.data.AisVesselPosition;
 import dk.dma.ais.data.AisVesselStatic;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.message.ShipTypeCargo;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.enav.model.geometry.Position;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class AnonymousVesselList extends BaseVesselList {
 

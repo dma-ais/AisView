@@ -15,13 +15,12 @@
  */
 package dk.dma.ais.view.common.util;
 
-import java.util.function.Predicate;
-
-import dk.dma.ais.packet.AisPacketFilters;
-import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.CoordinateSystem;
 import dk.dma.enav.model.geometry.Position;
+
+import java.util.function.Predicate;
 
 public class TargetInfoFilters {
     

@@ -23,7 +23,7 @@ import dk.dma.ais.packet.AisPacketOutputSinkJsonObject;
 import dk.dma.ais.packet.AisPacketOutputSinks;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketStream;
-import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
 import dk.dma.ais.view.common.util.TargetInfoFilters;
 import dk.dma.commons.util.DateTimeUtil;
 import dk.dma.commons.util.Iterables;

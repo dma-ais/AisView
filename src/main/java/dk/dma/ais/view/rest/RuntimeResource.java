@@ -14,17 +14,15 @@
  */
 package dk.dma.ais.view.rest;
 
+import dk.dma.ais.tracker.targetTracker.TargetTracker;
+import dk.dma.commons.web.rest.AbstractResource;
+
 import javax.servlet.ServletConfig;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-
-import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.ais.tracker.TargetTracker;
-import dk.dma.commons.web.rest.AbstractResource;
 
 /**
  * 
@@ -38,33 +36,13 @@ public class RuntimeResource extends AbstractResource {
     @Path("/targetCount")
     public int targetCount(@Context ServletConfig config, @Context UriInfo info) {
         QueryParameterHelper qh = new QueryParameterHelper(info);
-        return get(TargetTracker.class).countNumberOfTargets(new java.util.function.Predicate<AisPacketSource>() {
-            @Override
-            public boolean test(AisPacketSource t) {
-                return qh.getSourcePredicate().test(t);
-            }
-            
-        }, new java.util.function.Predicate<TargetInfo>() {
-
-            @Override
-            public boolean test(TargetInfo t) {
-                return qh.getTargetPredicate().test(t);
-            }
-            
-        });
+        return (int) get(TargetTracker.class).streamSequential(qh.getSourcePredicate(), qh.getTargetPredicate()).count();
     }
 
     @GET
     @Produces("text/plain")
     @Path("/reportCount")
     public int reportCount(@Context UriInfo info) {
-        return get(TargetTracker.class).countNumberOfReports(new java.util.function.BiPredicate<AisPacketSource, TargetInfo>() {
-
-            @Override
-            public boolean test(AisPacketSource t, TargetInfo u) {
-                return new QueryParameterHelper(info).getSourceAndTargetPredicate().test(t, u);
-            }
-            
-        });
+        return get(TargetTracker.class).countNumberOfReports();
     }
 }

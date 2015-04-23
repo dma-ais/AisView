@@ -26,7 +26,7 @@ import dk.dma.ais.message.IVesselPositionMessage;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.store.AisStoreQueryBuilder;
 import dk.dma.ais.store.AisStoreQueryResult;
-import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
 import dk.dma.ais.view.common.grid.Grid;
 import dk.dma.ais.view.common.grid.GridFactory;
 import dk.dma.ais.view.common.web.QueryParams;
@@ -121,7 +121,6 @@ public class AisViewHelper {
     /**
      * Generates an IPastTrack from AisStore
      * 
-     * @param aisTarget
      * @param mmsi
      * @param mostRecent
      * @param timeBack
@@ -235,7 +234,6 @@ public class AisViewHelper {
      * Returns a list of vessel clusters based on a filtering. The returned list
      * does only contain clusters with vessels.
      * 
-     * @param filter
      * @param size
      * @param limit
      * @return

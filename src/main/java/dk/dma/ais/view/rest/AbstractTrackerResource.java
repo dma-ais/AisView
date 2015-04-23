@@ -14,17 +14,16 @@
  */
 package dk.dma.ais.view.rest;
 
+import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetTracker;
+import dk.dma.commons.web.rest.AbstractResource;
+
+import javax.ws.rs.core.UriInfo;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import javax.ws.rs.core.UriInfo;
-
-import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.ais.tracker.TargetTracker;
-import dk.dma.commons.web.rest.AbstractResource;
 
 /**
  * 
@@ -46,7 +45,7 @@ public class AbstractTrackerResource extends AbstractResource {
      */
     protected Iterable<AisPacket> applyFilters(Stream<AisPacket> streamPackets, QueryParameterHelper qh) {
         // reapplying filters on packet stream
-        Iterable<AisPacket> packets = (Iterable<AisPacket>) streamPackets::iterator;
+        Iterable<AisPacket> packets = streamPackets::iterator;
 
         // filters
         packets = qh.applyPacketFilter(packets);
@@ -65,7 +64,7 @@ public class AbstractTrackerResource extends AbstractResource {
 
         TargetTracker tt = get(TargetTracker.class);
 
-        Stream<TargetInfo> s = tt.findTargets8(predSource, predTarget);
+        Stream<TargetInfo> s = tt.stream(predSource, predTarget);
         Stream<AisPacket[]> sPackets = s.map(e -> e.getPackets()).filter(o -> o != null);
 
         final ConcurrentLinkedDeque<AisPacket> packets = new ConcurrentLinkedDeque<AisPacket>();

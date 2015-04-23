@@ -14,14 +14,13 @@
  */
 package dk.dma.ais.view.rest.json;
 
+import dk.dma.ais.data.AisVesselTarget;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import dk.dma.ais.data.AisVesselTarget;
-import dk.dma.ais.tracker.TargetInfo;
 
 @ThreadSafe
 public abstract class BaseVesselList {

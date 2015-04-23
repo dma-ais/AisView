@@ -14,9 +14,6 @@
  */
 package dk.dma.ais.view.rest.json;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
 import dk.dma.ais.data.AisClassAPosition;
 import dk.dma.ais.data.AisClassAStatic;
 import dk.dma.ais.data.AisClassBStatic;
@@ -29,7 +26,10 @@ import dk.dma.ais.message.AisStaticCommon;
 import dk.dma.ais.message.AisTargetType;
 import dk.dma.ais.message.ShipTypeCargo;
 import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.tracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class VesselList extends BaseVesselList {
     

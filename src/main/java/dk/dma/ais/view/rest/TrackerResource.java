@@ -14,12 +14,14 @@
  */
 package dk.dma.ais.view.rest;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import dk.dma.ais.packet.AisPacket;
+import dk.dma.ais.packet.AisPacketOutputSinks;
+import dk.dma.ais.packet.AisPacketSource;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetTracker;
+import dk.dma.ais.view.common.util.TargetInfoFilters;
+import dk.dma.commons.util.JSONObject;
+import dk.dma.commons.web.rest.StreamingUtil;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -29,15 +31,12 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import dk.dma.ais.packet.AisPacket;
-import dk.dma.ais.packet.AisPacketOutputSinks;
-import dk.dma.ais.packet.AisPacketSource;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.ais.tracker.TargetTracker;
-import dk.dma.ais.view.common.util.TargetInfoFilters;
-import dk.dma.commons.util.JSONObject;
-import dk.dma.commons.web.rest.StreamingUtil;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * 
@@ -46,11 +45,8 @@ import dk.dma.commons.web.rest.StreamingUtil;
 @Path("/tracker")
 public class TrackerResource extends AbstractTrackerResource {
 
-    /**
-     * @param handler
-     */
+    /** */
     public TrackerResource() {
-        super();
     }
     
     /**
@@ -63,14 +59,14 @@ public class TrackerResource extends AbstractTrackerResource {
         
         TargetTracker tt = TrackerResource.this.get(TargetTracker.class);
         
-        ConcurrentSkipListSet<String> ids = new ConcurrentSkipListSet<String>();
+        ConcurrentSkipListSet<String> ids = new ConcurrentSkipListSet<>();
         
-        tt.findTargets(source-> {
+        tt.stream(source -> {
             if (source.getSourceId() != null) {
                 ids.add(source.getSourceId());
             }
             return false;
-        },target->true);
+        }, target -> true);
         
         return JSONObject.singleList("sourceIDs", ids.toArray());
     }
@@ -87,12 +83,12 @@ public class TrackerResource extends AbstractTrackerResource {
         
         ConcurrentSkipListSet<String> ids = new ConcurrentSkipListSet<String>();
         
-        tt.findTargets(source-> {
+        tt.stream(source -> {
             if (source.getSourceRegion() != null) {
                 ids.add(source.getSourceRegion());
             }
             return false;
-        },target->true);
+        }, target -> true);
         
         
         return JSONObject.singleList("sourceregions", ids.toArray());
@@ -108,7 +104,7 @@ public class TrackerResource extends AbstractTrackerResource {
         Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
         predTarget = (predTarget == null) ? e -> true : predTarget;        
         predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
-        return get(TargetTracker.class).findTargets(predSource, predTarget).size();
+        return (int) get(TargetTracker.class).stream(predSource, predTarget).count();
     }    
 
     @GET
@@ -120,7 +116,7 @@ public class TrackerResource extends AbstractTrackerResource {
         Predicate<TargetInfo> predTarget = qh.getTargetPredicate();
         predTarget = (predTarget == null) ? e -> true : predTarget;        
         predTarget = (qh.getArea() != null) ? qh.getTargetAreaFilter() : predTarget;
-        return get(TargetTracker.class).countNumberOfTargets(predSource,predTarget);
+        return (int) get(TargetTracker.class).stream(predSource,predTarget).count();
     }
 
     @GET
@@ -134,7 +130,7 @@ public class TrackerResource extends AbstractTrackerResource {
         pred = (pred == null) ? e -> true : pred;
 
         TargetTracker tt = get(TargetTracker.class);
-        TargetInfo ti = tt.getNewest(mmsi, pred);
+        TargetInfo ti = tt.get(mmsi, pred);
         List<AisPacket> l = java.util.Arrays.asList(ti.getStaticPackets());
 
         Iterable<AisPacket> p = applyFilters(l.stream(), qh);
@@ -160,7 +156,7 @@ public class TrackerResource extends AbstractTrackerResource {
 
         TargetTracker tt = get(TargetTracker.class);
 
-        Stream<TargetInfo> s = tt.findTargets8(predSource, predTarget);
+        Stream<TargetInfo> s = tt.stream(predSource, predTarget);
 
         Stream<AisPacket[]> sPackets = s.map(e -> e.getStaticPackets());
 
@@ -188,7 +184,7 @@ public class TrackerResource extends AbstractTrackerResource {
         pred = (pred == null) ? e -> true : pred;
 
         TargetTracker tt = get(TargetTracker.class);
-        TargetInfo ti = tt.getNewest(mmsi, pred);
+        TargetInfo ti = tt.get(mmsi, pred);
 
         // convert TargetInfo to Stream<AisPacket> and then Iterable<AisPacket>
         // after applying filters
@@ -214,7 +210,7 @@ public class TrackerResource extends AbstractTrackerResource {
 
         TargetTracker tt = get(TargetTracker.class);
 
-        Stream<TargetInfo> s = tt.findTargets8(predSource, predTarget);
+        Stream<TargetInfo> s = tt.stream(predSource, predTarget);
         Stream<AisPacket> sPacket = s.map(e -> e.getPositionPacket()).filter(
                 o -> o != null);
 

@@ -14,35 +14,7 @@
  */
 package dk.dma.ais.view.rest;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
-import java.util.function.ToLongFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
 import com.google.common.cache.Cache;
-
 import dk.dma.ais.data.AisTarget;
 import dk.dma.ais.data.AisVesselTarget;
 import dk.dma.ais.data.IPastTrack;
@@ -51,9 +23,9 @@ import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.packet.AisPacketSource;
 import dk.dma.ais.packet.AisPacketSourceFilters;
 import dk.dma.ais.packet.AisPacketTags.SourceType;
-import dk.dma.ais.tracker.TargetInfo;
-import dk.dma.ais.tracker.TargetInfoToAisTarget;
-import dk.dma.ais.tracker.TargetTracker;
+import dk.dma.ais.tracker.targetTracker.TargetInfo;
+import dk.dma.ais.tracker.targetTracker.TargetInfoToAisTarget;
+import dk.dma.ais.tracker.targetTracker.TargetTracker;
 import dk.dma.ais.view.common.util.CacheManager;
 import dk.dma.ais.view.common.util.TargetInfoFilters;
 import dk.dma.ais.view.common.web.QueryParams;
@@ -69,6 +41,27 @@ import dk.dma.enav.model.Country;
 import dk.dma.enav.model.geometry.BoundingBox;
 import dk.dma.enav.model.geometry.Position;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
  * All previously used web services for backwards compatibility. Ported to use
  * TargetTracker and AisStore functionality
@@ -82,12 +75,8 @@ public class LegacyResource extends AbstractResource {
     @SuppressWarnings("unused")
     private static final long TEN_MINUTE_BLOCK = 1000 * 60 * 10;
 
-    /**
-     * @param handler
-     */
+    /** */
     public LegacyResource() {
-        super();
-
         this.handler = new AisViewHelper(new AisViewConfiguration());
     }
 
@@ -117,13 +106,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = Objects.requireNonNull(LegacyResource.this
                 .get(TargetTracker.class));
 
-        Collection<TargetInfo> tis = tt
-                .findTargetsIncludingDuplicates(new BiPredicate<AisPacketSource, TargetInfo>() {
-                    @Override
-                    public boolean test(AisPacketSource t, TargetInfo u) {
-                        return true;
-                    }
-                });
+        Stream<TargetInfo> tis = tt.stream();
 
         final Date d = new Date(new Date().getTime() - 1000);
         final Long dLong = d.getTime();
@@ -131,29 +114,25 @@ public class LegacyResource extends AbstractResource {
         // count all packets in the TargetInfo which are after the given
         // timestamp.
         // this is kind of "double work" since we already filtered them above.
-        Long r = tis.stream().mapToLong(new ToLongFunction<TargetInfo>() {
+        Long r = tis.mapToLong(value -> {
 
-            @Override
-            public long applyAsLong(TargetInfo value) {
-
-                long r = 0L;
-                if (value.getPositionTimestamp() > dLong) {
-                    r++;
-                }
-
-                // eep, this is slow but has to be done
-                if (value.getStaticCount() > 1) {
-                    for (AisPacket p : value.getStaticPackets()) {
-                        if (p.getBestTimestamp() > dLong) {
-                            r++;
-                        }
-                    }
-                } else if (value.getStaticTimestamp() > dLong) {
-                    r++;
-                }
-
-                return r;
+            long r1 = 0L;
+            if (value.getPositionTimestamp() > dLong) {
+                r1++;
             }
+
+            // eep, this is slow but has to be done
+            if (value.getStaticCount() > 1) {
+                for (AisPacket p : value.getStaticPackets()) {
+                    if (p.getBestTimestamp() > dLong) {
+                        r1++;
+                    }
+                }
+            } else if (value.getStaticTimestamp() > dLong) {
+                r1++;
+            }
+
+            return r1;
         }).sum();
 
         return new Double((double) r).longValue();
@@ -200,9 +179,7 @@ public class LegacyResource extends AbstractResource {
         Cache<Integer, IPastTrack> cache = LegacyResource.this.get(
                 CacheManager.class).getPastTrackCache();
 
-        Entry<AisPacketSource, TargetInfo> entry = Objects.requireNonNull(tt
-                .getNewestEntry(mmsi));
-        TargetInfo ti = entry.getValue();
+        TargetInfo ti = tt.get(mmsi);
         
         AisVesselTarget target = (AisVesselTarget)TargetInfoToAisTarget
                 .generateAisTarget(ti);
@@ -252,7 +229,7 @@ public class LegacyResource extends AbstractResource {
         }
 
         VesselTargetDetails details = new VesselTargetDetails(target,
-                entry.getKey(), mmsi, pt);
+                ti.getPacketSource(), mmsi, pt);
 
         return details;
     }
@@ -268,13 +245,7 @@ public class LegacyResource extends AbstractResource {
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
         final Predicate<TargetInfo> searchPredicate = getSearchPredicate(argument);
 
-        Map<Integer, TargetInfo> targets = tt.findTargets(e -> true,
-                searchPredicate);
-
-        LinkedList<AisTarget> aisTargets = new LinkedList<AisTarget>();
-        for (Entry<Integer, TargetInfo> e : targets.entrySet()) {
-            aisTargets.add(e.getValue().getAisTarget());
-        }
+        List<AisTarget> aisTargets = tt.stream(e -> true, searchPredicate).map(ti -> ti.getAisTarget()).collect(Collectors.toList());
 
         // Get response from AisViewHandler and return it
         return handler.searchTargets(argument, aisTargets);
@@ -293,7 +264,7 @@ public class LegacyResource extends AbstractResource {
        
         targetPredicate = targetPredicate.and(getTargetPredicates(filter));
 
-        Stream<TargetInfo>targets = tt.findTargets8(getSourcePredicates(filter), targetPredicate);
+        Stream<TargetInfo>targets = tt.stream(getSourcePredicates(filter), targetPredicate);
         
         VesselList list = new VesselList();
         targets.parallel().forEach(e -> list.addTarget(e, e.getMmsi()));
@@ -341,7 +312,7 @@ public class LegacyResource extends AbstractResource {
 
         TargetTracker tt = LegacyResource.this.get(TargetTracker.class);
 
-        Stream<TargetInfo> targets = tt.findTargets8(
+        Stream<TargetInfo> targets = tt.stream(
                 getSourcePredicates(filter), targetPredicate);
         
         // Get request id
@@ -468,13 +439,7 @@ public class LegacyResource extends AbstractResource {
      * @return
      */
     private Predicate<TargetInfo> getSearchPredicate(final String searchTerm) {
-        return new Predicate<TargetInfo>() {
-            @Override
-            public boolean test(TargetInfo arg0) {
-                return !handler.rejectedBySearchCriteria(arg0.getAisTarget(),
-                        searchTerm);
-            }
-        };
+        return ti -> !handler.rejectedBySearchCriteria(ti.getAisTarget(), searchTerm);
     }
 
 }
