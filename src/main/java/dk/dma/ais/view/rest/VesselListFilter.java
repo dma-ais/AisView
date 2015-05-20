@@ -14,13 +14,12 @@
  */
 package dk.dma.ais.view.rest;
 
+import dk.dma.ais.view.common.web.QueryParams;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
-import dk.dma.ais.view.common.web.QueryParams;
 
 public class VesselListFilter {
 

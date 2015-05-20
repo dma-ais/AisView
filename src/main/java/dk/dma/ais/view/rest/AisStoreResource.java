@@ -31,7 +31,7 @@ import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
 import dk.dma.enav.model.geometry.BoundingBox;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -60,7 +60,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Resources that query AisStore.
