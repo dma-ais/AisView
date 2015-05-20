@@ -19,12 +19,12 @@ import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Injector;
 import dk.dma.ais.reader.AisReaderGroup;
 import dk.dma.ais.reader.AisReaders;
+import dk.dma.ais.store.cli.baseclients.AisStoreDaemon;
 import dk.dma.ais.store.job.JobManager;
 import dk.dma.ais.tracker.targetTracker.TargetTracker;
 import dk.dma.ais.tracker.targetTracker.TargetTrackerFileBackupService;
 import dk.dma.ais.view.common.util.CacheManager;
 import dk.dma.ais.view.rest.WebServer;
-import dk.dma.commons.app.AbstractDaemon;
 import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.db.cassandra.CassandraConnection;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * AIS viewer daemon
  */
-public class AisViewDaemon extends AbstractDaemon {
+public class AisViewDaemon extends AisStoreDaemon {
     /** The logger */
     static final Logger LOG = LoggerFactory.getLogger(AisViewDaemon.class);
 
@@ -53,9 +53,6 @@ public class AisViewDaemon extends AbstractDaemon {
 
     @Parameter(names = "-nodatabase", description = "Do not attempt to connect to any cassandra cluster")
     boolean noCassandra = false;
-
-    @Parameter(names = "-database", description = "A list of cassandra hosts that can store the data, list=empty -> AisStore disabled")
-    List<String> cassandraSeeds = Collections.emptyList();
 
     @Parameter(description = "A list of AIS sources (sourceName=host:port,host:port sourceName=host:port ...")
     List<String> sources;
@@ -128,19 +125,12 @@ public class AisViewDaemon extends AbstractDaemon {
         start(g.asService());
 
         // Start Ais Store Connection
-        CassandraConnection con = null;
-        if (!noCassandra && !cassandraSeeds.isEmpty()) {
-            con = start(CassandraConnection.create("aisdata", cassandraSeeds));
-            LOG.info("Connected to Cassandra cluster " + con.getSession().getCluster().getClusterName());
-        } else {
-            LOG.warn("Not connected to any cassandra cluster.");
-        }
+        final CassandraConnection con = connect();
 
         WebServer ws = new WebServer(port);
         ws.getContext().setAttribute(
                 AbstractResource.CONFIG,
-                AbstractResource.create(g, con, targetTracker, cacheManager,
-                        jobManager));
+                AbstractResource.create(g, con, targetTracker, cacheManager, jobManager));
 
         ws.start();
         LOG.info("AisView started");

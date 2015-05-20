@@ -30,6 +30,7 @@ import dk.dma.commons.web.rest.AbstractResource;
 import dk.dma.commons.web.rest.StreamingUtil;
 import dk.dma.commons.web.rest.query.QueryParameterValidators;
 import dk.dma.db.cassandra.CassandraConnection;
+import dk.dma.db.cassandra.PasswordProtectedCassandraConnection;
 import dk.dma.enav.model.geometry.BoundingBox;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joda.time.DateTime;
@@ -105,7 +106,7 @@ public class AisStoreResource extends AbstractResource {
 
         AisStoreQueryBuilder b = AisStoreQueryBuilder.forTime().setInterval(
                 start, end);
-        AisStoreQueryResult query = get(CassandraConnection.class).execute(b);
+        AisStoreQueryResult query = cassandraConnection().execute(b);
         Iterable<AisPacket> q = query;
 
         final AtomicLong l = new AtomicLong();
@@ -191,7 +192,7 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(p.getInterval());
 
         // Create the query
-        AisStoreQueryResult query = get(CassandraConnection.class).execute(b);
+        AisStoreQueryResult query = cassandraConnection().execute(b);
         return query;
     }
     
@@ -542,8 +543,7 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(interval);
 
         // Execute the query
-        AisStoreQueryResult queryResult = get(CassandraConnection.class)
-                .execute(b);
+        AisStoreQueryResult queryResult = cassandraConnection().execute(b);
 
         // Apply filters
         Iterable<AisPacket> filteredQueryResult = Iterables.filter(queryResult,
@@ -622,7 +622,7 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(p.getInterval());
 
         // Create the query
-        Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
+        Iterable<AisPacket> query = cassandraConnection().execute(b);
 
         // Apply filters from the user
         query = Iterables.filter(query, AisPacketFilters
@@ -650,7 +650,7 @@ public class AisStoreResource extends AbstractResource {
         b.setInterval(p.getInterval());
 
         // Create the query
-        Iterable<AisPacket> query = get(CassandraConnection.class).execute(b);
+        Iterable<AisPacket> query = cassandraConnection().execute(b);
 
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
 
@@ -661,6 +661,17 @@ public class AisStoreResource extends AbstractResource {
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter
                                            // (if other filters reject packets)
         return query;
+    }
+
+    /* TODO This can be done better. Dependency injection would be nice. */
+    private CassandraConnection cassandraConnection() {
+        CassandraConnection cassandraConnection;
+        try {
+            cassandraConnection = get(CassandraConnection.class);
+        } catch(UnsupportedOperationException e) {
+            cassandraConnection = get(PasswordProtectedCassandraConnection.class);
+        }
+        return cassandraConnection;
     }
 
     private static final String MEDIA_TYPE_KMZ = "application/vnd.google-earth.kmz";
