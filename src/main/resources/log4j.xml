@@ -8,10 +8,10 @@
         <param name="Target" value="System.out" />
         <param name="Threshold" value="INFO" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{ISO8601} %-5p [%c{1}] %m%n" />
+            <param name="ConversionPattern" value="%d{ISO8601} %-5p [%t] [%c{1}] %m%n" />
         </layout>
     </appender>
-        
+
     <root>
         <appender-ref ref="CONSOLE" />
     </root>
