@@ -14,9 +14,11 @@
  */
 package dk.dma.ais.view.rest;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.concurrent.TimeUnit;
+import dk.dma.ais.packet.AisPacketStream;
+import dk.dma.ais.packet.AisPacketStream.Subscription;
+import dk.dma.ais.reader.AisReaderGroup;
+import dk.dma.commons.util.io.CountingOutputStream;
+import dk.dma.commons.web.rest.AbstractResource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,12 +27,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
-
-import dk.dma.ais.packet.AisPacketStream;
-import dk.dma.ais.packet.AisPacketStream.Subscription;
-import dk.dma.ais.reader.AisReaderGroup;
-import dk.dma.commons.util.io.CountingOutputStream;
-import dk.dma.commons.web.rest.AbstractResource;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 
@@ -51,7 +50,7 @@ public class LiveDataResource extends AbstractResource {
             public void write(final OutputStream os) throws IOException {
                 AisPacketStream s = LiveDataResource.this.get(
                         AisReaderGroup.class).stream();
-                s = p.applySourceFilter(s);
+                s = p.applyPacketFilter(s);
                 s = p.applyLimitFilter(s);
 
                 CountingOutputStream cos = new CountingOutputStream(os);

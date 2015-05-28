@@ -100,9 +100,6 @@ class QueryParameterHelper {
 
     final OutputStreamSink<AisPacket> outputSink;
 
-    /** A predicate on the source of each packet. */
-    final Predicate<? super AisPacket> sourceFilter;
-
     /** A general AisPacket filter on source, target and message */
     final Predicate<? super AisPacket> packetFilter;
 
@@ -131,7 +128,6 @@ class QueryParameterHelper {
         Set<Integer> mmsi = new HashSet<>(
                 QueryParameterValidators.getParametersAsInt(uriInfo, "mmsi"));
         this.mmsis = Ints.toArray(mmsi);
-        sourceFilter = getSourceFilter(uriInfo);
         packetFilter = getPacketFilter(uriInfo);
 
         minDistance = getParameterAsIntWithRange(uriInfo, "minDistance", null,
@@ -153,14 +149,11 @@ class QueryParameterHelper {
     }
 
     public Iterable<AisPacket> applyAreaFilter(Iterable<AisPacket> i) {
-        return area == null ? i : Iterables.filter(i,
-                AisPacketFilters.filterOnMessagePositionWithin(area));
+        return area == null ? i : Iterables.filter(i, AisPacketFilters.filterOnMessagePositionWithin(area));
     }
 
-    public Iterable<AisPacket> applyTargetFilterArea(Iterable<AisPacket> i,
-            AisPacketFiltersStateful state) {
-        return area == null ? i : Iterables.filter(i,
-                state.filterOnTargetPositionWithin(area));
+    public Iterable<AisPacket> applyTargetFilterArea(Iterable<AisPacket> i, AisPacketFiltersStateful state) {
+        return area == null ? i : Iterables.filter(i, state.filterOnTargetPositionWithin(area));
     }
 
     public AisPacketStream applyLimitFilter(AisPacketStream s) {
@@ -196,12 +189,8 @@ class QueryParameterHelper {
                 AisPacketFilters.targetSamplingFilter(minDistance, minDuration));
     }
 
-    public AisPacketStream applySourceFilter(AisPacketStream s) {
-        return sourceFilter == null ? s : s.filter(sourceFilter);
-    }
-
-    public Iterable<AisPacket> applySourceFilter(Iterable<AisPacket> i) {
-        return sourceFilter == null ? i : Iterables.filter(i, sourceFilter);
+    public AisPacketStream applyPacketFilter(AisPacketStream s) {
+        return packetFilter == null ? s : s.filter(packetFilter);
     }
 
     public Iterable<AisPacket> applyPacketFilter(Iterable<AisPacket> i) {
@@ -211,12 +200,7 @@ class QueryParameterHelper {
     public BiPredicate<AisPacketSource, TargetInfo> getSourceAndTargetPredicate() {
         final Predicate<AisPacketSource> ps = getSourcePredicate();
         final Predicate<TargetInfo> pt = getTargetPredicate();
-        return new BiPredicate<AisPacketSource, TargetInfo>() {
-            @Override
-            public boolean test(AisPacketSource t, TargetInfo u) {
-                return ps.test(t) && pt.test(u);
-            }
-        };
+        return (t, u) -> ps.test(t) && pt.test(u);
     }
 
     public Predicate<TargetInfo> getTargetPredicate() {
@@ -398,32 +382,13 @@ class QueryParameterHelper {
         return p;
     }
 
-    private static Predicate<AisPacket> getSourceFilter(UriInfo info) {
-        List<String> filters = QueryParameterValidators.getParameters(info,
-                "filter");
-
-        if (filters.isEmpty()) {
-            return null;
-        }
-        Predicate<AisPacket> p = AisPacketFilters.parseSourceFilter(filters
-                .get(0));
-        for (int i = 1; i < filters.size(); i++) {
-            p = p.and(AisPacketFilters.parseSourceFilter(filters.get(i)));
-        }
-        return p;
-    }
-
-    /**
-     */
     private static Predicate<AisPacket> getPacketFilter(UriInfo info) {
-        List<String> filters = QueryParameterValidators.getParameters(info,
-                "filter");
+        List<String> filters = QueryParameterValidators.getParameters(info, "filter");
         if (filters.isEmpty()) {
             return null;
         }
         
-        Predicate<AisPacket> p = AisPacketFilters.parseExpressionFilter(filters
-                .get(0));
+        Predicate<AisPacket> p = AisPacketFilters.parseExpressionFilter(filters.get(0));
         for (int i = 1; i < filters.size(); i++) {
             p = p.and(AisPacketFilters.parseExpressionFilter(filters.get(i)));
         }
@@ -456,7 +421,7 @@ class QueryParameterHelper {
             sb.append(']');
         }
         sb.append(", outputSink=").append(outputSink);
-        sb.append(", sourceFilter=").append(sourceFilter);
+        sb.append(", filter=").append(packetFilter);
         sb.append(", uriInfo=").append(uriInfo);
         sb.append(", jobId='").append(jobId).append('\'');
         sb.append(", createSituationFolder=").append(createSituationFolder);
@@ -465,4 +430,5 @@ class QueryParameterHelper {
         sb.append('}');
         return sb.toString();
     }
+
 }

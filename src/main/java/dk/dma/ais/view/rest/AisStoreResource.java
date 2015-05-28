@@ -217,18 +217,17 @@ public class AisStoreResource extends AbstractResource {
         return StreamingUtil.createStreamingOutput(q, p.getOutputSink(), query);
     }
     
-    private Iterable<AisPacket> applyUserFilters(Iterable<AisPacket> q, QueryParameterHelper p) {
+    private Iterable<AisPacket> applyUserFilters(Iterable<AisPacket> packetIterable, QueryParameterHelper helper) {
         // Apply filters from the user
 
-        final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
-        q = p.applySourceFilter(q);
-        q = p.applyDuplicateFilter(q);
-        q = p.applyTargetFilterArea(q, state);
-        q = p.applyTargetPositionSampler(q);
+        packetIterable = helper.applyPacketFilter(packetIterable);
+        packetIterable = helper.applyDuplicateFilter(packetIterable);
+        packetIterable = helper.applyTargetFilterArea(packetIterable, new AisPacketFiltersStateful());
+        packetIterable = helper.applyTargetPositionSampler(packetIterable);
 
-        q = p.applyLimitFilter(q); // WARNING: Must be the last filter (if other
+        packetIterable = helper.applyLimitFilter(packetIterable); // WARNING: Must be the last filter (if other
                                    // filters reject packets)
-        return q;
+        return packetIterable;
     }
 
     @GET
@@ -627,7 +626,7 @@ public class AisStoreResource extends AbstractResource {
         // Apply filters from the user
         query = Iterables.filter(query, AisPacketFilters
                 .filterOnMessageType(IVesselPositionMessage.class));
-        query = p.applySourceFilter(query);
+        query = p.applyPacketFilter(query);
         query = p.applyPositionSampler(query); // WARNING: Must be the second
                                                // last filter
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter
@@ -655,7 +654,7 @@ public class AisStoreResource extends AbstractResource {
         final AisPacketFiltersStateful state = new AisPacketFiltersStateful();
 
         // Apply filters from the user
-        query = p.applySourceFilter(query); // first because this potentially
+        query = p.applyPacketFilter(query); // first because this potentially
                                             // filters a lot of packets
         query = p.applyTargetFilterArea(query, state);
         query = p.applyLimitFilter(query); // WARNING: Must be the last filter
