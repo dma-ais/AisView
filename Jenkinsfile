@@ -29,11 +29,5 @@ pipeline {
         success {
             sh 'curl --data "build=true" -X POST https://registry.hub.docker.com/u/dmadk/ais-view/trigger/433ec984-4492-11e4-8fb3-9a7045258090/'
         }
-        failure {
-            // notify users when the Pipeline fails
-            mail to: 'obo@dma.dk, jtj@dma.dk',
-                    subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-                    body: "Something is wrong with ${env.BUILD_URL}"
-        }
     }
 }
